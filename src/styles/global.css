@@ -1,5 +1,7 @@
 /* global.css */
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
   font-size: 16px;
