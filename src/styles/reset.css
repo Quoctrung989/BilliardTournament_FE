@@ -1,0 +1,101 @@
+/* reset.css */
+
+/* Box sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margin */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* HTML & body */
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Body default */
+body {
+  line-height: 1.5;
+  text-rendering: optimizeSpeed;
+  font-family: Arial, sans-serif;
+  background-color: #fff;
+  color: #111;
+}
+
+/* Media */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Form elements */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  outline: none;
+  border: none;
+  background: none;
+}
+
+/* Button */
+button {
+  cursor: pointer;
+}
+
+/* Anchor */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* List */
+ul,
+ol {
+  list-style: none;
+}
+
+/* Table */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* Text overflow */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+/* Textarea */
+textarea {
+  resize: none;
+}
+
+/* Disabled */
+button:disabled {
+  cursor: not-allowed;
+}

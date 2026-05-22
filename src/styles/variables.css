@@ -1,0 +1,9 @@
+:root {
+  --primary-color: #2563eb;
+  --danger-color: #ef4444;
+
+  --text-color: #111827;
+  --border-color: #e5e7eb;
+
+  --layout-width: 1200px;
+}

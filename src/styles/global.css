@@ -1,0 +1,11 @@
+/* global.css */
+@import "tailwindcss";
+
+body {
+  font-size: 16px;
+}
+
+.container {
+  width: 1200px;
+  margin: 0 auto;
+}
