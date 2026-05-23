@@ -1,6 +1,10 @@
 import React from "react";
+import { useAuthStore } from "../../store/authStore";
+import { AiOutlineUser, AiOutlineLogout, AiOutlineQuestionCircle } from "react-icons/ai";
 
 const Header = () => {
+  const { openLogin, isAuthenticated, user, logout } = useAuthStore();
+
   return (
     <div className="w-full bg-[#333333] text-white px-16 h-[100px] flex items-center justify-between font-bold sticky top-0 z-50">
       <div className="text-2xl font-bold ">WNT</div>
@@ -27,7 +31,39 @@ const Header = () => {
           Store
         </div>
       </div>
-      <div></div>
+
+      {/* User section */}
+      {isAuthenticated && user ? (
+        <div className="flex items-center gap-8 h-full">
+          {/* My Profile */}
+          <button className="flex items-center gap-2 text-gray-300 hover:text-[#EF342A] transition h-full border-b-6 border-transparent hover:border-b-6 hover:border-[#EF342A] px-2">
+            <AiOutlineUser size={20} />
+            <span className="text-base font-semibold">My Profile</span>
+          </button>
+
+          {/* Support */}
+          <button className="flex items-center gap-2 text-gray-300 hover:text-[#EF342A] transition h-full border-b-6 border-transparent hover:border-b-6 hover:border-[#EF342A] px-2">
+            <AiOutlineQuestionCircle size={20} />
+            <span className="text-base font-semibold">Support</span>
+          </button>
+
+          {/* Logout */}
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 text-gray-300 hover:text-[#EF342A] transition h-full border-b-6 border-transparent hover:border-b-6 hover:border-[#EF342A] px-2"
+          >
+            <AiOutlineLogout size={20} />
+            <span className="text-base font-semibold">Logout</span>
+          </button>
+        </div>
+      ) : (
+        <button
+  onClick={openLogin}
+  className="border-2 border-[#EF342A] text-[#EF342A] hover:bg-[#EF342A] hover:text-white font-semibold px-6 py-2 rounded-full transition-all duration-300"
+>
+  Đăng Nhập
+</button>
+      )}
     </div>
   );
 };
