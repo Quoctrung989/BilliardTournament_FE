@@ -39,7 +39,7 @@ const newsData = [
 
 const News = () => {
   return (
-    <div className="h-wrapper w-full bg-cover bg-center px-6 py-8">
+    <div className="h-wrapper w-full bg-cover bg-center px-6 py-8 max-w-[1600px] mx-auto">
       <div className="mx-auto grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="lg:col-span-1 ">
           <div className="group overflow-hidden rounded-l-[24px] border border-gray-300 bg-white shadow-sm cursor-pointer">

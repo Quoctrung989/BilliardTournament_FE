@@ -2,11 +2,11 @@ import React from "react";
 
 const Banner = () => {
   return (
-    <div className="w-full h-[400px] bg-[#333333] text-white flex items-center justify-center text-4xl font-bold">
+    <div className="w-full h-[400px] bg-[#333333] text-white flex items-center justify-center text-4xl font-bold relative">
       <img
-        src="https://matchroompool.com/wp-content/uploads/florida-open-2026_desktop-background.jpg"
+        src="https://matchroompool.com/wp-content/uploads/us-open-2026_desktop-players.png"
         alt=""
-        className="w-full h-full object-cover"
+        className="h-full object-cover"
       />
     </div>
   );
