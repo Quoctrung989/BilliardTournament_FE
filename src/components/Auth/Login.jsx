@@ -1,17 +1,88 @@
 import { useState } from "react";
 import { useAuthStore } from "../../store/authStore";
-import { AiOutlineClose } from "react-icons/ai";
+import { AiOutlineClose, AiOutlineExclamationCircle, AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const Login = () => {
-  const { isLoginOpen, closeLogin, login } = useAuthStore();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { isLoginOpen, closeLogin, login, openSignup, openForgotPassword } = useAuthStore();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    setTouched(prev => ({ ...prev, [name]: true }));
+    validateField(name, value);
+  };
+
+  const validateField = (name, value) => {
+    const newErrors = { ...errors };
+
+    switch (name) {
+      case "email":
+        if (!value) {
+          newErrors.email = "Email là bắt buộc";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors.email = "Email không hợp lệ";
+        } else {
+          delete newErrors.email;
+        }
+        break;
+      case "password":
+        if (!value) {
+          newErrors.password = "Mật khẩu là bắt buộc";
+        } else if (value.length < 5) {
+          newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+        } else {
+          delete newErrors.password;
+        }
+        break;
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setTouched({
+      email: true,
+      password: true,
+    });
+
+    const newErrors = {};
+
+    if (!formData.email) {
+      newErrors.email = "Email là bắt buộc";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Email không hợp lệ";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Mật khẩu là bắt buộc";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
     setIsLoading(true);
 
     let baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
@@ -22,7 +93,7 @@ const Login = () => {
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
       });
 
       const data = await response.json();
@@ -34,19 +105,13 @@ const Login = () => {
       const token = data?.data?.token;
       if (!token) throw new Error("Không nhận được token từ server.");
 
-      login({ email }, token);
+      login({ email: formData.email }, token);
       closeLogin();
     } catch (err) {
-      setError(err.message);
+      setErrors({ submit: err.message });
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleRecoverPassword = () => {
-  };
-
-  const handleSignUp = () => {
   };
 
   const handleBackToEvents = () => {
@@ -75,45 +140,66 @@ const Login = () => {
         <h2 className="text-xl font-semibold text-center text-gray-700 mb-6">
           ĐĂNG NHẬP
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Địa chỉ email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
-              placeholder="your@email.com"
-              required
-            />
+            <div className="relative">
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
+                className={`w-full px-4 py-2 border-2 rounded-md focus:outline-none transition ${
+                  touched.email && errors.email
+                    ? "border-red-500 focus:ring-2 focus:ring-red-300"
+                    : "border-gray-300 focus:ring-2 focus:ring-gray-400"
+                }`}
+                placeholder="Địa chỉ email"
+              />
+              {touched.email && errors.email && (
+                <AiOutlineExclamationCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500" size={20} />
+              )}
+            </div>
+            {touched.email && errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mật khẩu
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
-              placeholder="••••••••"
-              required
-            />
+            <div className="relative">
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
+                className={`w-full px-4 py-2 border-2 rounded-md focus:outline-none transition ${
+                  touched.password && errors.password
+                    ? "border-red-500 focus:ring-2 focus:ring-red-300"
+                    : "border-gray-300 focus:ring-2 focus:ring-gray-400"
+                }`}
+                placeholder="Password"
+              />
+              {touched.password && errors.password && (
+                <AiOutlineExclamationCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500" size={20} />
+              )}
+            </div>
+            {touched.password && errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
           <div className="text-right">
             <button
               type="button"
-              onClick={handleRecoverPassword}
+              onClick={openForgotPassword}
               className="text-sm text-blue-600 hover:underline"
             >
               Khôi phục mật khẩu tại đây
             </button>
           </div>
-          {error && (
-            <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">
-              {error}
+          {errors.submit && (
+            <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded border border-red-200">
+              {errors.submit}
             </div>
           )}
           <button
@@ -121,7 +207,14 @@ const Login = () => {
             disabled={isLoading}
             className="w-full bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white font-semibold py-2 rounded-full transition mt-4"
           >
-            {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <AiOutlineLoading3Quarters className="animate-spin" />
+                <span>Đang xử lý...</span>
+              </div>
+            ) : (
+              "Đăng nhập"
+            )}
           </button>
         </form>
         <div className="mt-8 text-center">
@@ -132,7 +225,10 @@ const Login = () => {
             Đăng ký để truy cập wnt live scoring.
           </p>
           <button
-            onClick={handleSignUp}
+            onClick={() => {
+              closeLogin();
+              openSignup();
+            }}
             className="mt-3 w-full bg-black hover:bg-gray-800 text-white font-semibold py-2 rounded-full transition"
           >
             Đăng ký ngay
@@ -140,7 +236,7 @@ const Login = () => {
         </div>
         <div className="mt-6 text-center">
           <button
-            onClick={handleBackToEvents}
+            onClick={closeLogin}
             className="text-sm text-gray-500 hover:text-gray-700 underline"
           >
             Quay lại trang sự kiện
