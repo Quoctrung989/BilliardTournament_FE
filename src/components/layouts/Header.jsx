@@ -1,9 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { AiOutlineUser, AiOutlineLogout, AiOutlineQuestionCircle } from "react-icons/ai";
 
 const Header = () => {
-  const { openLogin, isAuthenticated, user, logout } = useAuthStore();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   return (
     <div className="w-full bg-[#333333] text-white px-16 h-[100px] flex items-center justify-between font-bold sticky top-0 z-50">
@@ -58,11 +60,11 @@ const Header = () => {
         </div>
       ) : (
         <button
-  onClick={openLogin}
-  className="border-2 border-[#EF342A] text-[#EF342A] hover:bg-[#EF342A] hover:text-white font-semibold px-6 py-2 rounded-full transition-all duration-300"
->
-  Đăng Nhập
-</button>
+          onClick={() => navigate("/login")}
+          className="border-2 border-[#EF342A] text-[#EF342A] hover:bg-[#EF342A] hover:text-white font-semibold px-6 py-2 rounded-full transition-all duration-300"
+        >
+          Đăng Nhập
+        </button>
       )}
     </div>
   );
