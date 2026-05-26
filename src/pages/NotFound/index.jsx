@@ -1,28 +1,32 @@
 import { useNavigate } from "react-router-dom";
+import "./styles.css";
 
 function NotFound() {
   const navigate = useNavigate();
-  const handleBack = () => {
-    navigate(-1);
-  };
-
   return (
-    <div className="flex flex-col items-center bg-red">
-      {/* <ForbiddenIcon className="w-12 h-12 mt-8 text-purple-200" aria-hidden="true" /> */}
-      <h1 className="text-6xl font-semibold text-gray-700 dark:text-gray-200">
-        404
-      </h1>
-      <p className="text-gray-700 dark:text-gray-300">
-        Page not found. Check the address or{" "}
-        <span
-          className="text-purple-600 hover:underline dark:text-purple-300 cursor-pointer"
-          onClick={() => handleBack()}
-        >
-          go back
-        </span>
-        .
-      </p>
-    </div>
+    <section class="page_404">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12 ">
+            <div class="col-sm-10 col-sm-offset-1  text-center">
+              <div class="four_zero_four_bg">
+                <h1 class="text-center ">404</h1>
+              </div>
+
+              <div class="contant_box_404">
+                <h3 class="h2">Look like you're lost</h3>
+
+                <p>the page you are looking for not avaible!</p>
+
+                <div class="link_404" onClick={() => navigate(-1)}>
+                  Go to Home
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

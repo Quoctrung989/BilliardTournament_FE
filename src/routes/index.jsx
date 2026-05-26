@@ -5,24 +5,28 @@ import LoginPage from "../pages/Auth/LoginPage";
 import RegisterPage from "../pages/Auth/RegisterPage";
 import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
 import CommonLayout from "../components/layouts/layout/CommonLayout";
-import Login from "../pages/Login";
-import SignUp from "../pages/SignUp";
+import Dashboard from "../pages/Admin/Dashboard";
+import { ROUTES } from "../constants/routes";
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <CommonLayout>
-              <Home />
-            </CommonLayout>
-          }
-        />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        {ROUTES?.map((route) => (
+          <Route
+            key={route.path}
+            path={route.path}
+            element={
+              route.layout ? (
+                <route.layout>
+                  <route.component />
+                </route.layout>
+              ) : (
+                <route.component />
+              )
+            }
+          />
+        ))}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

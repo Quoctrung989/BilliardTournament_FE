@@ -65,7 +65,7 @@ const Header = () => {
           ) : (
             <button
               onClick={() => navigate("/login")}
-              className="border-2 border-[#EF342A] text-[#EF342A] hover:bg-[#EF342A] hover:text-white font-semibold px-6 py-2 rounded-full transition-all duration-300"
+              className="border-2 border-[#EF342A] text-[var(--wnt25-color-light)] hover:bg-[#EF342A] hover:text-white font-semibold px-6 py-2 rounded-full transition-all duration-300"
             >
               Đăng Nhập
             </button>
