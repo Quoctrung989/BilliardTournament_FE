@@ -32,7 +32,7 @@ const newsData = [
 
 const Schedule = () => {
   return (
-    <div className="w-full flex flex-col gap-6 p-6">
+    <div className="w-full flex flex-col gap-6 p-6 max-w-[1600px] mx-auto">
       <div className="bg-[var(--wnt25-color-light)] p-4 rounded-md flex justify-between items-center">
         <h2 className="text-lg font-bold">Schedule</h2>
         <button className="flex h-10 w-wrapper items-center justify-center rounded-md border border-gray-300 text-sm transition hover:bg-gray-100 italic">
