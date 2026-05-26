@@ -9,6 +9,8 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.16.1",
     "clsx": "^2.1.1",
+    "highcharts": "^12.6.0",
+    "highcharts-react-official": "^3.2.3",
     "lucide-react": "^1.16.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
