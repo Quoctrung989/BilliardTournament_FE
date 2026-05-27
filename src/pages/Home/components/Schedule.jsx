@@ -10,14 +10,14 @@ const newsData = [
   {
     id: 2,
     title:
-      "TALKSPORT TO BROADCAST UK OPEN POOL CHAMPIONSHIP ALONGSIDE WNT TV AND GLOBAL ...",
+      "TALKSPORT TO BROADCAST UK OPEN POOL CHAMPIONSHIP ALONGSIDE CAPSTONE TV AND GLOBAL ...",
     image:
       "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
   },
   {
     id: 3,
     title:
-      "WORLD NINEBALL TOUR INTRODUCES FIRST SEEDED JUNIOR FIELD ON TOUR AT WNT NXT G...",
+      "WORLD NINEBALL TOUR INTRODUCES FIRST SEEDED JUNIOR FIELD ON TOUR AT CAPSTONE NXT G...",
     image:
       "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
   },
@@ -55,7 +55,7 @@ const Schedule = () => {
                     May 26 - 31 2026
                   </span>
                   <span className="text-[22px] font-bold  text-[var(--wnt25-color-dark)] text-sm">
-                    WNT
+                    CAPSTONE
                   </span>
                 </div>
 
@@ -98,7 +98,7 @@ const Schedule = () => {
                       May 26 - 31 2026
                     </span>
                     <span className="text-[14px] font-bold  text-[var(--wnt25-color-dark)] text-sm">
-                      WNT
+                      CAPSTONE
                     </span>
                   </div>
 

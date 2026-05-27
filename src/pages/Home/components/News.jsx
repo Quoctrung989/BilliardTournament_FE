@@ -10,14 +10,14 @@ const newsData = [
   {
     id: 2,
     title:
-      "TALKSPORT TO BROADCAST UK OPEN POOL CHAMPIONSHIP ALONGSIDE WNT TV AND GLOBAL ...",
+      "TALKSPORT TO BROADCAST UK OPEN POOL CHAMPIONSHIP ALONGSIDE CAPSTONE TV AND GLOBAL ...",
     image:
       "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
   },
   {
     id: 3,
     title:
-      "WORLD NINEBALL TOUR INTRODUCES FIRST SEEDED JUNIOR FIELD ON TOUR AT WNT NXT G...",
+      "WORLD NINEBALL TOUR INTRODUCES FIRST SEEDED JUNIOR FIELD ON TOUR AT CAPSTONE NXT G...",
     image:
       "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
   },
@@ -63,7 +63,7 @@ const News = () => {
 
         <div className="flex flex-col gap-6 lg:col-span-1">
           <div className="bg-[var(--wnt25-color-light)] p-4 rounded-md flex justify-between items-center">
-            <h2 className="text-lg font-bold">WNT Latest</h2>
+            <h2 className="text-lg font-bold">CAPSTONE Latest</h2>
             <button className="flex w-wrapper items-center justify-center rounded-md border border-gray-300 text-sm transition hover:bg-gray-100 italic">
               All News
             </button>

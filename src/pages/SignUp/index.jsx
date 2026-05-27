@@ -149,8 +149,8 @@ const SignUp = () => {
             Hệ thống giải đấu billiard chuyên nghiệp tại Việt Nam
           </h1>
           <p className="text-xl text-white font-normal">
-            Bạn cần thông tin giải đấu nào, WNT sẽ giúp bạn cập nhật nhanh chóng
-            và chính xác nhất
+            Bạn cần thông tin giải đấu nào, CAPSTONE sẽ giúp bạn cập nhật nhanh
+            chóng và chính xác nhất
           </p>
         </div>
         <img
