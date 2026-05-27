@@ -9,6 +9,7 @@ import { FiUserPlus } from "react-icons/fi";
 import { LuPackage } from "react-icons/lu";
 import Highcharts from "highcharts";
 import { BACKGROUND_IMAGE_URL_HOME } from "../../../constants/constUrl";
+import axiosClient from "../../../api/axiosClient";
 
 const Dashboard = () => {
   const earning = {
