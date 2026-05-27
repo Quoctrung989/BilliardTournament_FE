@@ -26,7 +26,7 @@ const Sidebar = () => {
           className="w-10 inline-block items-center rounded-full mr-2"
         />
         <h1 className="text-white text-[20px] leading-[24px] font-extrabold cursor-pointer">
-          WNT
+          CAPSTONE
         </h1>
       </div>
       <div

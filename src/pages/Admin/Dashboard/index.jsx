@@ -20,7 +20,7 @@ const Dashboard = () => {
       text: `Thống kê doanh thu theo  "tuần này" `,
     },
     subtitle: {
-      text: "Source: " + '<a target="_blank">WNT</a>',
+      text: "Source: " + '<a target="_blank">CAPSTONE</a>',
     },
     xAxis: {
       categories: [],
@@ -56,7 +56,7 @@ const Dashboard = () => {
       text: `Thống kê số giải đấu mới theo `,
     },
     subtitle: {
-      text: "Source: " + '<a target="_blank">WNT</a>',
+      text: "Source: " + '<a target="_blank">CAPSTONE</a>',
     },
     xAxis: {
       categories: [],
