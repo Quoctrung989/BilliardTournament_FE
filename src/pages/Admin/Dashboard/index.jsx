@@ -82,11 +82,6 @@ const Dashboard = () => {
     ],
   };
 
-  //Call api need access token
-  axiosClient.get("/xxxxx/xxxx").then((response) => {
-    console.log("Earnings data:", response.data);
-  }); 
-
   return (
     <div className="">
       <div className="flex">
