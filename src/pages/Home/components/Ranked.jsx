@@ -73,7 +73,7 @@ const players = [
 
 const Ranked = () => {
   return (
-    <div className="flex flex-col gap-8 w-full p-8">
+    <div className="flex flex-col gap-10 w-full py-8 px-16 max-w-[1600px] mx-auto">
       <div className=" w-full bg-[var(--wnt25-color-dark)] p-4 rounded-md flex justify-between items-center text-[var(--wnt25-color-light)]">
         <h2 className="text-lg font-bold tracking-tight">
           WNT Nineball's Top 9 Ranked
@@ -83,8 +83,8 @@ const Ranked = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_2.2fr]">
-        <div className="group overflow-hidden rounded-l-[16px] border border-white/20">
+      <div className="grid grid-cols-1 gap-10 xl:grid-cols-[1.15fr_2.2fr]">
+        <div className="group overflow-hidden rounded-l-[16px] border-b-[2px] border-l-[2px] border-white">
           <div className="relative overflow-hidden">
             <div
               className={`h-[300px] flex items-end relative bg-[var(--wnt25-color-light)] border-b-[30px]  w-full `}
