@@ -9,6 +9,7 @@ import { FiUserPlus } from "react-icons/fi";
 import { LuPackage } from "react-icons/lu";
 import Highcharts from "highcharts";
 import { BACKGROUND_IMAGE_URL_HOME } from "../../../constants/constUrl";
+import axiosClient from "../../../api/axiosClient";
 
 const Dashboard = () => {
   const earning = {
@@ -80,6 +81,11 @@ const Dashboard = () => {
       },
     ],
   };
+
+  //Call api need access token
+  axiosClient.get("/xxxxx/xxxx").then((response) => {
+    console.log("Earnings data:", response.data);
+  }); 
 
   return (
     <div className="">
