@@ -1,20 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FaRegSun,
   FaStickyNote,
   FaChevronLeft,
   FaUserFriends,
+  FaChevronRight,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { useNavigate } from "react-router";
-import { BACKGROUND_IMAGE_URL_DARK } from "../../../../../constants/constUrl";
+import { BACKGROUND_IMAGE_URL_DARK } from "../../../../constants/constUrl";
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div
-      className=" px-[25px] h-screen"
+      className={`h-full ${collapsed ? "w-20" : "w-64"} transition-all duration-300 ease-in-out px-[15px] `}
       style={{
         backgroundImage: `url('${BACKGROUND_IMAGE_URL_DARK}')`,
       }}
@@ -25,77 +27,95 @@ const Sidebar = () => {
           alt=""
           className="w-10 inline-block items-center rounded-full mr-2"
         />
-        <h1 className="text-white text-[20px] leading-[24px] font-extrabold cursor-pointer">
-          CAPSTONE
-        </h1>
+        {!collapsed && (
+          <h1 className="text-white text-[20px] leading-[24px] font-extrabold cursor-pointer whitespace-nowrap overflow-hidden transition-all duration-300">
+            CAPSTONE
+          </h1>
+        )}
       </div>
       <div
         className="flex items-center gap-[15px] py-[20px] border-b-[1px] transition ease-in-out duration-300 rounded pl-4 hover:bg-secondary border-[#EDEDED]/[0.3] cursor-pointer "
         onClick={() => navigate("/admin/dashboard")}
       >
         <MdDashboard color="white" />
-        <p className="text-[14px] leading-[20px] font-bold text-white ">
-          Tổng quan
-        </p>
+        {!collapsed && (
+          <p className="text-[14px] leading-[20px] font-bold text-white whitespace-nowrap overflow-hidden transition-all duration-300">
+            Tổng quan
+          </p>
+        )}
       </div>
       <div className="pt-[15px] border-b-[1px] border-[#EDEDED]/[0.3]">
-        <p className="text-[10px] font-extrabold leading-[16px] text-white/[0.4]">
-          {" "}
-          Người dùng
-        </p>
+        {!collapsed && (
+          <p className="text-[10px] font-extrabold leading-[16px] text-white/[0.4] whitespace-nowrap overflow-hidden transition-all duration-300">
+            Người dùng
+          </p>
+        )}
         <div
           className="flex items-center justify-between gap-[10px] py-[15px] cursor-pointer transition ease-in-out duration-300 rounded pl-4 hover:bg-secondary"
-          onClick={() => navigate("/admin")}
+          onClick={() => navigate("/admin/users")}
         >
           <div className="flex items-center gap-[10px]">
             <FaRegSun color="white" />{" "}
-            <p className="text-[14px] leading-[20px] font-normal text-white">
-              Quản lý người dùng
-            </p>
+            {!collapsed && (
+              <p className="text-[14px] leading-[20px] font-normal text-white whitespace-nowrap overflow-hidden transition-all duration-300">
+                Quản lý người dùng
+              </p>
+            )}
           </div>
         </div>
       </div>
       <div className="pt-[15px] border-b-[1px] border-[#EDEDED]/[0.3]">
-        <p className="text-[10px] font-extrabold leading-[16px] text-white/[0.4]">
-          {" "}
-          Giải đấu
-        </p>
+        {!collapsed && (
+          <p className="text-[10px] font-extrabold leading-[16px] text-white/[0.4] whitespace-nowrap overflow-hidden transition-all duration-300">
+            Giải đấu
+          </p>
+        )}
         <div
           className="flex items-center justify-between gap-[10px] py-[15px] cursor-pointer transition ease-in-out duration-300 rounded pl-4 hover:bg-secondary"
           onClick={() => navigate("/admin/accountsManagement")}
         >
           <div className="flex items-center gap-[10px]">
             <FaStickyNote color="white" />{" "}
-            <p className="text-[14px] leading-[20px] font-normal text-white">
-              Danh sách
-            </p>
+            {!collapsed && (
+              <p className="text-[14px] leading-[20px] font-normal text-white whitespace-nowrap overflow-hidden transition-all duration-300">
+                Danh sách
+              </p>
+            )}
           </div>
         </div>
       </div>
       <div className="pt-[15px] border-b-[1px] border-[#EDEDED]/[0.3]">
-        <p className="text-[10px] font-extrabold leading-[16px] text-white/[0.4]">
-          {" "}
-          Nhân viên
-        </p>
+        {!collapsed && (
+          <p className="text-[10px] font-extrabold leading-[16px] text-white/[0.4] whitespace-nowrap overflow-hidden transition-all duration-300">
+            {" "}
+            Nhân viên
+          </p>
+        )}
         <div
           className="flex items-center justify-between gap-[10px] py-[15px] cursor-pointer transition ease-in-out duration-300 rounded pl-4 hover:bg-secondary"
-          onClick={() => navigate("/admin/accountsManagement")}
+          onClick={() => navigate("/admin/staffManagement")}
         >
           <div className="flex items-center gap-[10px]">
             <FaUserFriends color="white" />{" "}
-            <p className="text-[14px] leading-[20px] font-normal text-white">
-              Quản lý nhân viên
-            </p>
+            {!collapsed && (
+              <p className="text-[14px] leading-[20px] font-normal text-white">
+                Quản lý nhân viên
+              </p>
+            )}
           </div>
         </div>
       </div>
       <div className="pt-[15px]">
         <div
           className="flex items-center justify-center"
-          onClick={() => navigate("/")}
+          onClick={() => setCollapsed(!collapsed)}
         >
           <div className="h-[40px] w-[40px] bg-[#3C5EC1] rounded-full flex items-center justify-center cursor-pointer">
-            <FaChevronLeft color="white" />
+            {collapsed ? (
+              <FaChevronRight color="white" />
+            ) : (
+              <FaChevronLeft color="white" />
+            )}
           </div>
         </div>
       </div>

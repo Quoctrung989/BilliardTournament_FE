@@ -49,7 +49,7 @@ const Footer = () => {
         <div className="flex flex-col gap-8 pt-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center">
             <h1 className="text-[60px] font-black italic leading-none tracking-tight text-[#2b2b2b]">
-              wnt<span className="text-red-500">.</span>
+              CAPS<span className="text-red-500">.</span>
             </h1>
           </div>
 
@@ -66,7 +66,7 @@ const Footer = () => {
 
           <div className="flex items-center gap-5">
             <h2 className="text-[40px] font-black italic text-[#2b2b2b]">
-              wnt.tv
+              CAPS.tv
             </h2>
 
             <button className="transition-opacity hover:opacity-60">✕</button>
