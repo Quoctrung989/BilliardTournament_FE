@@ -4,6 +4,9 @@ import Home from "../pages/Home";
 import LoginPage from "../pages/Auth/LoginPage";
 import RegisterPage from "../pages/Auth/RegisterPage";
 import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
+import UserManagement from "../pages/Admin/UserManagement";
+import Profile from "../pages/Profile";
+import StaffManagement from "../pages/Admin/StaffManagement";
 
 export const ROUTES = [
   {
@@ -14,4 +17,7 @@ export const ROUTES = [
   { path: "/login", component: LoginPage, layout: null },
   { path: "/register", component: RegisterPage, layout: null },
   { path: "/forgot-password", component: ForgotPasswordPage, layout: null },
+  { path: "/profile", component: Profile, layout: null },
+  { path: "/admin/users", component: UserManagement, layout: null },
+  { path: "/admin/staffManagement", component: StaffManagement, layout: null },
 ];

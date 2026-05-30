@@ -1,8 +1,8 @@
 import HighchartsReact from "highcharts-react-official";
 import React from "react";
 import { FaEllipsisV } from "react-icons/fa";
-import Sidebar from "./components/SideBar";
-import DashboardView from "./components/DashboardView";
+import Sidebar from "../components/SideBar";
+import DashboardView from "../components/DashboardView";
 import { formatVND } from "../../../utils/helpers";
 import { PiMoneyWavy } from "react-icons/pi";
 import { FiUserPlus } from "react-icons/fi";
@@ -85,11 +85,11 @@ const Dashboard = () => {
   return (
     <div className="">
       <div className="flex">
-        <div className="basis-[12%] h-[100vh]">
+        <div className="h-[100vh]">
           <Sidebar />
         </div>
         <div
-          className="basis-[88%] border overflow-scroll h-[100vh]"
+          className="flex-1 border overflow-scroll h-[100vh]"
           style={{
             backgroundImage: `url('${BACKGROUND_IMAGE_URL_HOME}')`,
           }}
