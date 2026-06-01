@@ -45,9 +45,9 @@ const DashboardView = () => {
                 </p>
                 <p
                   className="cursor-pointer hover:text-[blue] font-semibold"
-                  onClick={() => navigate("/admin/dashboard")}
+                  onClick={() => navigate("/profile")}
                 >
-                  Quản lý người dùng
+                  Thông tin cá nhân
                 </p>
                 <p
                   className="cursor-pointer hover:text-[blue] font-semibold"
