@@ -1,16 +1,18 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../../../store/authStore";
 
 const DashboardView = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.logout);
 
   const showProfile = () => {
     setOpen(!open);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    logout();
     navigate("/login");
   };
 
@@ -27,9 +29,7 @@ const DashboardView = () => {
             <p className="font-semibold">ADMIN</p>
             <div className="h-[50px] w-[50px] rounded-full bg-[#4E73DF] cursor-pointer flex items-center justify-center relative z-40">
               <img
-                src={
-                  "https://i.pinimg.com/736x/1b/30/13/1b3013024531f649de7cd7494e5e9af9.jpg"
-                }
+                src="https://i.pinimg.com/736x/1b/30/13/1b3013024531f649de7cd7494e5e9af9.jpg"
                 alt=""
                 className="rounded-full w-full"
               />

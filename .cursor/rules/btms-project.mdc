@@ -1,0 +1,14 @@
+---
+description: BTMS core stack, env, auth, và quy ước chung SU26_SEP490_G2_FE
+alwaysApply: true
+---
+
+# BTMS — Quy ước dự án
+
+- **React 19 + JavaScript** (`.jsx`/`.js`). Không thêm TypeScript hoặc chuyển Vite.
+- **CRA**: `REACT_APP_API_URL` = origin (`http://localhost:8080`), không `/api`. Base API: `${REACT_APP_API_URL}/api/v1` qua `src/api/axiosClient.js`.
+- Mọi request có token: `Authorization: Bearer` từ `localStorage` key `btms_token`.
+- Response BE: `{ success, message, data }` → dùng `getApiData`, lỗi → `getApiErrorMessage` + `toast.error`.
+- Auth: Zustand `useAuthStore`; chờ `authReady` trong guards; role `ADMIN` | `STAFF` | `PLAYER`.
+- Thay đổi tối thiểu — khớp style file lân cận; không commit/push trừ khi user yêu cầu.
+- PowerShell: `;` thay `&&`. Verify: `npm run build`.
