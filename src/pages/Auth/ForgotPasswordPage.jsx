@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AiOutlineLoading3Quarters, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineCheckCircle } from "react-icons/ai";
+import * as authApi from "../../api/authApi";
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
@@ -35,17 +36,9 @@ const ForgotPasswordPage = () => {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setErrors({});
     setIsLoading(true);
-    let baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
-    if (baseUrl.endsWith("/api")) baseUrl = baseUrl.slice(0, -4);
     try {
-      const response = await fetch(`${baseUrl}/api/v1/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      let data = {};
-      try { data = await response.json(); } catch { throw new Error("Server lỗi, vui lòng thử lại."); }
-      if (!response.ok || !data.success) throw new Error(data.message || "Không thể gửi OTP.");
+      const { data } = await authApi.forgotPassword({ email });
+      if (!data.success) throw new Error(data.message || "Không thể gửi OTP.");
       setSuccessMessage("Mã OTP đã được gửi đến email của bạn.");
       setSuccessType("otp_sent");
       setStep(2);
@@ -67,17 +60,13 @@ const ForgotPasswordPage = () => {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setErrors({});
     setIsLoading(true);
-    let baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
-    if (baseUrl.endsWith("/api")) baseUrl = baseUrl.slice(0, -4);
     try {
-      const response = await fetch(`${baseUrl}/api/v1/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp, newPassword }),
+      const { data } = await authApi.resetPassword({
+        email,
+        otp,
+        newPassword,
       });
-      let data = {};
-      try { data = await response.json(); } catch { throw new Error("Server lỗi, vui lòng thử lại."); }
-      if (!response.ok || !data.success) throw new Error(data.message || "Đặt lại mật khẩu thất bại.");
+      if (!data.success) throw new Error(data.message || "Đặt lại mật khẩu thất bại.");
       setSuccessMessage("Mật khẩu đã được đặt lại thành công! Đang chuyển hướng...");
       setSuccessType("password_reset_success");
       setTimeout(() => { resetState(); navigate("/login"); }, 2000);

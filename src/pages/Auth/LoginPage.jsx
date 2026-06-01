@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import * as authApi from "../../api/authApi";
+import { getPostLoginPath } from "../../utils/auth";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const location = useLocation();
+  const { loginFromResponse } = useAuthStore();
+  const redirectAfterLogin = location.state?.from?.pathname;
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -42,22 +46,16 @@ const LoginPage = () => {
     setErrors({});
     setIsLoading(true);
 
-    let baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
-    if (baseUrl.endsWith("/api")) baseUrl = baseUrl.slice(0, -4);
-    const apiUrl = `${baseUrl}/api/v1/auth/login`;
-
     try {
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      const { data } = await authApi.login({
+        email: formData.email,
+        password: formData.password,
       });
-      const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.message || "Đăng nhập thất bại. Sai email hoặc mật khẩu.");
-      const token = data?.data?.token;
-      if (!token) throw new Error("Không nhận được mã xác thực (token) từ máy chủ.");
-      login({ email: formData.email }, token);
-      navigate("/");
+      if (!data.success) {
+        throw new Error(data.message || "Đăng nhập thất bại. Sai email hoặc mật khẩu.");
+      }
+      const user = loginFromResponse(data, formData.email);
+      navigate(getPostLoginPath(user.role, redirectAfterLogin));
     } catch (err) {
       setErrors({ submit: err.message });
     } finally {

@@ -1,0 +1,14 @@
+---
+description: BTMS Admin UI — layout, list pages, pagination, wizard patterns
+globs: src/pages/Admin/**/*.{js,jsx},src/components/admin/**/*.{js,jsx}
+alwaysApply: false
+---
+
+# Admin UI
+
+- Bọc route: `withAdminPage(Component, title, subtitle, { fullWidth })` + `adminNav.js`.
+- Shell: `AdminLayout`, `AdminCard`, `AdminButton`, `AdminModal`, `AdminPagination`.
+- **List**: state `page`, `pageSize`, `totalElements`, `totalPages`; load qua API paged → `result.content`; filter đổi → `setPage(0)`.
+- Table: class `admin-table` + `colgroup`; actions `admin-table-action`.
+- Loading/empty: `admin-empty`; errors: `toast.error(getApiErrorMessage(err))`.
+- Wizard phức tạp: dirty snapshot (`wizardDirty.js`), skip PUT khi không đổi — xem `FormatWizardPage.jsx`.
