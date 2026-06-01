@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as authApi from "../../api/authApi";
 import { useNavigate } from "react-router-dom";
 import { AiOutlineLoading3Quarters, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
@@ -77,16 +78,13 @@ const RegisterPage = () => {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setErrors({});
     setIsLoading(true);
-    let baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
-    if (baseUrl.endsWith("/api")) baseUrl = baseUrl.slice(0, -4);
     try {
-      const response = await fetch(`${baseUrl}/api/v1/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email, phone: formData.phone, password: formData.password }),
+      const { data } = await authApi.register({
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
       });
-      const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.message || "Đăng ký thất bại. Vui lòng thử lại.");
+      if (!data.success) throw new Error(data.message || "Đăng ký thất bại. Vui lòng thử lại.");
       navigate("/login");
     } catch (err) {
       setErrors({ submit: err.message });

@@ -1,11 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "../pages/Home";
 import NotFound from "../pages/NotFound";
-import LoginPage from "../pages/Auth/LoginPage";
-import RegisterPage from "../pages/Auth/RegisterPage";
-import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
-import CommonLayout from "../components/layouts/layout/CommonLayout";
-import Dashboard from "../pages/Admin/Dashboard";
 import { ROUTES } from "../constants/routes";
 
 function AppRoutes() {

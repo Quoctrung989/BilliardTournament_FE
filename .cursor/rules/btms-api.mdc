@@ -1,0 +1,22 @@
+---
+description: BTMS API client layer — axios, unwrap, server-side pagination
+globs: src/api/**/*.js
+alwaysApply: false
+---
+
+# API modules (`src/api/`)
+
+```js
+import axiosClient from "./axiosClient";
+import { getApiData } from "../utils/apiError";
+import { parsePagedResponse } from "../utils/pagination";
+
+const unwrap = (p) => p.then((res) => getApiData(res));
+const unwrapPaged = (p, fallbackSize) =>
+  p.then((res) => parsePagedResponse(getApiData(res), fallbackSize));
+```
+
+- **List**: `unwrapPaged(axiosClient.get(path, { params }))` — query `page` (0-based), `size`.
+- **Single / mutation**: `unwrap(axiosClient.get|post|put|patch|delete(...))`.
+- Không parse `items`/`total`. Chuẩn: `content`, `totalElements`, `totalPages`.
+- Tên file: `admin<Domain>Api.js`, export named functions.
