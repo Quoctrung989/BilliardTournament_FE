@@ -5,9 +5,12 @@ export const normalizeRole = (role) => {
   if (role == null || role === "") return null;
   const value = String(role).trim().toUpperCase();
   if (value === "ROLE_ADMIN" || value === "ADMINISTRATOR") return ROLES.ADMIN;
+  if (value === "ROLE_OWNER") return ROLES.OWNER;
+  if (value === "ROLE_MANAGER") return ROLES.MANAGER;
   if (value === "ROLE_STAFF") return ROLES.STAFF;
   if (value === "ROLE_PLAYER" || value === "ROLE_USER") return ROLES.PLAYER;
-  if ([ROLES.ADMIN, ROLES.STAFF, ROLES.PLAYER].includes(value)) return value;
+  if ([ROLES.ADMIN, ROLES.OWNER, ROLES.MANAGER, ROLES.STAFF, ROLES.PLAYER].includes(value))
+    return value;
   return value;
 };
 
@@ -21,6 +24,8 @@ export const extractRoleFromUser = (user) => {
       normalizeRole(typeof r === "string" ? r : r?.code)
     );
     if (codes.includes(ROLES.ADMIN)) return ROLES.ADMIN;
+    if (codes.includes(ROLES.OWNER)) return ROLES.OWNER;
+    if (codes.includes(ROLES.MANAGER)) return ROLES.MANAGER;
     if (codes.includes(ROLES.STAFF)) return ROLES.STAFF;
     if (codes.includes(ROLES.PLAYER)) return ROLES.PLAYER;
   }
@@ -84,21 +89,28 @@ export const buildSessionFromAuthPayload = (apiResponse, fallbackEmail) => {
 };
 
 export const isAdminUser = (user) => normalizeRole(user?.role) === ROLES.ADMIN;
+export const isOwnerUser = (user) => normalizeRole(user?.role) === ROLES.OWNER;
+export const isManagerUser = (user) => normalizeRole(user?.role) === ROLES.MANAGER;
 export const isStaffUser = (user) => normalizeRole(user?.role) === ROLES.STAFF;
 export const isPlayerUser = (user) => normalizeRole(user?.role) === ROLES.PLAYER;
 
 export const getHomeRouteForRole = (role) => {
   const r = normalizeRole(role);
   if (r === ROLES.ADMIN) return "/admin/dashboard";
+  if (r === ROLES.OWNER) return "/owner/tournaments";
+  if (r === ROLES.MANAGER) return "/manager/tournaments";
   if (r === ROLES.STAFF) return "/staff/dashboard";
   return "/";
 };
 
 export const canAccessPath = (role, path) => {
   if (!path) return true;
-  if (path.startsWith("/admin")) return normalizeRole(role) === ROLES.ADMIN;
-  if (path.startsWith("/staff")) return normalizeRole(role) === ROLES.STAFF;
-  if (path.startsWith("/player")) return normalizeRole(role) === ROLES.PLAYER;
+  const r = normalizeRole(role);
+  if (path.startsWith("/admin")) return r === ROLES.ADMIN;
+  if (path.startsWith("/owner")) return r === ROLES.OWNER;
+  if (path.startsWith("/manager")) return r === ROLES.MANAGER;
+  if (path.startsWith("/staff")) return r === ROLES.STAFF;
+  if (path.startsWith("/player")) return r === ROLES.PLAYER;
   return true;
 };
 

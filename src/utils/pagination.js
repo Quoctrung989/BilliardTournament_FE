@@ -35,7 +35,7 @@ export const parsePagedResponse = (data, fallbackSize = DEFAULT_PAGE_SIZE) => {
   }
 
   if (Array.isArray(data.content)) {
-    const page = data.page ?? data.number ?? 0;
+    const page = data.page ?? data.number ?? data.pageNumber ?? 0;
     const size = data.size ?? data.pageable?.pageSize ?? fallbackSize;
     const totalElements = data.totalElements ?? data.content.length;
     const totalPages =

@@ -34,6 +34,8 @@ REACT_APP_API_URL=http://localhost:8080
 | Role | Home sau login |
 |------|----------------|
 | ADMIN | `/admin/dashboard` |
+| OWNER | `/owner/tournaments` |
+| MANAGER | `/manager/tournaments` |
 | STAFF | `/staff/dashboard` |
 | PLAYER | `/` |
 
@@ -82,6 +84,33 @@ const result = await getFormats(buildListParams({ page: 0, size: 10, isActive: t
 Game types: `GET /admin/game-types` (paged), `PUT /admin/game-types/:code`
 
 Catalog: `GET /admin/config-field-catalog` (paged), `GET /admin/config-field-catalog/:fieldKey`
+
+## Owner / Manager tournaments
+
+API module: `src/api/tournamentManagementApi.js` — `ownerTournamentApi`, `managerTournamentApi`
+
+| Method | Path (`/owner` hoặc `/manager`) |
+|--------|----------------------------------|
+| GET | `/formats`, `/game-types` |
+| POST | `/tournaments` |
+| PUT | `/tournaments/:id` |
+| GET | `/tournaments/:id` |
+| GET | `/tournaments/:id/config-form` |
+| PUT | `/tournaments/:id/config` |
+| GET | `/tournaments/:id/config` |
+| POST | `/tournaments/:id/config/validate` |
+| PATCH | `/tournaments/:id/status` |
+
+Pages: `src/pages/shared/tournaments/` — wizard 3 bước, hub, detail
+
+| Path | Page |
+|------|------|
+| `/owner/tournaments` | Hub |
+| `/owner/tournaments/new` | Wizard bước 1 |
+| `/owner/tournaments/:id/edit` | Wizard bước 2–3 |
+| `/owner/tournaments/:id` | Chi tiết |
+
+Tương tự prefix `/manager/tournaments`.
 
 ## Auth API (tham khảo)
 

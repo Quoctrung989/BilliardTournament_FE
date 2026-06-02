@@ -7,3 +7,6 @@ export const getApiErrorMessage = (error) => {
 };
 
 export const getApiErrorCode = (error) => error?.response?.data?.code;
+
+export const getApiValidationDetails = (error) =>
+  error?.response?.data?.details || [];

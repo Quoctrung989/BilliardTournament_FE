@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { ADMIN_NAV } from "../../constants/adminNav";
 
+/** @typedef {{ id: string, label: string, items?: Array, collapsible?: boolean, matchPrefix?: string, icon?: string, labelNav?: string, children?: Array }} NavSection */
+
 const iconMap = {
   "layout-dashboard": LayoutDashboard,
   users: Users,
@@ -36,10 +38,10 @@ const NavLink = ({ active, onClick, icon: Icon, label, indent }) => (
   </button>
 );
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ navConfig = ADMIN_NAV }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const configSection = ADMIN_NAV.find((s) => s.id === "config");
+  const configSection = navConfig.find((s) => s.id === "config");
   const [configOpen, setConfigOpen] = useState(
     location.pathname.startsWith(configSection?.matchPrefix || "")
   );
@@ -63,7 +65,7 @@ const AdminSidebar = () => {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin">
-        {ADMIN_NAV.map((section) => {
+        {navConfig.map((section) => {
           if (section.collapsible) {
             const sectionActive = location.pathname.startsWith(section.matchPrefix);
             const SettingsIcon = iconMap[section.icon] || Settings;
