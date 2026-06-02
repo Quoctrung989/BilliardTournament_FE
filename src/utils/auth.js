@@ -100,7 +100,8 @@ export const getHomeRouteForRole = (role) => {
   if (r === ROLES.OWNER) return "/owner/tournaments";
   if (r === ROLES.MANAGER) return "/manager/tournaments";
   if (r === ROLES.STAFF) return "/staff/dashboard";
-  return "/";
+  if (r === ROLES.PLAYER) return "/event";
+  return "/event";
 };
 
 export const canAccessPath = (role, path) => {

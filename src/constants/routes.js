@@ -1,4 +1,5 @@
-import CommonLayout from "../components/layouts/layout/CommonLayout";
+import CommonLayout from "../components/layouts/CommonLayout";
+import EventPage from "../pages/Event";
 import Dashboard from "../pages/Admin/Dashboard";
 import Home from "../pages/Home";
 import LoginPage from "../pages/Auth/LoginPage";
@@ -160,11 +161,18 @@ export const ROUTES = [
       "Thông tin và trạng thái giải"
     ),
   },
+  { path: "/event", component: EventPage, layout: CommonLayout },
   { path: "/", component: Home, layout: CommonLayout },
   { path: "/login", component: LoginPage, layout: null },
   { path: "/register", component: RegisterPage, layout: null },
   { path: "/forgot-password", component: ForgotPasswordPage, layout: null },
   { path: "/profile", component: Profile, layout: null },
-  { path: "/admin/users", component: UserManagement, layout: null },
-  { path: "/admin/staffManagement", component: StaffManagement, layout: null },
+  {
+    path: "/admin/users",
+    component: withAdminPage(UserManagement, "Quản lý người dùng", "Danh sách tài khoản trong hệ thống"),
+  },
+  {
+    path: "/admin/staffManagement",
+    component: withAdminPage(StaffManagement, "Quản lý nhân viên", "Danh sách nhân viên trong hệ thống"),
+  },
 ];
