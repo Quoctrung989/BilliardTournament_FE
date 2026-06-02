@@ -14,6 +14,28 @@ export const SETUP_STATUS_LABELS = {
   ACTIVE: "Đang hoạt động",
 };
 
+export const SEEDING_OPTIONS = [
+  { value: "RANDOM", label: "Ngẫu nhiên" },
+  { value: "MANUAL", label: "Thủ công" },
+  { value: "ELO", label: "Theo ELO" },
+];
+
+export const PARTICIPANT_TYPES = [
+  { value: "SINGLE", label: "Đơn" },
+  { value: "DOUBLE", label: "Đôi" },
+  { value: "TEAM", label: "Đội" },
+];
+
+export const TOURNAMENT_STATUS_LABELS = {
+  DRAFT: "Nháp",
+  OPEN_FOR_REGISTRATION: "Mở đăng ký",
+  REGISTRATION_CLOSED: "Đóng đăng ký",
+  DRAW_DONE: "Đã bốc thăm",
+  IN_PROGRESS: "Đang diễn ra",
+  COMPLETED: "Hoàn thành",
+  CANCELLED: "Đã hủy",
+};
+
 export const BRACKET_PHASES = [
   { value: "KNOCKOUT", label: "Knockout" },
   { value: "WINNERS", label: "Winners" },
