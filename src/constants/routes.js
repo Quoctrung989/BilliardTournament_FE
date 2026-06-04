@@ -1,5 +1,6 @@
 import CommonLayout from "../components/layouts/CommonLayout";
 import EventPage from "../pages/Event";
+import EventDetailPage from "../pages/Event/EventDetailPage";
 import Dashboard from "../pages/Admin/Dashboard";
 import Home from "../pages/Home";
 import LoginPage from "../pages/Auth/LoginPage";
@@ -162,6 +163,7 @@ export const ROUTES = [
     ),
   },
   { path: "/event", component: EventPage, layout: CommonLayout },
+  { path: "/event/:id", component: EventDetailPage, layout: CommonLayout },
   { path: "/", component: Home, layout: CommonLayout },
   { path: "/login", component: LoginPage, layout: null },
   { path: "/register", component: RegisterPage, layout: null },

@@ -32,9 +32,9 @@ const MOCK_TOURNAMENTS = [
     name: "Vietnam 9-Ball Open 2026",
     gameType: "9-Ball",
     formatName: "Loại trực tiếp",
-    status: "OPEN_FOR_REGISTRATION",
-    startAt: "2026-07-15",
-    endAt: "2026-07-20",
+    status: "IN_PROGRESS",
+    startAt: "2026-06-01",
+    endAt: "2026-06-08",
     location: "Hà Nội",
     venue: "Trung tâm Bi-a Thăng Long",
     typeBadge: "Giải Mở",
@@ -47,7 +47,7 @@ const MOCK_TOURNAMENTS = [
     formatName: "Vòng bảng + Playoff",
     status: "IN_PROGRESS",
     startAt: "2026-05-28",
-    endAt: "2026-06-05",
+    endAt: "2026-06-07",
     location: "TP. Hồ Chí Minh",
     venue: "CLB Bi-a Quốc Tế",
     typeBadge: "Giải Chính",
@@ -59,8 +59,8 @@ const MOCK_TOURNAMENTS = [
     gameType: "8-Ball",
     formatName: "Loại trực tiếp kép",
     status: "COMPLETED",
-    startAt: "2026-05-20",
-    endAt: "2026-05-23",
+    startAt: "2026-05-10",
+    endAt: "2026-05-14",
     location: "Đà Nẵng",
     venue: "Arena Sports Center",
     typeBadge: "Xếp hạng",
@@ -72,8 +72,8 @@ const MOCK_TOURNAMENTS = [
     gameType: "10-Ball",
     formatName: "Vòng bảng",
     status: "OPEN_FOR_REGISTRATION",
-    startAt: "2026-08-01",
-    endAt: "2026-08-05",
+    startAt: "2026-07-10",
+    endAt: "2026-07-14",
     location: "Cần Thơ",
     venue: "Nhà Thi Đấu Cần Thơ",
     typeBadge: "Mời",
@@ -85,8 +85,8 @@ const MOCK_TOURNAMENTS = [
     gameType: "Carom 1 Băng",
     formatName: "Vòng tròn + Loại",
     status: "REGISTRATION_CLOSED",
-    startAt: "2026-06-10",
-    endAt: "2026-06-15",
+    startAt: "2026-06-20",
+    endAt: "2026-06-25",
     location: "Hải Phòng",
     venue: "CLB Bi-a Hải Phòng",
     typeBadge: "Giải Chính",
@@ -228,7 +228,7 @@ const EventPage = () => {
   }, [timeFilter, statusFilter, search]);
 
   return (
-    <div className="w-full" style={{ backgroundImage: "url('https://matchroompool.com/wp-content/themes/wnttwentyfive/core/assets/svg/backgrounds/background-light.svg')" }}>
+    <div className="w-full bg-white">
       {/* Banner */}
       <div className="w-full h-[280px] bg-[#333333] relative overflow-hidden">
         <img

@@ -4,6 +4,9 @@ module.exports = {
   darkMode: 'media',
   theme: {
     extend: {
+      fontFamily: {
+        poppins: ["Poppins", "sans-serif"],
+      },
       colors:{
         "primary": "#010851",
         "secondary": "#9A7AF1",
