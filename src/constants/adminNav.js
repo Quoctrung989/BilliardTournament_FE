@@ -3,21 +3,27 @@ export const ADMIN_NAV = [
     id: "overview",
     label: "Tổng quan",
     items: [
-      { label: "Dashboard", path: "/admin/dashboard", icon: "layout-dashboard" },
+      {
+        label: "Dashboard",
+        path: "/admin/dashboard",
+        icon: "layout-dashboard",
+      },
     ],
   },
   {
     id: "users",
     label: "Người dùng",
-    items: [
-      { label: "Quản lý người dùng", path: "/admin", icon: "users" },
-    ],
+    items: [{ label: "Quản lý người dùng", path: "/admin", icon: "users" }],
   },
   {
     id: "tournaments",
     label: "Giải đấu",
     items: [
-      { label: "Danh sách giải", path: "/admin/accountsManagement", icon: "trophy" },
+      {
+        label: "Danh sách giải",
+        path: "/admin/accountsManagement",
+        icon: "trophy",
+      },
     ],
   },
   {
@@ -30,14 +36,21 @@ export const ADMIN_NAV = [
     children: [
       { label: "Thể thức giải", path: "/admin/tournament-config/formats" },
       { label: "Loại bi", path: "/admin/tournament-config/game-types" },
-      { label: "Catalog trường", path: "/admin/tournament-config/config-field-catalog" },
+      {
+        label: "Catalog trường",
+        path: "/admin/tournament-config/config-field-catalog",
+      },
     ],
   },
   {
     id: "staff",
     label: "Nhân viên",
     items: [
-      { label: "Quản lý nhân viên", path: "/admin/accountsManagement", icon: "user-cog" },
+      {
+        label: "Quản lý nhân viên",
+        path: "/admin/staffManagement",
+        icon: "user-cog",
+      },
     ],
   },
 ];
