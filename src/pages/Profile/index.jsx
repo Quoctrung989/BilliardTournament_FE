@@ -1,14 +1,17 @@
 import { HomeIcon } from "lucide-react";
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "./styles.scss";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { slug } = useParams();
+  const [userDetail, setUserDetail] = useState({});
 
   const handleBack = () => {
     navigate(-1);
   };
+
   return (
     <div className="profilePage">
       <div className="cardProfile">
