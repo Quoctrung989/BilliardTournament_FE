@@ -28,10 +28,17 @@ axiosClient.interceptors.response.use(
   (error) => {
     const status = error?.response?.status;
     const payload = error?.response?.data;
+    const requestUrl = error?.config?.url || "";
+    const isAuthMe = requestUrl.includes("/auth/me");
+    const publicAuthPaths = ["/login", "/register", "/forgot-password"];
+    const onPublicAuthPage = publicAuthPaths.includes(window.location.pathname);
 
     if (status === 401) {
       useAuthStore.getState().logout();
-      window.location.href = "/login";
+      // /auth/me 401: hydrateAuth đã xử lý — tránh reload vòng lặp trên /login
+      if (!isAuthMe && !onPublicAuthPage) {
+        window.location.href = "/login";
+      }
     }
 
     if (status === 403) {

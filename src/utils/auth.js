@@ -140,6 +140,8 @@ export const persistAuth = ({ token, user }) => {
 export const clearStoredAuth = () => {
   localStorage.removeItem(BTMS_TOKEN_KEY);
   localStorage.removeItem(BTMS_USER_KEY);
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
 };
 
 /** Migrate keys cũ token / user */

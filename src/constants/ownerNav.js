@@ -7,6 +7,13 @@ export const OWNER_NAV = [
     ],
   },
   {
+    id: "employees",
+    label: "Nhân sự",
+    items: [
+      { label: "Quản lý nhân viên", path: "/owner/employees", icon: "users" },
+    ],
+  },
+  {
     id: "tournaments",
     label: "Quản lý giải",
     items: [

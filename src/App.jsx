@@ -5,11 +5,9 @@ import AppRoutes from "./routes";
 import { useAuthStore } from "./store/authStore";
 
 function App() {
-  const hydrateAuth = useAuthStore((s) => s.hydrateAuth);
-
   useEffect(() => {
-    hydrateAuth();
-  }, [hydrateAuth]);
+    useAuthStore.getState().hydrateAuth();
+  }, []);
 
   return (
     <>
