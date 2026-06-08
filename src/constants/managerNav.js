@@ -17,7 +17,22 @@ export const MANAGER_NAV = [
     id: "tournaments",
     label: "Quản lý giải",
     items: [
-      { label: "Tạo giải mới", path: "/manager/tournaments/new", icon: "layout-dashboard" },
+      {
+        label: "Tạo giải mới",
+        path: "/manager/tournaments/new",
+        icon: "layout-dashboard",
+      },
+    ],
+  },
+  {
+    id: "staff",
+    label: "Nhân viên",
+    items: [
+      {
+        label: "Quản lý nhân viên",
+        path: "/manager/staffManagement",
+        icon: "user-cog",
+      },
     ],
   },
 ];
