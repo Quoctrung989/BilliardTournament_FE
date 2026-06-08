@@ -168,6 +168,7 @@
 .admin-input,
 .admin-select {
   width: 100%;
+  min-height: 2.5rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   border: 1px solid var(--admin-border);

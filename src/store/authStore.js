@@ -10,6 +10,13 @@ import {
   readStoredAuth,
 } from "../utils/auth";
 
+let hydratePromise = null;
+
+const isAuthFailure = (err) => {
+  const status = err?.response?.status;
+  return status === 401 || status === 403;
+};
+
 export const useAuthStore = create((set, get) => ({
   isLoginOpen: false,
   isSignupOpen: false,
@@ -44,6 +51,7 @@ export const useAuthStore = create((set, get) => ({
       expiresIn: expiresIn ?? null,
       isAuthenticated: true,
       isLoginOpen: false,
+      authReady: true,
     });
   },
 
@@ -61,42 +69,65 @@ export const useAuthStore = create((set, get) => ({
       tokenType: "Bearer",
       expiresIn: null,
       isAuthenticated: false,
+      authReady: true,
     });
   },
 
   hydrateAuth: async () => {
-    migrateLegacyAuthStorage();
-    const stored = readStoredAuth();
+    if (get().authReady) return;
+    if (hydratePromise) return hydratePromise;
 
-    if (!stored?.token) {
+    hydratePromise = (async () => {
+      migrateLegacyAuthStorage();
+      const stored = readStoredAuth();
+
+      if (!stored?.token) {
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          authReady: true,
+        });
+        return;
+      }
+
       set({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        authReady: true,
+        token: stored.token,
+        user: stored.user,
+        isAuthenticated: true,
+        authReady: false,
       });
-      return;
-    }
 
-    set({
-      token: stored.token,
-      user: stored.user,
-      isAuthenticated: true,
-      authReady: false,
-    });
+      try {
+        const me = await authApi.getMe();
+        const user = normalizeUser(me, stored.user.email);
+        persistAuth({ token: stored.token, user });
+        set({ user, authReady: true });
+      } catch (err) {
+        if (isAuthFailure(err)) {
+          clearStoredAuth();
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            authReady: true,
+          });
+          return;
+        }
+
+        const roleFromToken = getRoleFromToken(stored.token);
+        const user = roleFromToken
+          ? { ...stored.user, role: roleFromToken }
+          : stored.user;
+        if (roleFromToken) persistAuth({ token: stored.token, user });
+        set({ user, authReady: true });
+      }
+    })();
 
     try {
-      const me = await authApi.getMe();
-      const user = normalizeUser(me, stored.user.email);
-      persistAuth({ token: stored.token, user });
-      set({ user, authReady: true });
-    } catch {
-      const roleFromToken = getRoleFromToken(stored.token);
-      const user = roleFromToken
-        ? { ...stored.user, role: roleFromToken }
-        : stored.user;
-      if (roleFromToken) persistAuth({ token: stored.token, user });
-      set({ user, authReady: true });
+      await hydratePromise;
+    } finally {
+      hydratePromise = null;
     }
   },
 }));

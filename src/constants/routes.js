@@ -6,9 +6,10 @@ import Home from "../pages/Home";
 import LoginPage from "../pages/Auth/LoginPage";
 import RegisterPage from "../pages/Auth/RegisterPage";
 import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
-import UserManagement from "../pages/Admin/UserManagement";
 import Profile from "../pages/Profile";
-import StaffManagement from "../pages/Admin/StaffManagement";
+import AdminAccountListPage from "../pages/Admin/accounts/AccountListPage";
+import OwnerEmployeeListPage from "../pages/Owner/employees/EmployeeListPage";
+import ManagerStaffListPage from "../pages/Manager/employees/StaffListPage";
 import FormatListPage from "../pages/Admin/tournament-config/FormatListPage";
 import FormatWizardPage from "../pages/Admin/tournament-config/FormatWizardPage";
 import GameTypeListPage from "../pages/Admin/tournament-config/GameTypeListPage";
@@ -99,6 +100,14 @@ export const ROUTES = [
     ),
   },
   {
+    path: "/owner/employees",
+    component: withOwnerPage(
+      OwnerEmployeeListPage,
+      "Quản lý nhân viên",
+      "Tạo và quản lý Manager, Staff"
+    ),
+  },
+  {
     path: "/owner/tournaments",
     component: withOwnerPage(
       OwnerTournamentHub,
@@ -127,6 +136,14 @@ export const ROUTES = [
   {
     path: "/owner/tournaments/:id",
     component: withOwnerPage(OwnerTournamentDetail, "Chi tiết giải", "Thông tin và trạng thái giải"),
+  },
+  {
+    path: "/manager/employees",
+    component: withManagerPage(
+      ManagerStaffListPage,
+      "Quản lý nhân viên",
+      "Tạo và quản lý Staff"
+    ),
   },
   {
     path: "/manager/tournaments",
@@ -170,11 +187,11 @@ export const ROUTES = [
   { path: "/forgot-password", component: ForgotPasswordPage, layout: null },
   { path: "/profile", component: Profile, layout: null },
   {
-    path: "/admin/users",
-    component: withAdminPage(UserManagement, "Quản lý người dùng", "Danh sách tài khoản trong hệ thống"),
-  },
-  {
-    path: "/admin/staffManagement",
-    component: withAdminPage(StaffManagement, "Quản lý nhân viên", "Danh sách nhân viên trong hệ thống"),
+    path: "/admin/accounts",
+    component: withAdminPage(
+      AdminAccountListPage,
+      "Quản lý tài khoản",
+      "Danh sách tài khoản — tạo Owner, vô hiệu hóa user"
+    ),
   },
 ];

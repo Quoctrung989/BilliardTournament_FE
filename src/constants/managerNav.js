@@ -7,6 +7,13 @@ export const MANAGER_NAV = [
     ],
   },
   {
+    id: "employees",
+    label: "Nhân sự",
+    items: [
+      { label: "Quản lý nhân viên", path: "/manager/employees", icon: "users" },
+    ],
+  },
+  {
     id: "tournaments",
     label: "Quản lý giải",
     items: [
