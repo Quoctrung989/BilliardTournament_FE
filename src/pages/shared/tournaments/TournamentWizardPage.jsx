@@ -25,6 +25,8 @@ const defaultBasic = {
   registrationDeadline: "",
   startAt: "",
   endAt: "",
+  isRegister: false,
+  registrationFormTemplateId: "",
 };
 
 const toInstantOrNull = (localValue) => {
@@ -63,6 +65,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
   const [gameTypes, setGameTypes] = useState([]);
   const [formats, setFormats] = useState([]);
+  const [registrationTemplates, setRegistrationTemplates] = useState([]);
   const [basic, setBasic] = useState(defaultBasic);
   const [tournamentStatus, setTournamentStatus] = useState("DRAFT");
 
@@ -74,9 +77,14 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
   const loadOptions = useCallback(async () => {
     try {
-      const [gt, fm] = await Promise.all([api.listGameTypes(), api.listFormats()]);
+      const [gt, fm, templates] = await Promise.all([
+        api.listGameTypes(),
+        api.listFormats(),
+        api.listRegistrationFormTemplates?.() ?? Promise.resolve({ items: [] }),
+      ]);
       setGameTypes(gt?.items || []);
       setFormats(fm?.items || []);
+      setRegistrationTemplates(templates?.items || []);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     }
@@ -100,6 +108,10 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
         registrationDeadline: toLocalInput(detail.registrationDeadline),
         startAt: toLocalInput(detail.startAt),
         endAt: toLocalInput(detail.endAt),
+        isRegister: !!detail.isRegister,
+        registrationFormTemplateId: detail.registrationFormTemplateId
+          ? String(detail.registrationFormTemplateId)
+          : "",
       });
       setTournamentStatus(detail.status || "DRAFT");
     } catch (err) {
@@ -175,6 +187,10 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     registrationDeadline: toInstantOrNull(basic.registrationDeadline),
     startAt: toInstantOrNull(basic.startAt),
     endAt: toInstantOrNull(basic.endAt),
+    isRegister: !!basic.isRegister,
+    registrationFormTemplateId: basic.isRegister && basic.registrationFormTemplateId
+      ? Number(basic.registrationFormTemplateId)
+      : null,
   });
 
   const showValidationToast = (err) => {
@@ -191,6 +207,10 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const handleSaveStep1 = async () => {
     if (!basic.name.trim() || !basic.gameType || !basic.format) {
       toast.warn("Vui lòng điền tên, loại bi và thể thức");
+      return;
+    }
+    if (basic.isRegister && !basic.registrationFormTemplateId) {
+      toast.warn("Chọn template form đăng ký khi bật đăng ký online");
       return;
     }
     setSaving(true);
@@ -398,6 +418,43 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 onChange={(e) => setBasic((b) => ({ ...b, endAt: e.target.value }))}
               />
             </div>
+            <div className="sm:col-span-2 pt-2 border-t border-slate-100">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={basic.isRegister}
+                  onChange={(e) =>
+                    setBasic((b) => ({
+                      ...b,
+                      isRegister: e.target.checked,
+                      registrationFormTemplateId: e.target.checked
+                        ? b.registrationFormTemplateId
+                        : "",
+                    }))
+                  }
+                />
+                Cho phép người chơi đăng ký online
+              </label>
+            </div>
+            {basic.isRegister && (
+              <div className="sm:col-span-2">
+                <label className="admin-label">Template form đăng ký *</label>
+                <select
+                  className="admin-select w-full"
+                  value={basic.registrationFormTemplateId}
+                  onChange={(e) =>
+                    setBasic((b) => ({ ...b, registrationFormTemplateId: e.target.value }))
+                  }
+                >
+                  <option value="">-- Chọn template --</option>
+                  {registrationTemplates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} ({t.code}) — {t.fieldCount ?? 0} field
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2 mt-6">
             <AdminButton variant="primary" onClick={handleSaveStep1} disabled={saving}>

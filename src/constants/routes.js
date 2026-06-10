@@ -16,10 +16,17 @@ import FormatListPage from "../pages/Admin/tournament-config/FormatListPage";
 import FormatWizardPage from "../pages/Admin/tournament-config/FormatWizardPage";
 import GameTypeListPage from "../pages/Admin/tournament-config/GameTypeListPage";
 import ConfigFieldCatalogPage from "../pages/Admin/tournament-config/ConfigFieldCatalogPage";
+import RegistrationFieldCatalogPage from "../pages/Admin/registration-form/RegistrationFieldCatalogPage";
+import RegistrationFormTemplateListPage from "../pages/Admin/registration-form/RegistrationFormTemplateListPage";
+import RegistrationFormTemplateWizardPage from "../pages/Admin/registration-form/RegistrationFormTemplateWizardPage";
 import StaffDashboard from "../pages/Staff/Dashboard";
 import TournamentListPage from "../pages/shared/tournaments/TournamentListPage";
 import TournamentWizardPage from "../pages/shared/tournaments/TournamentWizardPage";
 import TournamentDetailPage from "../pages/shared/tournaments/TournamentDetailPage";
+import TournamentRegistrationListPage from "../pages/shared/registrations/TournamentRegistrationListPage";
+import TournamentRegisterPage from "../pages/Player/TournamentRegisterPage";
+import MyRegistrationsPage from "../pages/Player/MyRegistrationsPage";
+import PlayerRoute from "../components/guards/PlayerRoute";
 import {
   ownerTournamentApi,
   managerTournamentApi,
@@ -69,6 +76,36 @@ const ManagerTournamentDetail = () => (
     api={managerTournamentApi}
     basePath="/manager/tournaments"
   />
+);
+
+const OwnerTournamentRegistrations = () => (
+  <TournamentRegistrationListPage
+    api={ownerTournamentApi}
+    basePath="/owner/tournaments"
+  />
+);
+
+const ManagerTournamentRegistrations = () => (
+  <TournamentRegistrationListPage
+    api={managerTournamentApi}
+    basePath="/manager/tournaments"
+  />
+);
+
+const PlayerTournamentRegister = () => (
+  <PlayerRoute>
+    <CommonLayout>
+      <TournamentRegisterPage />
+    </CommonLayout>
+  </PlayerRoute>
+);
+
+const PlayerMyRegistrations = () => (
+  <PlayerRoute>
+    <CommonLayout>
+      <MyRegistrationsPage />
+    </CommonLayout>
+  </PlayerRoute>
 );
 
 export const ROUTES = [
@@ -127,6 +164,40 @@ export const ROUTES = [
     ),
   },
   {
+    path: "/admin/registration-form/field-catalog",
+    component: withAdminPage(
+      RegistrationFieldCatalogPage,
+      "Catalog field đăng ký",
+      "Định nghĩa loại field cho form đăng ký giải",
+    ),
+  },
+  {
+    path: "/admin/registration-form/templates",
+    component: withAdminPage(
+      RegistrationFormTemplateListPage,
+      "Template form đăng ký",
+      "Tạo và quản lý form đăng ký cho giải đấu",
+    ),
+  },
+  {
+    path: "/admin/registration-form/templates/new",
+    component: withAdminPage(
+      RegistrationFormTemplateWizardPage,
+      "Tạo template form đăng ký",
+      "Wizard 3 bước — metadata, field, preview",
+      { fullWidth: true },
+    ),
+  },
+  {
+    path: "/admin/registration-form/templates/:id/edit",
+    component: withAdminPage(
+      RegistrationFormTemplateWizardPage,
+      "Sửa template form đăng ký",
+      "Wizard 3 bước — cập nhật template",
+      { fullWidth: true },
+    ),
+  },
+  {
     path: "/owner/employees",
     component: withOwnerPage(
       OwnerEmployeeListPage,
@@ -166,6 +237,14 @@ export const ROUTES = [
       OwnerTournamentDetail,
       "Chi tiết giải",
       "Thông tin và trạng thái giải",
+    ),
+  },
+  {
+    path: "/owner/tournaments/:id/registrations",
+    component: withOwnerPage(
+      OwnerTournamentRegistrations,
+      "Đăng ký giải đấu",
+      "Duyệt và quản lý đăng ký",
     ),
   },
   {
@@ -209,6 +288,22 @@ export const ROUTES = [
       "Chi tiết giải",
       "Thông tin và trạng thái giải",
     ),
+  },
+  {
+    path: "/manager/tournaments/:id/registrations",
+    component: withManagerPage(
+      ManagerTournamentRegistrations,
+      "Đăng ký giải đấu",
+      "Duyệt và quản lý đăng ký",
+    ),
+  },
+  {
+    path: "/player/tournaments/:id/register",
+    component: PlayerTournamentRegister,
+  },
+  {
+    path: "/player/registrations",
+    component: PlayerMyRegistrations,
   },
   { path: "/event", component: EventPage, layout: CommonLayout },
   { path: "/event/:id", component: EventDetailPage, layout: CommonLayout },

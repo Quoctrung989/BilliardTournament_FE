@@ -47,6 +47,23 @@ export const ADMIN_NAV = [
       },
     ],
   },
+  {
+    id: "registration-form",
+    label: "Form đăng ký",
+    collapsible: true,
+    matchPrefix: "/admin/registration-form",
+    icon: "user-cog",
+    children: [
+      {
+        label: "Catalog field đăng ký",
+        path: "/admin/registration-form/field-catalog",
+      },
+      {
+        label: "Template form",
+        path: "/admin/registration-form/templates",
+      },
+    ],
+  },
 //   {
 //     id: "staff",
 //     label: "Nhân viên",
