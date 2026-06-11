@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Search } from "lucide-react";
 import { TOURNAMENT_STATUS_LABELS } from "../../constants/tournamentConfig";
@@ -118,6 +118,8 @@ const fmtDate = (iso) => {
 };
 
 /* ─── Card ────────────────────────────────────────────────────────── */
+const STREAM_INTERVAL_MS = 110;
+
 const TournamentCard = ({ tournament }) => {
   const navigate = useNavigate();
   const s = STATUS_CONFIG[tournament.status];
@@ -125,7 +127,7 @@ const TournamentCard = ({ tournament }) => {
   const handleAction = () => navigate(`/event/${tournament.id}`);
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-l-[24px] border border-gray-300 bg-white shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+    <div className="group tournament-card-stream flex flex-col overflow-hidden rounded-l-[24px] border border-gray-300 bg-white shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer">
       {/* Ảnh */}
       <div className="overflow-hidden h-[200px]">
         <img
@@ -227,6 +229,27 @@ const EventPage = () => {
     });
   }, [timeFilter, statusFilter, search]);
 
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) {
+      setVisibleCount(filtered.length);
+      return undefined;
+    }
+
+    setVisibleCount(0);
+    if (filtered.length === 0) return undefined;
+
+    const timers = filtered.map((_, index) =>
+      window.setTimeout(() => setVisibleCount(index + 1), (index + 1) * STREAM_INTERVAL_MS)
+    );
+
+    return () => timers.forEach(clearTimeout);
+  }, [filtered]);
+
+  const visibleTournaments = filtered.slice(0, visibleCount);
+
   return (
     <div className="w-full bg-white">
       {/* Banner */}
@@ -249,7 +272,7 @@ const EventPage = () => {
       </div>
 
       {/* Filter bar */}
-      <div className="bg-[#f7f7f7]/95 backdrop-blur-sm border-b border-gray-200 sticky top-[100px] z-40">
+      <div className="bg-[#f7f7f7]/95 backdrop-blur-sm border-b border-gray-200 sticky top-[var(--layout-header-h)] z-40">
         <div className="max-w-[1600px] mx-auto px-6 py-4">
           <div className="flex flex-col lg:flex-row lg:items-center gap-3">
             {/* Filter theo thời gian */}
@@ -326,7 +349,7 @@ const EventPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((t) => (
+            {visibleTournaments.map((t) => (
               <TournamentCard key={t.id} tournament={t} />
             ))}
           </div>

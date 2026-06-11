@@ -1,4 +1,9 @@
 :root {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+
   --primary-color: #2563eb;
   --danger-color: #ef4444;
 
@@ -6,6 +11,7 @@
   --border-color: #e5e7eb;
 
   --layout-width: 1200px;
+  --layout-header-h: 64px;
 
   --wnt25-color-light: #f7f7f7;
   --wnt25-color-dark: #333333;

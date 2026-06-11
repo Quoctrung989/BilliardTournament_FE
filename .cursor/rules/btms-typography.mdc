@@ -1,0 +1,47 @@
+---
+description: Phông chữ thống nhất toàn dự án BTMS
+alwaysApply: true
+---
+
+# Typography — BTMS
+
+Dự án dùng **một stack phông hệ thống** ổn định, không phụ thuộc Google Fonts.
+
+## Nguồn chuẩn
+
+Định nghĩa trong `src/styles/variables.css`:
+
+```css
+--font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+--font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+```
+
+`body` kế thừa qua `reset.css` / `global.css`. Tailwind: `font-sans`, `font-mono`.
+
+## Quy tắc
+
+- **Không** thêm `font-family` inline (`style={{ fontFamily: ... }}`) trên page/component.
+- **Không** import Google Fonts (Barlow, Inter, Poppins, Arvo, …) cho UI chung.
+- Trang/section mới: kế thừa từ `body`; không override trừ khi có lý do rõ (ví dụ badge code).
+- Input, button, textarea: dùng `font-family: inherit` nếu cần khai báo trong SCSS/CSS.
+- Admin (`admin.css`): dùng `var(--font-sans)`; code/ID dùng `var(--font-mono)`.
+
+## Ví dụ
+
+```jsx
+// ❌ Không
+<div style={{ fontFamily: "'Barlow', sans-serif" }}>
+<div className="font-poppins">
+
+// ✅ Đúng — kế thừa global hoặc Tailwind
+<div className="min-h-screen">
+<p className="font-sans">
+```
+
+```scss
+// ❌ Không — stack riêng
+.my-page { font-family: Arial, serif; }
+
+// ✅ Đúng
+.my-page { /* không set font, hoặc */ font-family: var(--font-sans); }
+```

@@ -428,7 +428,7 @@ const EventDetailPage = () => {
 
   if (!tournament) {
     return (
-      <div className="font-poppins flex flex-col items-center justify-center py-32 gap-4">
+      <div className="font-sans flex flex-col items-center justify-center py-32 gap-4">
         <p className="text-gray-400 text-base font-light">Không tìm thấy giải đấu.</p>
         <button
           onClick={() => navigate("/event")}
@@ -443,7 +443,7 @@ const EventDetailPage = () => {
   const isLive = tournament.status === "IN_PROGRESS";
 
   return (
-    <div className="font-poppins w-full min-h-screen pb-16" style={{ background: "#f0f2f6" }}>
+    <div className="font-sans w-full min-h-screen pb-16" style={{ background: "#f0f2f6" }}>
 
       {/* ── Hero ── */}
       <div className="relative w-full h-[290px] overflow-hidden">

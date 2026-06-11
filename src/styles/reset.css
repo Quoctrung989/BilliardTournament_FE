@@ -30,9 +30,16 @@ html {
 body {
   line-height: 1.5;
   text-rendering: optimizeSpeed;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-sans);
   background-color: #fff;
   color: #111;
+}
+
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
 }
 
 /* Media */
