@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import MatchesTab from "./MatchesTab";
 import RankingTab from "./RankingTab";
 import {
   Calendar, MapPin, Building2, DollarSign,
   ArrowLeft, User, Info, List, Radio, BarChart2,
-  Tv2, Search, Globe, Trophy,
+  Tv2, Search, Trophy, X,
 } from "lucide-react";
 
 /* ─── Mock data ─────────────────────────────────────────────────────── */
@@ -32,14 +32,14 @@ const TOURNAMENTS = [
     ],
     /* 8 người — đúng với bracket Vòng 1 (4 trận) → Bán kết (2) → Chung kết (1) */
     players: [
-      { id: 1, name: "Nguyễn Văn Anh",    country: "Việt Nam",    flag: "🇻🇳" },
-      { id: 2, name: "Ko Pin Yi",          country: "Đài Loan",    flag: "🇹🇼" },
-      { id: 3, name: "Carlo Biado",        country: "Philippines", flag: "🇵🇭" },
-      { id: 4, name: "Trần Đức Minh",      country: "Việt Nam",    flag: "🇻🇳" },
-      { id: 5, name: "James Aranas",       country: "Philippines", flag: "🇵🇭" },
-      { id: 6, name: "Lê Quang Hùng",      country: "Việt Nam",    flag: "🇻🇳" },
-      { id: 7, name: "Trần Quốc Tuấn",     country: "Việt Nam",    flag: "🇻🇳" },
-      { id: 8, name: "Nguyễn Mạnh Hùng",   country: "Việt Nam",    flag: "🇻🇳" },
+      { id: 1, name: "Nguyễn Văn Anh",   nickname: "Anh Cò",        age: 28, address: "Hà Nội" },
+      { id: 2, name: "Trần Đức Minh",    nickname: "Minh Lửa",       age: 31, address: "Hải Phòng" },
+      { id: 3, name: "Lê Quang Hùng",    nickname: "Hùng Phong",     age: 26, address: "TP. Hồ Chí Minh" },
+      { id: 4, name: "Trần Quốc Tuấn",   nickname: "Tuấn Bão",       age: 24, address: "Đà Nẵng" },
+      { id: 5, name: "Nguyễn Mạnh Hùng", nickname: "Hùng Gấu",       age: 29, address: "Hà Nội" },
+      { id: 6, name: "Phạm Đình Long",   nickname: "Long Rồng",      age: 27, address: "Bắc Ninh" },
+      { id: 7, name: "Vũ Tiến Thành",    nickname: "Thành Thần",     age: 33, address: "Hưng Yên" },
+      { id: 8, name: "Đỗ Quang Vinh",    nickname: "Vinh Sấm",       age: 30, address: "Nam Định" },
     ],
   },
   {
@@ -63,12 +63,12 @@ const TOURNAMENTS = [
       { label: "Hạng 4–6", amount: 1333 },
     ],
     players: [
-      { id: 1, name: "Trần Quốc Khánh",   country: "Việt Nam", flag: "🇻🇳" },
-      { id: 2, name: "Nguyễn Hoàng Long",  country: "Việt Nam", flag: "🇻🇳" },
-      { id: 3, name: "Lê Thanh Tùng",      country: "Việt Nam", flag: "🇻🇳" },
-      { id: 4, name: "Phạm Văn Đức",       country: "Việt Nam", flag: "🇻🇳" },
-      { id: 5, name: "Vũ Mạnh Cường",      country: "Việt Nam", flag: "🇻🇳" },
-      { id: 6, name: "Đinh Trọng Khương",   country: "Việt Nam", flag: "🇻🇳" },
+      { id: 1, name: "Trần Quốc Khánh",  nickname: "Khánh Đen",     age: 32, address: "TP. Hồ Chí Minh" },
+      { id: 2, name: "Nguyễn Hoàng Long", nickname: "Long Rồng",     age: 27, address: "Bình Dương" },
+      { id: 3, name: "Lê Thanh Tùng",    nickname: "Tùng Tiger",    age: 25, address: "Đồng Nai" },
+      { id: 4, name: "Phạm Văn Đức",     nickname: "Đức Cẩm",       age: 30, address: "TP. Hồ Chí Minh" },
+      { id: 5, name: "Vũ Mạnh Cường",    nickname: "Cường Sư Tử",   age: 28, address: "Vũng Tàu" },
+      { id: 6, name: "Đinh Trọng Khương", nickname: "Khương Thần",   age: 33, address: "Cần Thơ" },
     ],
   },
   {
@@ -92,14 +92,14 @@ const TOURNAMENTS = [
       { label: "Hạng 5–8", amount: 500  },
     ],
     players: [
-      { id: 1, name: "Nguyễn Xuân Trường", country: "Việt Nam", flag: "🇻🇳" },
-      { id: 2, name: "Phạm Tuấn Kiệt",     country: "Việt Nam", flag: "🇻🇳" },
-      { id: 3, name: "Trần Minh Tuấn",      country: "Việt Nam", flag: "🇻🇳" },
-      { id: 4, name: "Lê Văn Hưng",         country: "Việt Nam", flag: "🇻🇳" },
-      { id: 5, name: "Nguyễn Đức Anh",      country: "Việt Nam", flag: "🇻🇳" },
-      { id: 6, name: "Hoàng Văn Linh",       country: "Việt Nam", flag: "🇻🇳" },
-      { id: 7, name: "Ngô Đình Nhân",        country: "Việt Nam", flag: "🇻🇳" },
-      { id: 8, name: "Bùi Văn An",           country: "Việt Nam", flag: "🇻🇳" },
+      { id: 1, name: "Nguyễn Xuân Trường", nickname: "Trường Xanh",  age: 29, address: "Đà Nẵng" },
+      { id: 2, name: "Phạm Tuấn Kiệt",     nickname: "Kiệt Thần",    age: 26, address: "Quảng Nam" },
+      { id: 3, name: "Trần Minh Tuấn",      nickname: "Tuấn Chớp",   age: 31, address: "Đà Nẵng" },
+      { id: 4, name: "Lê Văn Hưng",         nickname: "Hưng Trâu",   age: 34, address: "Quảng Ngãi" },
+      { id: 5, name: "Nguyễn Đức Anh",      nickname: "Anh Ó",       age: 23, address: "Huế" },
+      { id: 6, name: "Hoàng Văn Linh",      nickname: "Linh Cáo",    age: 27, address: "Đà Nẵng" },
+      { id: 7, name: "Ngô Đình Nhân",       nickname: "Nhân Nhện",   age: 25, address: "Bình Định" },
+      { id: 8, name: "Bùi Văn An",          nickname: "An Tốc Độ",   age: 30, address: "Gia Lai" },
     ],
   },
   {
@@ -122,12 +122,12 @@ const TOURNAMENTS = [
       { label: "Hạng 3–4", amount: 1250 },
     ],
     players: [
-      { id: 1, name: "Võ Minh Tâm",         country: "Việt Nam", flag: "🇻🇳" },
-      { id: 2, name: "Đinh Xuân Hùng",       country: "Việt Nam", flag: "🇻🇳" },
-      { id: 3, name: "Nguyễn Văn Trọng",     country: "Việt Nam", flag: "🇻🇳" },
-      { id: 4, name: "Trần Đình Khoa",        country: "Việt Nam", flag: "🇻🇳" },
-      { id: 5, name: "Lê Minh Khoa",          country: "Việt Nam", flag: "🇻🇳" },
-      { id: 6, name: "Phạm Bá Thanh",         country: "Việt Nam", flag: "🇻🇳" },
+      { id: 1, name: "Võ Minh Tâm",      nickname: "Tâm Bướm",    age: 20, address: "Cần Thơ" },
+      { id: 2, name: "Đinh Xuân Hùng",   nickname: "Hùng Trẻ",    age: 19, address: "An Giang" },
+      { id: 3, name: "Nguyễn Văn Trọng", nickname: "Trọng Gió",   age: 21, address: "Kiên Giang" },
+      { id: 4, name: "Trần Đình Khoa",   nickname: "Khoa Lửa",    age: 22, address: "Cần Thơ" },
+      { id: 5, name: "Lê Minh Khoa",     nickname: "Khoa Nước",   age: 20, address: "Hậu Giang" },
+      { id: 6, name: "Phạm Bá Thanh",    nickname: "Thanh Nhỏ",   age: 23, address: "Sóc Trăng" },
     ],
   },
   {
@@ -150,14 +150,14 @@ const TOURNAMENTS = [
       { label: "Hạng 3–4", amount: 1500 },
     ],
     players: [
-      { id: 1, name: "Lê Đình Tự",          country: "Việt Nam", flag: "🇻🇳" },
-      { id: 2, name: "Bùi Văn Trương",       country: "Việt Nam", flag: "🇻🇳" },
-      { id: 3, name: "Phạm Văn Sơn",         country: "Việt Nam", flag: "🇻🇳" },
-      { id: 4, name: "Nguyễn Quốc Hùng",     country: "Việt Nam", flag: "🇻🇳" },
-      { id: 5, name: "Trần Văn Nam",          country: "Việt Nam", flag: "🇻🇳" },
-      { id: 6, name: "Hoàng Đình Khải",       country: "Việt Nam", flag: "🇻🇳" },
-      { id: 7, name: "Vũ Tiến Dũng",          country: "Việt Nam", flag: "🇻🇳" },
-      { id: 8, name: "Đỗ Thanh Bình",         country: "Việt Nam", flag: "🇻🇳" },
+      { id: 1, name: "Lê Đình Tự",       nickname: "Tự Carom",    age: 35, address: "Hải Phòng" },
+      { id: 2, name: "Bùi Văn Trương",   nickname: "Trương Già",  age: 40, address: "Hải Phòng" },
+      { id: 3, name: "Phạm Văn Sơn",     nickname: "Sơn Núi",     age: 32, address: "Quảng Ninh" },
+      { id: 4, name: "Nguyễn Quốc Hùng", nickname: "Hùng Bắc",   age: 29, address: "Hà Nội" },
+      { id: 5, name: "Trần Văn Nam",      nickname: "Nam Mưa",     age: 31, address: "Thái Bình" },
+      { id: 6, name: "Hoàng Đình Khải",  nickname: "Khải Phong",  age: 27, address: "Nam Định" },
+      { id: 7, name: "Vũ Tiến Dũng",     nickname: "Dũng Thép",   age: 33, address: "Hải Phòng" },
+      { id: 8, name: "Đỗ Thanh Bình",    nickname: "Bình Tĩnh",   age: 28, address: "Hưng Yên" },
     ],
   },
   {
@@ -181,14 +181,14 @@ const TOURNAMENTS = [
       { label: "Hạng 5–8", amount: 1000  },
     ],
     players: [
-      { id: 1, name: "Trần Thanh Lâm",    country: "Việt Nam",    flag: "🇻🇳" },
-      { id: 2, name: "Nguyễn Hoàng Nam",  country: "Việt Nam",    flag: "🇻🇳" },
-      { id: 3, name: "Phạm Thanh Chương", country: "Việt Nam",    flag: "🇻🇳" },
-      { id: 4, name: "Lê Đức Thịnh",      country: "Việt Nam",    flag: "🇻🇳" },
-      { id: 5, name: "Carlo Biado",        country: "Philippines", flag: "🇵🇭" },
-      { id: 6, name: "Efren Reyes",        country: "Philippines", flag: "🇵🇭" },
-      { id: 7, name: "Ko Pin Yi",          country: "Đài Loan",    flag: "🇹🇼" },
-      { id: 8, name: "Chang Yi-Jen",       country: "Đài Loan",    flag: "🇹🇼" },
+      { id: 1, name: "Trần Thanh Lâm",    nickname: "Lâm Điện",    age: 30, address: "TP. Hồ Chí Minh" },
+      { id: 2, name: "Nguyễn Hoàng Nam",  nickname: "Nam Phố",     age: 28, address: "TP. Hồ Chí Minh" },
+      { id: 3, name: "Phạm Thanh Chương", nickname: "Chương Bay",  age: 32, address: "Bình Dương" },
+      { id: 4, name: "Lê Đức Thịnh",      nickname: "Thịnh Vương", age: 35, address: "Long An" },
+      { id: 5, name: "Hoàng Văn Tú",      nickname: "Tú Hổ",       age: 27, address: "Tiền Giang" },
+      { id: 6, name: "Ngô Minh Phát",     nickname: "Phát Lốc",    age: 29, address: "TP. Hồ Chí Minh" },
+      { id: 7, name: "Bùi Quốc Khánh",   nickname: "Khánh Bay",   age: 31, address: "Đồng Nai" },
+      { id: 8, name: "Võ Thanh Tùng",     nickname: "Tùng Đen",    age: 26, address: "Bà Rịa - Vũng Tàu" },
     ],
   },
 ];
@@ -211,201 +211,220 @@ const TABS = [
   { id: "ranking", label: "Xếp hạng",  Icon: BarChart2 },
 ];
 
+/* ─── Player Profile Modal ───────────────────────────────────────────── */
+const PlayerProfile = ({ player, onClose }) => {
+  if (!player) return null;
+
+  const nameParts = player.name.trim().split(" ");
+  const lastName  = nameParts.at(-1);
+  const firstName = nameParts.slice(0, -1).join(" ");
+  const initials  = [nameParts.at(-2)?.[0], nameParts.at(-1)?.[0]]
+    .filter(Boolean).join("").toUpperCase();
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl"
+        style={{ background: "linear-gradient(160deg, #1e3a5f 0%, #0d1b2e 100%)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Nút đóng */}
+        <div className="flex justify-end px-5 pt-4">
+          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Avatar */}
+        <div className="flex justify-center pt-2 pb-5">
+          <div className="relative">
+            <div
+              className="w-28 h-28 rounded-full flex items-center justify-center border-[3px] border-white/15 shadow-xl"
+              style={{ background: "linear-gradient(135deg, #2a4a70 0%, #162840 100%)" }}
+            >
+              <span className="text-4xl font-black text-white/60 select-none tracking-tight">
+                {initials}
+              </span>
+            </div>
+            <div className="absolute -inset-1.5 rounded-full border border-white/8" />
+          </div>
+        </div>
+
+        {/* Tên */}
+        <div className="text-center px-6 pb-5">
+          <p className="text-white/45 text-sm font-light italic leading-none">{firstName}</p>
+          <p className="text-white text-3xl font-black italic leading-tight tracking-tight mt-0.5">
+            {lastName}
+          </p>
+          <p className="text-[#ef342a] text-sm font-semibold italic mt-1.5">"{player.nickname}"</p>
+        </div>
+
+        {/* Divider */}
+        <div className="mx-6 h-px bg-white/8 mb-4" />
+
+        {/* Info rows */}
+        <div className="px-5 pb-6 space-y-2">
+          {[
+            { label: "Tuổi",    value: `${player.age} tuổi` },
+            { label: "Địa chỉ", value: player.address        },
+          ].map(({ label, value }) => (
+            <div
+              key={label}
+              className="flex items-center justify-between rounded-2xl px-4 py-2.5"
+              style={{ background: "rgba(255,255,255,0.05)" }}
+            >
+              <span className="text-[10px] font-bold tracking-widest text-white/30 uppercase">{label}</span>
+              <span className="text-sm font-light text-white/75">{value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ─── Info tab ──────────────────────────────────────────────────────── */
 const InfoTab = ({ t, onWatchNow }) => {
-  const [nameSearch,    setNameSearch]    = useState("");
-  const [countryFilter, setCountryFilter] = useState("");
-
-  const countries = useMemo(
-    () => [...new Set(t.players.map((p) => p.country))].sort(),
-    [t.players]
-  );
+  const [nameSearch,     setNameSearch]     = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const filteredPlayers = useMemo(
-    () =>
-      t.players.filter((p) => {
-        const okName    = p.name.toLowerCase().includes(nameSearch.toLowerCase());
-        const okCountry = !countryFilter || p.country === countryFilter;
-        return okName && okCountry;
-      }),
-    [t.players, nameSearch, countryFilter]
+    () => t.players.filter((p) => {
+      const q = nameSearch.toLowerCase();
+      return p.name.toLowerCase().includes(q) || p.nickname.toLowerCase().includes(q);
+    }),
+    [t.players, nameSearch]
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-0 rounded-3xl overflow-hidden shadow-md border border-gray-100">
 
-      {/* ── Thông tin giải ── */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Header strip */}
-        <div className="flex items-center justify-center gap-1.5 py-2.5" style={{ background: "linear-gradient(135deg, #0d1b2e 0%, #162840 100%)" }}>
-          <Info size={12} className="text-white/50" />
-          <span className="text-[10px] font-medium tracking-[0.14em] text-white/60 uppercase">
-            Thông tin giải đấu
-          </span>
+      {/* ── 1. META STRIP ── */}
+      <div className="bg-white grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100 border-b border-gray-100">
+        {[
+          { Icon: Calendar,   label: "Ngày thi đấu",     value: `${fmtDate(t.startAt)} – ${fmtDate(t.endAt)}` },
+          { Icon: Building2,  label: "Địa điểm",         value: t.venue        },
+          { Icon: MapPin,     label: "Khu vực",          value: t.location     },
+          { Icon: DollarSign, label: "Tổng giải thưởng", value: fmtUSD(t.prizeFund) },
+        ].map(({ Icon, label, value }) => (
+          <div key={label} className="flex items-center gap-3 px-5 py-5">
+            <Icon size={16} className="text-[#0d1b2e]/30 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[9px] text-gray-400 uppercase tracking-wide font-medium leading-none mb-1">{label}</p>
+              <p className="text-sm font-semibold text-[#0d1b2e] truncate leading-snug">{value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── 3. PRIZE BREAKDOWN ── */}
+      <div className="px-5 py-6" style={{ background: "linear-gradient(180deg, #0f2035 0%, #0d1b2e 100%)" }}>
+        <div className="flex items-center gap-1.5 mb-4">
+          <Trophy size={13} className="text-yellow-400" />
+          <span className="text-[10px] font-bold tracking-[0.18em] text-white/40 uppercase">Cơ cấu giải thưởng</span>
         </div>
-
-        <div className="px-6 pt-4 pb-5">
-          {/* Tên giải */}
-          <h1 className="text-center text-lg sm:text-xl font-semibold text-[#0d1b2e] mb-5 leading-snug">
-            {t.name}
-          </h1>
-
-          {/* 4-col meta */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {[
-              { Icon: Calendar,   label: "Ngày thi đấu",    value: `${fmtDate(t.startAt)} – ${fmtDate(t.endAt)}` },
-              { Icon: Building2,  label: "Địa điểm",        value: t.venue        },
-              { Icon: MapPin,     label: "Khu vực",         value: t.location     },
-              { Icon: DollarSign, label: "Tổng giải thưởng", value: fmtUSD(t.prizeFund) },
-            ].map(({ Icon, label, value }) => (
-              <div
-                key={label}
-                className="flex flex-col items-center gap-1.5 bg-[#f8f9fb] rounded-2xl px-3 py-3.5 text-center"
-              >
-                <div className="w-7 h-7 rounded-full bg-white shadow-sm flex items-center justify-center">
-                  <Icon size={13} className="text-[#0d1b2e]/45" />
-                </div>
-                <span className="text-[9px] font-medium tracking-wide text-gray-400 uppercase leading-tight">{label}</span>
-                <span className="text-xs font-medium text-[#0d1b2e] leading-snug">{value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Cơ cấu giải thưởng */}
-        <div
-          className="mx-4 mb-4 rounded-2xl px-5 py-4"
-          style={{ background: "linear-gradient(135deg, #0d1b2e 0%, #162840 100%)" }}
-        >
-          <div className="flex items-center gap-1.5 mb-3">
-            <Trophy size={12} className="text-yellow-400" />
-            <span className="text-[9px] font-medium tracking-[0.14em] text-white/45 uppercase">
-              Cơ cấu giải thưởng
-            </span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-3">
-            {t.prizes.map((p, i) => (
-              <div key={p.label} className={i === 0 ? "col-span-2 sm:col-span-1" : ""}>
-                <p className="text-[9px] font-medium tracking-wide text-white/40 uppercase mb-0.5">
-                  {p.label}
-                </p>
-                <p className={`font-semibold ${i === 0 ? "text-xl text-yellow-400" : "text-base text-[#ef342a]"}`}>
-                  {fmtUSD(p.amount)}
-                </p>
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {t.prizes.map((p, i) => (
+            <div
+              key={p.label}
+              className="rounded-xl px-4 py-4"
+              style={{ background: i === 0 ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.04)" }}
+            >
+              <p className="text-[9px] text-white/35 uppercase tracking-wide font-medium mb-1.5">{p.label}</p>
+              <p className={`font-black leading-none ${i === 0 ? "text-2xl text-yellow-400" : "text-lg text-white/80"}`}>
+                {fmtUSD(p.amount)}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* ── Banner trực tiếp ── */}
+      {/* ── 4. LIVE BANNER ── */}
       <div
-        className="relative rounded-3xl overflow-hidden cursor-pointer group"
-        style={{ background: "linear-gradient(135deg, #0d1b2e 55%, #1e3a5f)" }}
+        className="relative overflow-hidden cursor-pointer group"
+        style={{ background: "#0a1525" }}
         onClick={onWatchNow}
       >
-        <img
-          src={t.image}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-300"
-        />
-        <div className="relative flex items-center gap-3.5 px-6 py-4">
-          <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 group-hover:bg-white/20 transition-colors">
-            <Tv2 size={17} className="text-white" />
-          </div>
+        <img src={t.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:opacity-20 transition-opacity duration-300" />
+        <div className="relative flex items-center gap-4 px-6 py-5 border-t border-white/5">
+          <Tv2 size={16} className="text-white/50 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] font-medium tracking-widest text-white/40 uppercase">Trực tiếp tại</p>
-            <p className="text-white font-semibold text-sm leading-tight">Billiards Live TV</p>
+            <p className="text-[9px] font-bold tracking-[0.2em] text-white/30 uppercase">Trực tiếp tại</p>
+            <p className="text-white font-black italic text-sm uppercase tracking-wide leading-tight">
+              Billiards <span className="text-[#ef342a]">Live</span> TV
+            </p>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); onWatchNow(); }}
-            className="bg-[#ef342a] hover:bg-[#d42a22] active:scale-95 text-white text-[11px] font-medium px-4 py-2 rounded-xl transition-all shrink-0 shadow-lg shadow-[#ef342a]/30"
+            className="bg-[#ef342a] hover:bg-[#d42a22] active:scale-95 text-white text-[10px] font-bold px-4 py-1.5 rounded-lg transition-all shrink-0 tracking-wider uppercase"
           >
             Xem ngay
           </button>
         </div>
       </div>
 
-      {/* ── Danh sách cơ thủ ── */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Header strip */}
-        <div className="flex items-center justify-center gap-1.5 py-2.5" style={{ background: "linear-gradient(135deg, #0d1b2e 0%, #162840 100%)" }}>
-          <User size={12} className="text-white/50" />
-          <span className="text-[10px] font-medium tracking-[0.14em] text-white/60 uppercase">
-            Danh sách cơ thủ
-          </span>
+      {/* ── 5. DANH SÁCH CƠ THỦ ── */}
+      <div className="bg-white">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100" style={{ background: "linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)" }}>
+          <div className="flex items-center gap-2">
+            <User size={13} className="text-white/70" />
+            <span className="text-[10px] font-bold tracking-[0.18em] text-white uppercase">Danh sách cơ thủ</span>
+          </div>
+          <span className="text-[10px] text-white/60 font-light">{filteredPlayers.length}/{t.players.length}</span>
         </div>
 
-        <div className="px-5 pt-3.5 pb-5">
-          {/* Bộ lọc */}
-          <div className="flex flex-col sm:flex-row gap-2 mb-4">
-            <div className="relative flex-1">
-              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Tìm tên cơ thủ..."
-                value={nameSearch}
-                onChange={(e) => setNameSearch(e.target.value)}
-                className="w-full bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-8 pr-4 py-2 placeholder:text-gray-400 focus:outline-none focus:border-[#0d1b2e]/15 focus:bg-white transition-all"
-              />
-            </div>
-            <div className="relative sm:w-40">
-              <Globe size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              <select
-                value={countryFilter}
-                onChange={(e) => setCountryFilter(e.target.value)}
-                className="w-full appearance-none bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-8 pr-4 py-2 focus:outline-none focus:border-[#0d1b2e]/15 focus:bg-white transition-all cursor-pointer"
-              >
-                <option value="">Tất cả quốc gia</option>
-                {countries.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center shrink-0 px-1">
-              <span className="text-[11px] text-gray-400 font-light">
-                {filteredPlayers.length}/{t.players.length} cơ thủ
-              </span>
-            </div>
+        <div className="px-4 pt-3 pb-5">
+          <div className="relative mb-3">
+            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Tìm tên hoặc biệt danh..."
+              value={nameSearch}
+              onChange={(e) => setNameSearch(e.target.value)}
+              className="w-full bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-xl pl-8 pr-4 py-2 placeholder:text-gray-400 focus:outline-none focus:border-[#0d1b2e]/15 focus:bg-white transition-all"
+            />
           </div>
 
-          {/* Lưới cơ thủ */}
           {filteredPlayers.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {filteredPlayers.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-[#f8f9fb] hover:bg-[#eef0f5] transition-colors cursor-pointer group"
+                  onClick={() => setSelectedPlayer(p)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#f8f9fb] hover:bg-[#eef0f5] transition-colors cursor-pointer group border border-transparent hover:border-[#0d1b2e]/10"
                 >
-                  <div className="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0">
-                    <User size={15} className="text-[#0d1b2e]/25" />
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-black text-white/70"
+                    style={{ background: "linear-gradient(135deg, #1e3a5f 0%, #0d1b2e 100%)" }}
+                  >
+                    {p.name.split(" ").at(-1)[0]}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#0d1b2e] leading-tight truncate group-hover:text-[#ef342a] transition-colors">
-                      {p.name.split(" ").slice(0, -1).join(" ")}{" "}
-                      <span className="font-semibold">{p.name.split(" ").at(-1)}</span>
+                    <p className="text-sm font-semibold text-[#0d1b2e] leading-tight truncate group-hover:text-[#ef342a] transition-colors">
+                      {p.name}
                     </p>
-                    <p className="text-[10px] text-gray-400 font-light mt-0.5 flex items-center gap-1">
-                      <span className="text-xs leading-none">{p.flag}</span>
-                      {p.country}
+                    <p className="text-[10px] text-[#ef342a]/70 font-light mt-0.5 truncate italic">
+                      "{p.nickname}"
                     </p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 rounded-2xl bg-[#f8f9fb]">
+            <div className="text-center py-8 rounded-xl bg-[#f8f9fb]">
               <p className="text-gray-400 text-sm font-light">Không tìm thấy cơ thủ phù hợp.</p>
-              <button
-                onClick={() => { setNameSearch(""); setCountryFilter(""); }}
-                className="mt-2 text-[#ef342a] text-xs hover:underline"
-              >
+              <button onClick={() => setNameSearch("")} className="mt-2 text-[#ef342a] text-xs hover:underline">
                 Xóa bộ lọc
               </button>
             </div>
           )}
         </div>
       </div>
+
+      <PlayerProfile player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />
     </div>
   );
 };
@@ -420,9 +439,10 @@ const ComingSoon = ({ label }) => (
 
 /* ─── Page ──────────────────────────────────────────────────────────── */
 const EventDetailPage = () => {
-  const { id }   = useParams();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("info");
+  const { id }          = useParams();
+  const navigate        = useNavigate();
+  const [searchParams]  = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "info");
 
   const tournament = TOURNAMENTS.find((t) => t.id === Number(id));
 
@@ -441,9 +461,11 @@ const EventDetailPage = () => {
   }
 
   const isLive = tournament.status === "IN_PROGRESS";
+  // Chỉ khoá tab trận đấu khi còn mở đăng ký — chưa chốt cơ thủ, chưa xếp cặp
+  const matchesLocked = tournament.status === "OPEN_FOR_REGISTRATION";
 
   return (
-    <div className="font-poppins w-full min-h-screen pb-16" style={{ background: "#f0f2f6" }}>
+    <div className="font-poppins w-full min-h-screen pb-28" style={{ background: "#f0f2f6" }}>
 
       {/* ── Hero ── */}
       <div className="relative w-full h-[290px] overflow-hidden">
@@ -491,38 +513,46 @@ const EventDetailPage = () => {
       </div>
 
       {/* ── Nội dung tab ── */}
-      <div className="max-w-[90%] mx-auto px-4 sm:px-5 py-4">
+      <div className="w-full max-w-[1400px] mx-auto px-2 sm:px-3 py-4 rounded-3xl overflow-hidden">
         {activeTab === "info"    && <InfoTab t={tournament} onWatchNow={() => setActiveTab("live")} />}
         {activeTab === "matches" && <MatchesTab tournament={tournament} />}
         {activeTab === "live"    && <ComingSoon label="Trực tiếp" />}
         {activeTab === "ranking" && <RankingTab tournament={tournament} />}
       </div>
 
-      {/* ── Thanh điều hướng dưới — trắng, active xanh đen, bo tròn ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-1px_12px_rgba(0,0,0,0.07)]">
-        <div className="flex w-full gap-1.5 px-2 pt-1.5 pb-2.5">
+      {/* ── Thanh điều hướng dưới — floating pill ── */}
+      <div className="fixed bottom-5 left-0 right-0 z-50 flex justify-center px-6">
+        <div
+          className="flex gap-1 p-1.5 rounded-2xl shadow-xl w-full max-w-lg"
+          style={{ background: "rgba(13,27,46,0.95)", backdropFilter: "blur(12px)" }}
+        >
           {TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
+            const isActive   = activeTab === tab.id;
+            const isDisabled = tab.id === "matches" && matchesLocked;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => !isDisabled && setActiveTab(tab.id)}
+                disabled={isDisabled}
+                title={isDisabled ? "Lịch thi đấu chưa được xếp" : undefined}
                 className={`
                   flex-1 flex flex-col items-center justify-center gap-1
-                  py-2 rounded-2xl transition-all duration-200
-                  ${isActive
-                    ? "bg-[#0d1b2e] text-white"
-                    : "text-gray-400 hover:bg-[#0d1b2e] hover:text-white"
+                  py-2.5 rounded-xl transition-all duration-200
+                  ${isDisabled
+                    ? "text-white/15 cursor-not-allowed"
+                    : isActive
+                      ? "bg-white text-[#0d1b2e]"
+                      : "text-white/50 hover:text-white/80"
                   }
                 `}
               >
                 <span className="relative">
                   <tab.Icon size={16} strokeWidth={isActive ? 2 : 1.5} />
                   {tab.live && isLive && (
-                    <span className={`absolute -top-0.5 -right-1.5 w-1.5 h-1.5 rounded-full bg-[#ef342a] border ${isActive ? "border-[#0d1b2e]" : "border-white"}`} />
+                    <span className={`absolute -top-0.5 -right-1.5 w-1.5 h-1.5 rounded-full bg-[#ef342a] border ${isActive ? "border-white" : "border-[#0d1b2e]"}`} />
                   )}
                 </span>
-                <span className={`text-[10px] leading-none ${isActive ? "font-medium" : "font-light"}`}>
+                <span className={`text-[10px] leading-none ${isActive ? "font-semibold" : "font-light"}`}>
                   {tab.label}
                 </span>
               </button>

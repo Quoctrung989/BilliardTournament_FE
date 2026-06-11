@@ -3,24 +3,24 @@ import { FaInstagram, FaTiktok, FaYoutube, FaFacebook } from "react-icons/fa6";
 
 const Footer = () => {
   const footerLinks = [
-    ["Latest", "Schedule", "Tickets", "Rankings"],
-    ["Players", "Frequently Asked Questions", "WPNPC", "Contact"],
+    ["Tin Mới Nhất", "Lịch Thi Đấu", "Vé", "Bảng Xếp Hạng"],
+    ["Cầu Thủ", "Câu Hỏi Thường Gặp", "WPNPC", "Liên Hệ"],
     [
-      "Terms & Conditions",
-      "Safeguarding Policy",
-      "Privacy Policy",
-      "Cookie Policy",
+      "Điều Khoản & Điều Kiện",
+      "Chính Sách Bảo Vệ",
+      "Chính Sách Quyền Riêng Tư",
+      "Chính Sách Cookie",
     ],
     [
-      "Modern Slavery and Human trafficking Statement",
-      "Matchroom Group Tax Strategy",
-      "UK Gambling Code of Conduct",
-      "Pool Regulation Authority",
+      "Tuyên Bố Về Nô Lệ Hiện Đại và Buôn Người",
+      "Chiến Lược Thuế Matchroom Group",
+      "Quy Tắc Cờ Bạc Anh Quốc",
+      "Cơ Quan Quản Lý Bida",
     ],
   ];
 
   return (
-    <footer className="bg-[#ececec] px-4 py-12">
+    <footer className="bg-[#ececec] px-4 pt-12 pb-28">
       <div className="mx-auto max-w-[1400px]">
         <div className="grid grid-cols-1 gap-y-10 gap-x-12 border-b border-black/10 pb-10 sm:grid-cols-2 lg:grid-cols-4">
           {footerLinks.map((group, index) => (
@@ -32,7 +32,7 @@ const Footer = () => {
                   className="
                     w-fit
                     text-[12px]
-                    font-medium
+                    font-light
                     text-[#1f1f1f]
                     transition-opacity
                     duration-200
@@ -54,13 +54,13 @@ const Footer = () => {
           </div>
 
           <div className="max-w-[540px]">
-            <p className="text-[12px] font-bold text-[#2b2b2b] ">
+            <p className="text-[12px] font-normal text-[#2b2b2b]">
               Matchroom Multi Sport Ltd, Mascalls, Mascalls Lane, Brentwood,
               Essex, England CM14 5LJ
             </p>
 
-            <p className="mt-2 text-[12px] font-medium text-[#2b2b2b]">
-              © 2024 Matchroom Multi Sport Ltd all rights reserved
+            <p className="mt-2 text-[12px] font-light text-[#2b2b2b]">
+              © 2024 Matchroom Multi Sport Ltd. Bảo lưu mọi quyền.
             </p>
           </div>
 
