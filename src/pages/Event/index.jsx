@@ -1,29 +1,29 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Search } from "lucide-react";
-import { TOURNAMENT_STATUS_LABELS } from "../../constants/tournamentConfig";
+
 
 /* ─── Status config ───────────────────────────────────────────────── */
 const STATUS_CONFIG = {
-  OPEN_FOR_REGISTRATION: { label: "Mở đăng ký",   bg: "bg-green-100",  text: "text-green-700",  dot: "bg-green-500"  },
-  REGISTRATION_CLOSED:   { label: "Đóng đăng ký",  bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
-  DRAW_DONE:             { label: "Đã bốc thăm",   bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-500" },
-  IN_PROGRESS:           { label: "Đang diễn ra",  bg: "bg-blue-100",   text: "text-blue-700",   dot: "bg-blue-500"   },
-  COMPLETED:             { label: "Hoàn thành",    bg: "bg-gray-100",   text: "text-gray-600",   dot: "bg-gray-400"   },
-  CANCELLED:             { label: "Đã hủy",        bg: "bg-red-100",    text: "text-red-600",    dot: "bg-red-400"    },
+  OPEN_FOR_REGISTRATION: { label: "Mở đăng ký", bg: "bg-green-100", text: "text-green-700", dot: "bg-green-500" },
+  REGISTRATION_CLOSED: { label: "Đóng đăng ký", bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
+  DRAW_DONE: { label: "Đã bốc thăm", bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-500" },
+  IN_PROGRESS: { label: "Đang diễn ra", bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
+  COMPLETED: { label: "Hoàn thành", bg: "bg-gray-100", text: "text-gray-600", dot: "bg-gray-400" },
+  CANCELLED: { label: "Đã hủy", bg: "bg-red-100", text: "text-red-600", dot: "bg-red-400" },
 };
 
 /* ─── Time filter tabs ────────────────────────────────────────────── */
 const TIME_FILTERS = [
-  { value: "all",      label: "Tất cả" },
+  { value: "all", label: "Tất cả" },
   { value: "upcoming", label: "Sắp diễn ra" },
-  { value: "ongoing",  label: "Đang diễn ra" },
-  { value: "past",     label: "Đã kết thúc" },
+  { value: "ongoing", label: "Đang diễn ra" },
+  { value: "past", label: "Đã kết thúc" },
 ];
 
 const UPCOMING_STATUSES = ["OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED", "DRAW_DONE"];
-const ONGOING_STATUSES  = ["IN_PROGRESS"];
-const PAST_STATUSES     = ["COMPLETED", "CANCELLED"];
+const ONGOING_STATUSES = ["IN_PROGRESS"];
+const PAST_STATUSES = ["COMPLETED", "CANCELLED"];
 
 /* ─── Mock data ───────────────────────────────────────────────────── */
 const MOCK_TOURNAMENTS = [
@@ -122,10 +122,11 @@ const TournamentCard = ({ tournament }) => {
   const navigate = useNavigate();
   const s = STATUS_CONFIG[tournament.status];
 
-  const handleAction = () => navigate(`/event/${tournament.id}`);
-
   return (
-    <div className="group flex flex-col overflow-hidden rounded-l-[24px] border border-gray-300 bg-white shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+    <div
+      onClick={() => navigate(`/event/${tournament.id}`)}
+      className="group flex flex-col overflow-hidden rounded-l-[24px] border border-gray-300 bg-white shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+    >
       {/* Ảnh */}
       <div className="overflow-hidden h-[200px]">
         <img
@@ -175,7 +176,7 @@ const TournamentCard = ({ tournament }) => {
 
           {tournament.status === "OPEN_FOR_REGISTRATION" && (
             <button
-              onClick={handleAction}
+              onClick={(e) => { e.stopPropagation(); navigate(`/event/${tournament.id}`); }}
               className="text-xs font-bold px-4 py-1.5 bg-[#ef342a] hover:bg-[#d42a22] text-white rounded-md transition-colors shrink-0"
             >
               Đăng ký
@@ -183,7 +184,7 @@ const TournamentCard = ({ tournament }) => {
           )}
           {tournament.status === "IN_PROGRESS" && (
             <button
-              onClick={handleAction}
+              onClick={(e) => { e.stopPropagation(); navigate(`/event/${tournament.id}`); }}
               className="text-xs font-bold px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors shrink-0"
             >
               Theo dõi
@@ -191,7 +192,7 @@ const TournamentCard = ({ tournament }) => {
           )}
           {tournament.status === "COMPLETED" && (
             <button
-              onClick={handleAction}
+              onClick={(e) => { e.stopPropagation(); navigate(`/event/${tournament.id}?tab=ranking`); }}
               className="text-xs font-bold px-4 py-1.5 border border-gray-300 text-gray-600 hover:bg-gray-100 rounded-md transition-colors shrink-0"
             >
               Kết quả ↗
@@ -205,27 +206,18 @@ const TournamentCard = ({ tournament }) => {
 
 /* ─── Page ────────────────────────────────────────────────────────── */
 const EventPage = () => {
-  const [timeFilter,   setTimeFilter]   = useState("all");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [search,       setSearch]       = useState("");
-
-  const statusOptions = [
-    { value: "", label: "Tất cả trạng thái" },
-    ...Object.entries(TOURNAMENT_STATUS_LABELS)
-      .filter(([v]) => v !== "DRAFT")
-      .map(([value, label]) => ({ value, label })),
-  ];
+  const [timeFilter, setTimeFilter] = useState("all");
+  const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
     return MOCK_TOURNAMENTS.filter((t) => {
       if (timeFilter === "upcoming" && !UPCOMING_STATUSES.includes(t.status)) return false;
-      if (timeFilter === "ongoing"  && !ONGOING_STATUSES.includes(t.status))  return false;
-      if (timeFilter === "past"     && !PAST_STATUSES.includes(t.status))     return false;
-      if (statusFilter && t.status !== statusFilter) return false;
+      if (timeFilter === "ongoing" && !ONGOING_STATUSES.includes(t.status)) return false;
+      if (timeFilter === "past" && !PAST_STATUSES.includes(t.status)) return false;
       if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [timeFilter, statusFilter, search]);
+  }, [timeFilter, search]);
 
   return (
     <div className="w-full bg-white">
@@ -258,74 +250,74 @@ const EventPage = () => {
                 <button
                   key={f.value}
                   onClick={() => setTimeFilter(f.value)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                    timeFilter === f.value
-                      ? "bg-[#333333] text-white"
-                      : "text-[#333333] border border-gray-300 hover:border-[#333333]"
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${timeFilter === f.value
+                    ? "bg-[#333333] text-white"
+                    : "text-[#333333] border border-gray-300 hover:border-[#333333]"
+                    }`}
                 >
                   {f.label}
                 </button>
               ))}
             </div>
 
-            <div className="flex gap-3 lg:ml-auto flex-wrap items-center">
-              {/* Filter theo trạng thái */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 bg-white text-[#333333] text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#ef342a] cursor-pointer"
-              >
-                {statusOptions.map((o) => (
-                  <option key={o.value || "all"} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-
-              {/* Tìm kiếm */}
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Tìm giải đấu..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="border border-gray-300 bg-white text-[#333333] text-sm rounded-lg pl-8 pr-4 py-1.5 placeholder:text-gray-400 focus:outline-none focus:border-[#ef342a] w-44"
-                />
-              </div>
+            {/* Tìm kiếm */}
+            <div className="relative lg:ml-auto w-full lg:w-1/4">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Tìm giải đấu..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full border border-gray-300 bg-white text-[#333333] text-sm rounded-lg pl-8 pr-4 py-1.5 placeholder:text-gray-400 focus:outline-none focus:border-[#ef342a]"
+              />
             </div>
           </div>
         </div>
       </div>
 
       {/* Grid */}
-      <div className="max-w-[1600px] mx-auto px-6 py-10">
+      <div
+        className="max-w-[1600px] mx-auto px-6 py-10 relative overflow-hidden rounded-2xl"
+        style={{ backgroundImage: "url('/fire-bg.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}
+      >
+        {/* Overlay tối để nội dung dễ đọc */}
+        <div className="absolute inset-0 bg-black/60 z-0" />
+
         {/* Section header */}
-        <div className="bg-[#f7f7f7] p-4 rounded-md flex justify-between items-center mb-8 border border-gray-200">
-          <h2 className="text-lg font-bold text-[#1d2430]">
-            {timeFilter === "all"      && "Tất cả giải đấu"}
+        <div className="mb-8 relative flex items-center z-10">
+          <h2 className="text-lg font-semibold text-white drop-shadow-lg">
+            {timeFilter === "all" && "Tất cả giải đấu"}
             {timeFilter === "upcoming" && "Giải đấu sắp diễn ra"}
-            {timeFilter === "ongoing"  && "Giải đang diễn ra"}
-            {timeFilter === "past"     && "Giải đã kết thúc"}
+            {timeFilter === "ongoing" && "Giải đang diễn ra"}
+            {timeFilter === "past" && "Giải đã kết thúc"}
           </h2>
-          <span className="text-sm text-gray-500 font-semibold italic">
-            {filtered.length} giải
+          <span
+            className="absolute left-1/2 -translate-x-1/2 inline-flex items-center text-white text-xs font-bold px-5 py-1.5 rounded-full tracking-wide shadow-lg overflow-hidden border border-white/20"
+            style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}
+          >
+            <span
+              className="relative z-10"
+              style={{
+                textShadow: "0 0 8px rgba(255,180,0,0.9), 0 0 16px rgba(255,80,0,0.7), 0 2px 4px rgba(0,0,0,1)",
+              }}
+            >
+              {filtered.length} giải tìm thấy
+            </span>
           </span>
         </div>
 
         {filtered.length === 0 ? (
-          <div className="text-center py-24 bg-white rounded-l-[24px] border border-gray-300 shadow-sm">
-            <p className="text-gray-400 text-lg font-semibold">Không có giải đấu nào phù hợp.</p>
+          <div className="relative z-10 text-center py-24 bg-white/10 backdrop-blur-sm rounded-[24px] border border-white/20 shadow-sm">
+            <p className="text-white/80 text-lg font-semibold">Không có giải đấu nào phù hợp.</p>
             <button
-              onClick={() => { setTimeFilter("all"); setStatusFilter(""); setSearch(""); }}
-              className="mt-4 text-[#ef342a] text-sm font-semibold hover:underline"
+              onClick={() => { setTimeFilter("all"); setSearch(""); }}
+              className="mt-4 text-orange-300 text-sm font-semibold hover:underline"
             >
               Xóa bộ lọc
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((t) => (
               <TournamentCard key={t.id} tournament={t} />
             ))}

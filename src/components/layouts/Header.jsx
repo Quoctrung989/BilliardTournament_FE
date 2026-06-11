@@ -7,70 +7,75 @@ import {
   AiOutlineQuestionCircle,
 } from "react-icons/ai";
 
+const navItems = [
+  { label: "Tin Mới Nhất",     path: null },
+  { label: "Tỷ Số Trực Tiếp", path: null },
+  { label: "Lịch Thi Đấu",    path: "/event" },
+  { label: "Vé",               path: null },
+  { label: "Bảng Xếp Hạng",   path: null },
+  { label: "Cầu Thủ",         path: null },
+  { label: "Cửa Hàng",        path: null },
+];
+
 const Header = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuthStore();
 
   return (
-    <div className="w-full bg-[#333333] text-white px-16 h-[100px] sticky top-0 z-50">
-      <div className="max-w-[1600px] flex items-center justify-between font-bold mx-auto h-full">
-        <div className="text-2xl font-bold ">CAPSTONE</div>
-        <div className="flex gap-8 text-lg justify-center items-center h-full">
-          <div className="flex items-center border-y-[8px] border-transparent px-4 hover:border-y-[8px] hover:border-b-[var(--wnt25-color-red)] h-full cursor-pointer ">
-            Lastest
-          </div>
-          <div className="flex items-center border-y-[8px] border-transparent px-4 hover:border-y-[8px] hover:border-b-[var(--wnt25-color-red)] h-full cursor-pointer ">
-            LiveScores
-          </div>
-          <div className="flex items-center border-y-[8px] border-transparent px-4 hover:border-y-[8px] hover:border-b-[var(--wnt25-color-red)] h-full cursor-pointer ">
-            Schedule
-          </div>
-          <div className="flex items-center border-y-[8px] border-transparent px-4 hover:border-y-[8px] hover:border-b-[var(--wnt25-color-red)] h-full cursor-pointer ">
-            Tickets
-          </div>
-          <div className="flex items-center border-y-[8px] border-transparent px-4 hover:border-y-[8px] hover:border-b-[var(--wnt25-color-red)] h-full cursor-pointer">
-            Rankings
-          </div>
-          <div className="flex items-center border-y-[8px] border-transparent px-4 hover:border-y-[8px] hover:border-b-[var(--wnt25-color-red)] h-full cursor-pointer ">
-            Players
-          </div>
-          <div className="flex items-center border-y-[8px] border-transparent px-4 hover:border-y-[8px] hover:border-b-[var(--wnt25-color-red)] h-full cursor-pointer ">
-            Store
-          </div>
+    <div className="w-full bg-white border-b border-[#e0e0e0] px-10 h-[64px] sticky top-0 z-50">
+      <div className="max-w-[1600px] flex items-center justify-between font-normal mx-auto h-full">
+
+        {/* Logo */}
+        <div
+          onClick={() => navigate("/")}
+          className="text-[28px] font-black italic tracking-tight text-[#1a1a2e] shrink-0 mr-8 leading-none select-none cursor-pointer hover:opacity-80 transition-opacity duration-150"
+        >
+          CAPSTONE<span className="text-[#EF342A]">.</span>
         </div>
-        <div>
+
+        {/* Nav links */}
+        <div className="flex items-center justify-evenly h-full flex-1">
+          {navItems.map(({ label, path }) => (
+            <div
+              key={label}
+              onClick={() => path && navigate(path)}
+              className={`flex items-center whitespace-nowrap h-full px-2 text-[11px] font-semibold tracking-widest uppercase text-[#1a1a2e] hover:text-[#EF342A] transition-colors duration-150 ${path ? "cursor-pointer" : "cursor-default"}`}
+            >
+              {label}
+            </div>
+          ))}
+        </div>
+
+        {/* Auth buttons */}
+        <div className="shrink-0 ml-6">
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-8 h-full">
-              {/* My Profile */}
-              <button className="flex items-center gap-2 text-gray-300 hover:text-[#EF342A] transition h-full border-b-6 border-transparent hover:border-b-6 hover:border-[#EF342A] px-2">
-                <AiOutlineUser size={20} />
-                <span className="text-base font-semibold">My Profile</span>
+            <div className="flex items-center gap-2 h-full">
+              <button className="flex items-center gap-1.5 text-[#1a1a2e] hover:text-[#EF342A] transition-colors px-3 text-[12px] font-normal whitespace-nowrap">
+                <AiOutlineUser size={17} />
+                <span>Hồ Sơ</span>
               </button>
-
-              {/* Support */}
-              <button className="flex items-center gap-2 text-gray-300 hover:text-[#EF342A] transition h-full border-b-6 border-transparent hover:border-b-6 hover:border-[#EF342A] px-2">
-                <AiOutlineQuestionCircle size={20} />
-                <span className="text-base font-semibold">Support</span>
+              <button className="flex items-center gap-1.5 text-[#1a1a2e] hover:text-[#EF342A] transition-colors px-3 text-[12px] font-normal whitespace-nowrap">
+                <AiOutlineQuestionCircle size={17} />
+                <span>Hỗ Trợ</span>
               </button>
-
-              {/* Logout */}
               <button
                 onClick={logout}
-                className="flex items-center gap-2 text-gray-300 hover:text-[#EF342A] transition h-full border-b-6 border-transparent hover:border-b-6 hover:border-[#EF342A] px-2"
+                className="flex items-center gap-1.5 text-[#1a1a2e] hover:text-[#EF342A] transition-colors px-3 text-[12px] font-normal whitespace-nowrap"
               >
-                <AiOutlineLogout size={20} />
-                <span className="text-base font-semibold">Logout</span>
+                <AiOutlineLogout size={17} />
+                <span>Đăng Xuất</span>
               </button>
             </div>
           ) : (
             <button
               onClick={() => navigate("/login")}
-              className="border-2 border-[#EF342A] text-[var(--wnt25-color-light)] hover:bg-[#EF342A] hover:text-white font-semibold px-6 py-2 rounded-full transition-all duration-300"
+              className="border border-[#EF342A] text-[#EF342A] hover:bg-[#EF342A] hover:text-white font-normal px-5 py-1.5 rounded-full transition-all duration-300 text-sm whitespace-nowrap"
             >
               Đăng Nhập
             </button>
           )}
         </div>
+
       </div>
     </div>
   );
