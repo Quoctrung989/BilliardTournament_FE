@@ -8,14 +8,15 @@ import {
   Tv2, Search, Trophy, X,
 } from "lucide-react";
 
-/* ─── Mock data ─────────────────────────────────────────────────────── */
+/* ─── Mock data — 10 giải đấu, đủ 4 thể thức ───────────────────────── */
 const TOURNAMENTS = [
+  /* ══ 1. Loại trực tiếp 1 lần thua — IN_PROGRESS ══ */
   {
-    /* Đang diễn ra — bracket 8 người, khớp hoàn toàn với MatchesTab */
     id: 1,
     name: "Vietnam 9-Ball Open 2026",
     gameType: "9-Ball",
-    formatName: "Loại trực tiếp",
+    formatName: "Loại trực tiếp 1 lần thua",
+    bracketType: "single_elimination",
     status: "IN_PROGRESS",
     startAt: "2026-06-01",
     endAt: "2026-06-08",
@@ -25,34 +26,35 @@ const TOURNAMENTS = [
     image: "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
     prizeFund: 31300,
     prizes: [
-      { label: "Vô địch",   amount: 15000 },
-      { label: "Á quân",    amount: 7000  },
-      { label: "Hạng 3–4",  amount: 3500  },
-      { label: "Hạng 5–8",  amount: 1450  },
+      { label: "Vô địch",  amount: 15000 },
+      { label: "Á quân",   amount: 7000  },
+      { label: "Hạng 3–4", amount: 3500  },
+      { label: "Hạng 5–8", amount: 1450  },
     ],
-    /* 8 người — đúng với bracket Vòng 1 (4 trận) → Bán kết (2) → Chung kết (1) */
     players: [
-      { id: 1, name: "Nguyễn Văn Anh",   nickname: "Anh Cò",        age: 28, address: "Hà Nội" },
-      { id: 2, name: "Trần Đức Minh",    nickname: "Minh Lửa",       age: 31, address: "Hải Phòng" },
-      { id: 3, name: "Lê Quang Hùng",    nickname: "Hùng Phong",     age: 26, address: "TP. Hồ Chí Minh" },
-      { id: 4, name: "Trần Quốc Tuấn",   nickname: "Tuấn Bão",       age: 24, address: "Đà Nẵng" },
-      { id: 5, name: "Nguyễn Mạnh Hùng", nickname: "Hùng Gấu",       age: 29, address: "Hà Nội" },
-      { id: 6, name: "Phạm Đình Long",   nickname: "Long Rồng",      age: 27, address: "Bắc Ninh" },
-      { id: 7, name: "Vũ Tiến Thành",    nickname: "Thành Thần",     age: 33, address: "Hưng Yên" },
-      { id: 8, name: "Đỗ Quang Vinh",    nickname: "Vinh Sấm",       age: 30, address: "Nam Định" },
+      { id:1, name:"Nguyễn Văn Anh",    nickname:"Anh Cò",       age:28, address:"Hà Nội"             },
+      { id:2, name:"Ko Pin Yi",          nickname:"The Magician",  age:34, address:"Đài Loan"           },
+      { id:3, name:"Carlo Biado",        nickname:"Biado",         age:33, address:"Philippines"        },
+      { id:4, name:"Trần Đức Minh",     nickname:"Minh Lửa",      age:31, address:"Hải Phòng"          },
+      { id:5, name:"James Aranas",       nickname:"Django",        age:30, address:"Philippines"        },
+      { id:6, name:"Lê Quang Hùng",     nickname:"Hùng Phong",    age:26, address:"TP. Hồ Chí Minh"   },
+      { id:7, name:"Trần Quốc Tuấn",    nickname:"Tuấn Bão",      age:24, address:"Đà Nẵng"            },
+      { id:8, name:"Nguyễn Mạnh Hùng",  nickname:"Hùng Gấu",     age:29, address:"Hà Nội"             },
     ],
   },
+
+  /* ══ 2. Vòng tròn đơn — IN_PROGRESS ══ */
   {
-    /* Đang diễn ra — vòng bảng 6 người, toàn cơ thủ Carom Việt Nam */
     id: 2,
-    name: "Giải Vô Địch Carom 3 Băng Toàn Quốc",
+    name: "Giải Vô Địch Carom 3 Băng Toàn Quốc 2026",
     gameType: "Carom 3 Băng",
-    formatName: "Vòng bảng + Playoff",
+    formatName: "Vòng tròn đơn",
+    bracketType: "round_robin",
     status: "IN_PROGRESS",
     startAt: "2026-05-28",
     endAt: "2026-06-07",
     location: "TP. Hồ Chí Minh",
-    venue: "CLB Bi-a Quốc Tế",
+    venue: "CLB Bi-a Quốc Tế Sài Gòn",
     typeBadge: "Giải Chính",
     image: "https://matchroompool.com/wp-content/uploads/us-open-2026_desktop-players.png",
     prizeFund: 20000,
@@ -63,20 +65,22 @@ const TOURNAMENTS = [
       { label: "Hạng 4–6", amount: 1333 },
     ],
     players: [
-      { id: 1, name: "Trần Quốc Khánh",  nickname: "Khánh Đen",     age: 32, address: "TP. Hồ Chí Minh" },
-      { id: 2, name: "Nguyễn Hoàng Long", nickname: "Long Rồng",     age: 27, address: "Bình Dương" },
-      { id: 3, name: "Lê Thanh Tùng",    nickname: "Tùng Tiger",    age: 25, address: "Đồng Nai" },
-      { id: 4, name: "Phạm Văn Đức",     nickname: "Đức Cẩm",       age: 30, address: "TP. Hồ Chí Minh" },
-      { id: 5, name: "Vũ Mạnh Cường",    nickname: "Cường Sư Tử",   age: 28, address: "Vũng Tàu" },
-      { id: 6, name: "Đinh Trọng Khương", nickname: "Khương Thần",   age: 33, address: "Cần Thơ" },
+      { id:1, name:"Trần Quốc Khánh",    nickname:"Khánh Đen",    age:32, address:"TP. Hồ Chí Minh" },
+      { id:2, name:"Nguyễn Hoàng Long",  nickname:"Long Rồng",    age:27, address:"Bình Dương"       },
+      { id:3, name:"Lê Thanh Tùng",      nickname:"Tùng Tiger",   age:25, address:"Đồng Nai"         },
+      { id:4, name:"Phạm Văn Đức",       nickname:"Đức Cẩm",      age:30, address:"TP. Hồ Chí Minh" },
+      { id:5, name:"Vũ Mạnh Cường",      nickname:"Cường Sư Tử",  age:28, address:"Vũng Tàu"         },
+      { id:6, name:"Đinh Trọng Khương",  nickname:"Khương Thần",  age:33, address:"Cần Thơ"          },
     ],
   },
+
+  /* ══ 3. Loại trực tiếp 2 lần thua — COMPLETED ══ */
   {
-    /* Đã kết thúc — 8 cơ thủ 8-Ball */
     id: 3,
     name: "Đà Nẵng 8-Ball Championship 2026",
     gameType: "8-Ball",
-    formatName: "Loại trực tiếp kép",
+    formatName: "Loại trực tiếp 2 lần thua",
+    bracketType: "double_elimination",
     status: "COMPLETED",
     startAt: "2026-05-10",
     endAt: "2026-05-14",
@@ -84,94 +88,38 @@ const TOURNAMENTS = [
     venue: "Arena Sports Center",
     typeBadge: "Xếp hạng",
     image: "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
-    prizeFund: 15000,
+    prizeFund: 18000,
     prizes: [
-      { label: "Vô địch",  amount: 7000 },
-      { label: "Á quân",   amount: 3500 },
-      { label: "Hạng 3–4", amount: 1500 },
-      { label: "Hạng 5–8", amount: 500  },
+      { label: "Vô địch",  amount: 8000 },
+      { label: "Á quân",   amount: 4000 },
+      { label: "Hạng 3–4", amount: 2000 },
+      { label: "Hạng 5–8", amount: 750  },
     ],
     players: [
-      { id: 1, name: "Nguyễn Xuân Trường", nickname: "Trường Xanh",  age: 29, address: "Đà Nẵng" },
-      { id: 2, name: "Phạm Tuấn Kiệt",     nickname: "Kiệt Thần",    age: 26, address: "Quảng Nam" },
-      { id: 3, name: "Trần Minh Tuấn",      nickname: "Tuấn Chớp",   age: 31, address: "Đà Nẵng" },
-      { id: 4, name: "Lê Văn Hưng",         nickname: "Hưng Trâu",   age: 34, address: "Quảng Ngãi" },
-      { id: 5, name: "Nguyễn Đức Anh",      nickname: "Anh Ó",       age: 23, address: "Huế" },
-      { id: 6, name: "Hoàng Văn Linh",      nickname: "Linh Cáo",    age: 27, address: "Đà Nẵng" },
-      { id: 7, name: "Ngô Đình Nhân",       nickname: "Nhân Nhện",   age: 25, address: "Bình Định" },
-      { id: 8, name: "Bùi Văn An",          nickname: "An Tốc Độ",   age: 30, address: "Gia Lai" },
+      { id:1, name:"Nguyễn Xuân Trường", nickname:"Trường Xanh",  age:29, address:"Đà Nẵng"    },
+      { id:2, name:"Phạm Tuấn Kiệt",     nickname:"Kiệt Thần",    age:26, address:"Quảng Nam"  },
+      { id:3, name:"Trần Minh Tuấn",     nickname:"Tuấn Chớp",    age:31, address:"Đà Nẵng"    },
+      { id:4, name:"Lê Văn Hưng",        nickname:"Hưng Trâu",    age:34, address:"Quảng Ngãi" },
+      { id:5, name:"Nguyễn Đức Anh",     nickname:"Anh Ó",        age:23, address:"Huế"         },
+      { id:6, name:"Hoàng Văn Linh",     nickname:"Linh Cáo",     age:27, address:"Đà Nẵng"    },
+      { id:7, name:"Ngô Đình Nhân",      nickname:"Nhân Nhện",    age:25, address:"Bình Định"   },
+      { id:8, name:"Bùi Văn An",         nickname:"An Tốc Độ",    age:30, address:"Gia Lai"     },
     ],
   },
+
+  /* ══ 4. Vòng bảng + Playoff — COMPLETED ══ */
   {
-    /* Mở đăng ký — chưa có cơ thủ xác nhận, chỉ 6 người đăng ký sơ bộ */
     id: 4,
-    name: "Giải Bi-a Trẻ Toàn Quốc 2026",
-    gameType: "10-Ball",
-    formatName: "Vòng bảng",
-    status: "OPEN_FOR_REGISTRATION",
-    startAt: "2026-07-10",
-    endAt: "2026-07-14",
-    location: "Cần Thơ",
-    venue: "Nhà Thi Đấu Cần Thơ",
-    typeBadge: "Mời",
-    image: "https://matchroompool.com/wp-content/uploads/us-open-2026_desktop-players.png",
-    prizeFund: 10000,
-    prizes: [
-      { label: "Vô địch",  amount: 5000 },
-      { label: "Á quân",   amount: 2500 },
-      { label: "Hạng 3–4", amount: 1250 },
-    ],
-    players: [
-      { id: 1, name: "Võ Minh Tâm",      nickname: "Tâm Bướm",    age: 20, address: "Cần Thơ" },
-      { id: 2, name: "Đinh Xuân Hùng",   nickname: "Hùng Trẻ",    age: 19, address: "An Giang" },
-      { id: 3, name: "Nguyễn Văn Trọng", nickname: "Trọng Gió",   age: 21, address: "Kiên Giang" },
-      { id: 4, name: "Trần Đình Khoa",   nickname: "Khoa Lửa",    age: 22, address: "Cần Thơ" },
-      { id: 5, name: "Lê Minh Khoa",     nickname: "Khoa Nước",   age: 20, address: "Hậu Giang" },
-      { id: 6, name: "Phạm Bá Thanh",    nickname: "Thanh Nhỏ",   age: 23, address: "Sóc Trăng" },
-    ],
-  },
-  {
-    /* Đóng đăng ký — chuẩn bị thi đấu, 8 người Carom 1 Băng */
-    id: 5,
-    name: "Giải Vô Địch Billiards Miền Bắc",
-    gameType: "Carom 1 Băng",
-    formatName: "Vòng tròn + Loại",
-    status: "REGISTRATION_CLOSED",
-    startAt: "2026-06-20",
-    endAt: "2026-06-25",
-    location: "Hải Phòng",
-    venue: "CLB Bi-a Hải Phòng",
-    typeBadge: "Giải Chính",
-    image: "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
-    prizeFund: 12000,
-    prizes: [
-      { label: "Vô địch",  amount: 6000 },
-      { label: "Á quân",   amount: 3000 },
-      { label: "Hạng 3–4", amount: 1500 },
-    ],
-    players: [
-      { id: 1, name: "Lê Đình Tự",       nickname: "Tự Carom",    age: 35, address: "Hải Phòng" },
-      { id: 2, name: "Bùi Văn Trương",   nickname: "Trương Già",  age: 40, address: "Hải Phòng" },
-      { id: 3, name: "Phạm Văn Sơn",     nickname: "Sơn Núi",     age: 32, address: "Quảng Ninh" },
-      { id: 4, name: "Nguyễn Quốc Hùng", nickname: "Hùng Bắc",   age: 29, address: "Hà Nội" },
-      { id: 5, name: "Trần Văn Nam",      nickname: "Nam Mưa",     age: 31, address: "Thái Bình" },
-      { id: 6, name: "Hoàng Đình Khải",  nickname: "Khải Phong",  age: 27, address: "Nam Định" },
-      { id: 7, name: "Vũ Tiến Dũng",     nickname: "Dũng Thép",   age: 33, address: "Hải Phòng" },
-      { id: 8, name: "Đỗ Thanh Bình",    nickname: "Bình Tĩnh",   age: 28, address: "Hưng Yên" },
-    ],
-  },
-  {
-    /* Đã kết thúc — giải quốc tế có cơ thủ Philippines + Đài Loan */
-    id: 6,
-    name: "Ho Chi Minh City 8-Ball Open",
+    name: "Ho Chi Minh City 8-Ball Open 2026",
     gameType: "8-Ball",
-    formatName: "Loại trực tiếp kép",
+    formatName: "Vòng bảng + Playoff",
+    bracketType: "group_stage",
     status: "COMPLETED",
     startAt: "2026-04-10",
     endAt: "2026-04-14",
     location: "TP. Hồ Chí Minh",
     venue: "Vietnam Billiards Club",
-    typeBadge: "Mở",
+    typeBadge: "Giải Mở",
     image: "https://matchroompool.com/wp-content/uploads/us-open-2026_desktop-players.png",
     prizeFund: 25000,
     prizes: [
@@ -181,14 +129,210 @@ const TOURNAMENTS = [
       { label: "Hạng 5–8", amount: 1000  },
     ],
     players: [
-      { id: 1, name: "Trần Thanh Lâm",    nickname: "Lâm Điện",    age: 30, address: "TP. Hồ Chí Minh" },
-      { id: 2, name: "Nguyễn Hoàng Nam",  nickname: "Nam Phố",     age: 28, address: "TP. Hồ Chí Minh" },
-      { id: 3, name: "Phạm Thanh Chương", nickname: "Chương Bay",  age: 32, address: "Bình Dương" },
-      { id: 4, name: "Lê Đức Thịnh",      nickname: "Thịnh Vương", age: 35, address: "Long An" },
-      { id: 5, name: "Hoàng Văn Tú",      nickname: "Tú Hổ",       age: 27, address: "Tiền Giang" },
-      { id: 6, name: "Ngô Minh Phát",     nickname: "Phát Lốc",    age: 29, address: "TP. Hồ Chí Minh" },
-      { id: 7, name: "Bùi Quốc Khánh",   nickname: "Khánh Bay",   age: 31, address: "Đồng Nai" },
-      { id: 8, name: "Võ Thanh Tùng",     nickname: "Tùng Đen",    age: 26, address: "Bà Rịa - Vũng Tàu" },
+      { id:1, name:"Nguyễn Văn Anh",    nickname:"Anh Cò",       age:28, address:"Hà Nội"           },
+      { id:2, name:"Ko Pin Yi",          nickname:"The Magician",  age:34, address:"Đài Loan"         },
+      { id:3, name:"Carlo Biado",        nickname:"Biado",         age:33, address:"Philippines"      },
+      { id:4, name:"Trần Đức Minh",     nickname:"Minh Lửa",      age:31, address:"Hải Phòng"        },
+      { id:5, name:"James Aranas",       nickname:"Django",        age:30, address:"Philippines"      },
+      { id:6, name:"Lê Quang Hùng",     nickname:"Hùng Phong",    age:26, address:"TP. Hồ Chí Minh" },
+      { id:7, name:"Trần Quốc Tuấn",    nickname:"Tuấn Bão",      age:24, address:"Đà Nẵng"          },
+      { id:8, name:"Nguyễn Mạnh Hùng",  nickname:"Hùng Gấu",     age:29, address:"Hà Nội"           },
+    ],
+  },
+
+  /* ══ 5. Loại trực tiếp 1 lần thua — OPEN_FOR_REGISTRATION ══ */
+  {
+    id: 5,
+    name: "Hà Nội International Billiards Open 2026",
+    gameType: "9-Ball",
+    formatName: "Loại trực tiếp 1 lần thua",
+    bracketType: "single_elimination",
+    status: "OPEN_FOR_REGISTRATION",
+    startAt: "2026-07-15",
+    endAt: "2026-07-20",
+    location: "Hà Nội",
+    venue: "Cung Thể Thao Quần Ngựa",
+    typeBadge: "Giải Mở",
+    image: "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
+    prizeFund: 22000,
+    prizes: [
+      { label: "Vô địch",  amount: 10000 },
+      { label: "Á quân",   amount: 5000  },
+      { label: "Hạng 3–4", amount: 2500  },
+      { label: "Hạng 5–8", amount: 1125  },
+    ],
+    players: [
+      { id:1, name:"Nguyễn Văn Anh",    nickname:"Anh Cò",      age:28, address:"Hà Nội"   },
+      { id:2, name:"Vũ Tiến Thành",     nickname:"Thành Thần",  age:33, address:"Hưng Yên" },
+      { id:3, name:"Đỗ Quang Vinh",     nickname:"Vinh Sấm",    age:30, address:"Nam Định" },
+      { id:4, name:"Phạm Đình Long",    nickname:"Long Rồng",   age:27, address:"Bắc Ninh" },
+      { id:5, name:"Nguyễn Quốc Hùng", nickname:"Hùng Bắc",   age:29, address:"Hà Nội"   },
+      { id:6, name:"Trần Văn Nam",      nickname:"Nam Mưa",     age:31, address:"Thái Bình"},
+      { id:7, name:"Hoàng Đình Khải",   nickname:"Khải Phong",  age:27, address:"Nam Định" },
+      { id:8, name:"Vũ Tiến Dũng",      nickname:"Dũng Thép",   age:33, address:"Hải Phòng"},
+    ],
+  },
+
+  /* ══ 6. Vòng tròn đơn — REGISTRATION_CLOSED ══ */
+  {
+    id: 6,
+    name: "Giải Carom 1 Băng Toàn Quốc Miền Nam 2026",
+    gameType: "Carom 1 Băng",
+    formatName: "Vòng tròn đơn",
+    bracketType: "round_robin",
+    status: "REGISTRATION_CLOSED",
+    startAt: "2026-06-20",
+    endAt: "2026-06-25",
+    location: "Cần Thơ",
+    venue: "Nhà Thi Đấu Cần Thơ",
+    typeBadge: "Giải Chính",
+    image: "https://matchroompool.com/wp-content/uploads/us-open-2026_desktop-players.png",
+    prizeFund: 12000,
+    prizes: [
+      { label: "Vô địch",  amount: 5500 },
+      { label: "Á quân",   amount: 2800 },
+      { label: "Hạng 3",   amount: 1500 },
+      { label: "Hạng 4–6", amount: 733  },
+    ],
+    players: [
+      { id:1, name:"Lê Đình Tự",        nickname:"Tự Carom",    age:35, address:"Hải Phòng"        },
+      { id:2, name:"Bùi Văn Trương",    nickname:"Trương Già",  age:40, address:"TP. Hồ Chí Minh" },
+      { id:3, name:"Phạm Văn Sơn",      nickname:"Sơn Núi",     age:32, address:"Cần Thơ"          },
+      { id:4, name:"Trần Quốc Khánh",   nickname:"Khánh Đen",   age:32, address:"TP. Hồ Chí Minh" },
+      { id:5, name:"Vũ Mạnh Cường",     nickname:"Cường Sư Tử", age:28, address:"Vũng Tàu"         },
+      { id:6, name:"Đinh Trọng Khương", nickname:"Khương Thần", age:33, address:"Cần Thơ"          },
+    ],
+  },
+
+  /* ══ 7. Vòng bảng + Playoff — IN_PROGRESS ══ */
+  {
+    id: 7,
+    name: "Giải Bi-a Trẻ Toàn Quốc 2026",
+    gameType: "10-Ball",
+    formatName: "Vòng bảng + Playoff",
+    bracketType: "group_stage",
+    status: "IN_PROGRESS",
+    startAt: "2026-06-10",
+    endAt: "2026-06-16",
+    location: "Đà Nẵng",
+    venue: "Trung tâm Thể thao Đà Nẵng",
+    typeBadge: "Mời",
+    image: "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
+    prizeFund: 10000,
+    prizes: [
+      { label: "Vô địch",  amount: 4500 },
+      { label: "Á quân",   amount: 2500 },
+      { label: "Hạng 3–4", amount: 1000 },
+      { label: "Hạng 5–8", amount: 500  },
+    ],
+    players: [
+      { id:1, name:"Võ Minh Tâm",       nickname:"Tâm Bướm",   age:20, address:"Cần Thơ"    },
+      { id:2, name:"Đinh Xuân Hùng",    nickname:"Hùng Trẻ",   age:19, address:"An Giang"   },
+      { id:3, name:"Nguyễn Văn Trọng",  nickname:"Trọng Gió",  age:21, address:"Kiên Giang" },
+      { id:4, name:"Trần Đình Khoa",    nickname:"Khoa Lửa",   age:22, address:"Cần Thơ"    },
+      { id:5, name:"Lê Minh Khoa",      nickname:"Khoa Nước",  age:20, address:"Hậu Giang"  },
+      { id:6, name:"Phạm Bá Thanh",     nickname:"Thanh Nhỏ",  age:23, address:"Sóc Trăng"  },
+      { id:7, name:"Huỳnh Công Danh",   nickname:"Danh Sóng",  age:21, address:"Trà Vinh"   },
+      { id:8, name:"Ngô Thanh Phong",   nickname:"Phong Gió",  age:22, address:"Bến Tre"    },
+    ],
+  },
+
+  /* ══ 8. Loại trực tiếp 2 lần thua — COMPLETED ══ */
+  {
+    id: 8,
+    name: "Giải Vô Địch Billiards Miền Bắc 2026",
+    gameType: "Carom 1 Băng",
+    formatName: "Loại trực tiếp 2 lần thua",
+    bracketType: "double_elimination",
+    status: "COMPLETED",
+    startAt: "2026-04-20",
+    endAt: "2026-04-25",
+    location: "Hải Phòng",
+    venue: "CLB Bi-a Hải Phòng",
+    typeBadge: "Giải Chính",
+    image: "https://matchroompool.com/wp-content/uploads/us-open-2026_desktop-players.png",
+    prizeFund: 14000,
+    prizes: [
+      { label: "Vô địch",  amount: 6500 },
+      { label: "Á quân",   amount: 3500 },
+      { label: "Hạng 3–4", amount: 1500 },
+      { label: "Hạng 5–8", amount: 625  },
+    ],
+    players: [
+      { id:1, name:"Lê Đình Tự",        nickname:"Tự Carom",   age:35, address:"Hải Phòng"  },
+      { id:2, name:"Bùi Văn Trương",    nickname:"Trương Già", age:40, address:"Hải Phòng"  },
+      { id:3, name:"Phạm Văn Sơn",      nickname:"Sơn Núi",    age:32, address:"Quảng Ninh" },
+      { id:4, name:"Nguyễn Quốc Hùng",  nickname:"Hùng Bắc",  age:29, address:"Hà Nội"     },
+      { id:5, name:"Trần Văn Nam",       nickname:"Nam Mưa",    age:31, address:"Thái Bình"  },
+      { id:6, name:"Hoàng Đình Khải",   nickname:"Khải Phong", age:27, address:"Nam Định"   },
+      { id:7, name:"Vũ Tiến Dũng",      nickname:"Dũng Thép",  age:33, address:"Hải Phòng"  },
+      { id:8, name:"Đỗ Thanh Bình",     nickname:"Bình Tĩnh",  age:28, address:"Hưng Yên"   },
+    ],
+  },
+
+  /* ══ 9. Vòng bảng + Playoff — UPCOMING ══ */
+  {
+    id: 9,
+    name: "SEA 9-Ball Championship 2026",
+    gameType: "9-Ball",
+    formatName: "Vòng bảng + Playoff",
+    bracketType: "group_stage",
+    status: "UPCOMING",
+    startAt: "2026-08-05",
+    endAt: "2026-08-10",
+    location: "TP. Hồ Chí Minh",
+    venue: "GEM Center",
+    typeBadge: "Quốc Tế",
+    image: "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
+    prizeFund: 50000,
+    prizes: [
+      { label: "Vô địch",  amount: 20000 },
+      { label: "Á quân",   amount: 10000 },
+      { label: "Hạng 3–4", amount: 5000  },
+      { label: "Hạng 5–8", amount: 2500  },
+    ],
+    players: [
+      { id:1, name:"Nguyễn Văn Anh",    nickname:"Anh Cò",       age:28, address:"Việt Nam"    },
+      { id:2, name:"Carlo Biado",        nickname:"Biado",         age:33, address:"Philippines" },
+      { id:3, name:"Ko Pin Yi",          nickname:"The Magician",  age:34, address:"Đài Loan"    },
+      { id:4, name:"James Aranas",       nickname:"Django",        age:30, address:"Philippines" },
+      { id:5, name:"Thorsten Hohmann",   nickname:"The Hitman",    age:44, address:"Đức"          },
+      { id:6, name:"Shane Van Boening",  nickname:"The South Dakota Kid", age:40, address:"Mỹ"  },
+      { id:7, name:"Naoyuki Oi",         nickname:"Shark",         age:42, address:"Nhật Bản"    },
+      { id:8, name:"Fedor Gorst",        nickname:"The Blizzard",  age:26, address:"Nga"          },
+    ],
+  },
+
+  /* ══ 10. Loại trực tiếp 2 lần thua — OPEN_FOR_REGISTRATION ══ */
+  {
+    id: 10,
+    name: "Bình Dương Open 2026",
+    gameType: "8-Ball",
+    formatName: "Loại trực tiếp 2 lần thua",
+    bracketType: "double_elimination",
+    status: "OPEN_FOR_REGISTRATION",
+    startAt: "2026-08-20",
+    endAt: "2026-08-24",
+    location: "Bình Dương",
+    venue: "VSIP Billiards Arena",
+    typeBadge: "Giải Mở",
+    image: "https://matchroompool.com/wp-content/uploads/us-open-2026_desktop-players.png",
+    prizeFund: 16000,
+    prizes: [
+      { label: "Vô địch",  amount: 7500 },
+      { label: "Á quân",   amount: 4000 },
+      { label: "Hạng 3–4", amount: 1625 },
+      { label: "Hạng 5–8", amount: 813  },
+    ],
+    players: [
+      { id:1, name:"Trần Thanh Lâm",    nickname:"Lâm Điện",    age:30, address:"TP. Hồ Chí Minh" },
+      { id:2, name:"Nguyễn Hoàng Nam",  nickname:"Nam Phố",     age:28, address:"TP. Hồ Chí Minh" },
+      { id:3, name:"Phạm Thanh Chương", nickname:"Chương Bay",  age:32, address:"Bình Dương"       },
+      { id:4, name:"Lê Đức Thịnh",      nickname:"Thịnh Vương", age:35, address:"Long An"          },
+      { id:5, name:"Hoàng Văn Tú",      nickname:"Tú Hổ",       age:27, address:"Tiền Giang"       },
+      { id:6, name:"Ngô Minh Phát",     nickname:"Phát Lốc",    age:29, address:"TP. Hồ Chí Minh" },
+      { id:7, name:"Bùi Quốc Khánh",   nickname:"Khánh Bay",   age:31, address:"Đồng Nai"         },
+      { id:8, name:"Võ Thanh Tùng",     nickname:"Tùng Đen",    age:26, address:"Bà Rịa - Vũng Tàu"},
     ],
   },
 ];
@@ -268,8 +412,7 @@ const PlayerProfile = ({ player, onClose }) => {
         {/* Info rows */}
         <div className="px-5 pb-6 space-y-2">
           {[
-            { label: "Tuổi",    value: `${player.age} tuổi` },
-            { label: "Địa chỉ", value: player.address        },
+            { label: "Tuổi", value: `${player.age} tuổi` },
           ].map(({ label, value }) => (
             <div
               key={label}
@@ -300,7 +443,10 @@ const InfoTab = ({ t, onWatchNow }) => {
   );
 
   return (
-    <div className="space-y-0 rounded-3xl overflow-hidden shadow-md border border-gray-100">
+    <div className="space-y-4">
+
+    {/* ── Card 1: thông tin + giải thưởng + live ── */}
+    <div className="rounded-3xl overflow-hidden shadow-sm border border-gray-100">
 
       {/* ── 1. META STRIP ── */}
       <div className="bg-white grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-100 border-b border-gray-100">
@@ -366,8 +512,10 @@ const InfoTab = ({ t, onWatchNow }) => {
         </div>
       </div>
 
-      {/* ── 5. DANH SÁCH CƠ THỦ ── */}
-      <div className="bg-white">
+    </div>{/* end card 1 */}
+
+    {/* ── Card 2: danh sách cơ thủ ── */}
+    <div className="rounded-3xl overflow-hidden shadow-sm border border-gray-100 bg-white">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100" style={{ background: "linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)" }}>
           <div className="flex items-center gap-2">
             <User size={13} className="text-white/70" />
@@ -389,12 +537,12 @@ const InfoTab = ({ t, onWatchNow }) => {
           </div>
 
           {filteredPlayers.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredPlayers.map((p) => (
                 <div
                   key={p.id}
                   onClick={() => setSelectedPlayer(p)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#f8f9fb] hover:bg-[#eef0f5] transition-colors cursor-pointer group border border-transparent hover:border-[#0d1b2e]/10"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#f8f9fb] hover:bg-[#eef0f5] transition-colors cursor-pointer group border border-gray-200 hover:border-[#0d1b2e]/20"
                 >
                   <div
                     className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-black text-white/70"
@@ -424,7 +572,7 @@ const InfoTab = ({ t, onWatchNow }) => {
         </div>
       </div>
 
-      <PlayerProfile player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />
+    <PlayerProfile player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />
     </div>
   );
 };
