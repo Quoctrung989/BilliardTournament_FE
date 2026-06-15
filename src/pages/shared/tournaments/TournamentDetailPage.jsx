@@ -82,6 +82,20 @@ const TournamentDetailPage = ({ api, basePath }) => {
               {detail.configComplete ? "Đã hoàn tất" : "Chưa hoàn tất"}
             </dd>
           </div>
+          <div>
+            <dt className="text-slate-500">Đăng ký online</dt>
+            <dd className="font-medium">
+              {detail.isRegister ? "Có" : "Không"}
+            </dd>
+          </div>
+          {detail.isRegister && (
+            <div>
+              <dt className="text-slate-500">Template form</dt>
+              <dd className="font-medium">
+                {detail.registrationFormTemplateName || detail.registrationFormTemplateCode || "—"}
+              </dd>
+            </div>
+          )}
         </dl>
         {detail.configSummary && (
           <div className="mt-4 pt-4 border-t text-sm text-slate-600">
@@ -120,6 +134,14 @@ const TournamentDetailPage = ({ api, basePath }) => {
               Sửa thông tin
             </AdminButton>
           </>
+        )}
+        {detail.isRegister && (
+          <AdminButton
+            variant="secondary"
+            onClick={() => navigate(`${basePath}/${id}/registrations`)}
+          >
+            Quản lý đăng ký
+          </AdminButton>
         )}
         <AdminButton variant="secondary" onClick={() => navigate(basePath)}>
           Danh sách

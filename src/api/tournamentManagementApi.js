@@ -25,6 +25,17 @@ export const createTournamentManagementApi = (scope) => {
       unwrap(axiosClient.post(`${base}/tournaments/${id}/config/validate`, {})),
     patchStatus: (id, body) =>
       unwrap(axiosClient.patch(`${base}/tournaments/${id}/status`, body)),
+    listRegistrationFormTemplates: () =>
+      unwrap(axiosClient.get(`${base}/registration-form-templates`)),
+    getTournamentRegistrationForm: (id) =>
+      unwrap(axiosClient.get(`${base}/tournaments/${id}/registration-form`)),
+    listTournamentRegistrations: (id, params) =>
+      unwrapPaged(axiosClient.get(`${base}/tournaments/${id}/registrations`, { params })),
+    getRegistrationDetail: (id) => unwrap(axiosClient.get(`${base}/registrations/${id}`)),
+    approveRegistration: (id) =>
+      unwrap(axiosClient.post(`${base}/registrations/${id}/approve`, {})),
+    rejectRegistration: (id, body) =>
+      unwrap(axiosClient.post(`${base}/registrations/${id}/reject`, body)),
   };
 };
 
