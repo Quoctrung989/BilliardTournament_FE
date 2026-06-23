@@ -26,11 +26,30 @@ import TournamentDetailPage from "../pages/shared/tournaments/TournamentDetailPa
 import TournamentRegistrationListPage from "../pages/shared/registrations/TournamentRegistrationListPage";
 import TournamentRegisterPage from "../pages/Player/TournamentRegisterPage";
 import MyRegistrationsPage from "../pages/Player/MyRegistrationsPage";
+import PlayerTournamentListPage from "../pages/Player/PlayerTournamentListPage";
+import PlayerTournamentDetailPage from "../pages/Player/PlayerTournamentDetailPage";
+import PaymentSuccessPage from "../pages/Payment/PaymentSuccessPage";
+import MyPaymentsPage from "../pages/Payment/MyPaymentsPage";
+import ParticipantListPage from "../pages/shared/participants/ParticipantListPage";
+import DashboardPage from "../pages/shared/DashboardPage";
+import NewsListPage from "../pages/News/NewsListPage";
+import ArticleDetailPage from "../pages/News/ArticleDetailPage";
+import NewsCMSPage from "../pages/shared/news/NewsCMSPage";
+import ArticleEditorPage from "../pages/shared/news/ArticleEditorPage";
 import PlayerRoute from "../components/guards/PlayerRoute";
 import {
   ownerTournamentApi,
   managerTournamentApi,
 } from "../api/tournamentManagementApi";
+import {
+  ownerParticipantApi,
+  managerParticipantApi,
+} from "../api/participantApi";
+import {
+  ownerNewsCmsApi,
+  managerNewsCmsApi,
+} from "../api/newsApi";
+import { getOwnerStats, getManagerStats } from "../api/dashboardApi";
 import { withAdminPage } from "../components/admin/withAdminPage";
 import { withStaffPage } from "../components/staff/withStaffPage";
 import { withOwnerPage } from "../components/owner/withOwnerPage";
@@ -92,6 +111,33 @@ const ManagerTournamentRegistrations = () => (
   />
 );
 
+const OwnerParticipantList = () => (
+  <ParticipantListPage api={ownerParticipantApi} basePath="/owner/tournaments" />
+);
+const ManagerParticipantList = () => (
+  <ParticipantListPage api={managerParticipantApi} basePath="/manager/tournaments" />
+);
+
+const OwnerDashboard = () => (
+  <DashboardPage statsLoader={getOwnerStats} basePath="/owner" title="Owner — Tổng quan" />
+);
+const ManagerDashboard = () => (
+  <DashboardPage statsLoader={getManagerStats} basePath="/manager" title="Manager — Tổng quan" />
+);
+
+const OwnerNewsCMS = () => (
+  <NewsCMSPage api={ownerNewsCmsApi} editorPath="/owner/news" />
+);
+const ManagerNewsCMS = () => (
+  <NewsCMSPage api={managerNewsCmsApi} editorPath="/manager/news" />
+);
+const OwnerArticleEditor = () => (
+  <ArticleEditorPage api={ownerNewsCmsApi} basePath="/owner/news" />
+);
+const ManagerArticleEditor = () => (
+  <ArticleEditorPage api={managerNewsCmsApi} basePath="/manager/news" />
+);
+
 const PlayerTournamentRegister = () => (
   <PlayerRoute>
     <CommonLayout>
@@ -106,6 +152,37 @@ const PlayerMyRegistrations = () => (
       <MyRegistrationsPage />
     </CommonLayout>
   </PlayerRoute>
+);
+
+const PlayerTournamentList = () => (
+  <PlayerRoute>
+    <CommonLayout>
+      <PlayerTournamentListPage />
+    </CommonLayout>
+  </PlayerRoute>
+);
+
+const PlayerTournamentDetail = () => (
+  <PlayerRoute>
+    <CommonLayout>
+      <PlayerTournamentDetailPage />
+    </CommonLayout>
+  </PlayerRoute>
+);
+
+const PlayerMyPayments = () => (
+  <PlayerRoute>
+    <CommonLayout>
+      <MyPaymentsPage />
+    </CommonLayout>
+  </PlayerRoute>
+);
+
+/* PaymentSuccessPage không cần PlayerRoute — PayOS redirect về đây kể cả khi chưa đăng nhập */
+const PaymentReturn = () => (
+  <CommonLayout>
+    <PaymentSuccessPage />
+  </CommonLayout>
 );
 
 export const ROUTES = [
@@ -198,6 +275,10 @@ export const ROUTES = [
     ),
   },
   {
+    path: "/owner/dashboard",
+    component: withOwnerPage(OwnerDashboard, "Tổng quan", "Thống kê giải đấu và doanh thu"),
+  },
+  {
     path: "/owner/employees",
     component: withOwnerPage(
       OwnerEmployeeListPage,
@@ -246,6 +327,22 @@ export const ROUTES = [
       "Đăng ký giải đấu",
       "Duyệt và quản lý đăng ký",
     ),
+  },
+  {
+    path: "/owner/tournaments/:id/participants",
+    component: withOwnerPage(OwnerParticipantList, "Người tham gia", "Thêm thủ công hoặc import Excel", { fullWidth: true }),
+  },
+  {
+    path: "/owner/news",
+    component: withOwnerPage(OwnerNewsCMS, "Tin tức & Bài viết", "Quản lý nội dung"),
+  },
+  {
+    path: "/owner/news/:id",
+    component: withOwnerPage(OwnerArticleEditor, "Bài viết", "Tạo / sửa bài viết", { fullWidth: true }),
+  },
+  {
+    path: "/manager/dashboard",
+    component: withManagerPage(ManagerDashboard, "Tổng quan", "Thống kê giải đấu"),
   },
   {
     path: "/manager/employees",
@@ -298,6 +395,26 @@ export const ROUTES = [
     ),
   },
   {
+    path: "/manager/tournaments/:id/participants",
+    component: withManagerPage(ManagerParticipantList, "Người tham gia", "Thêm thủ công hoặc import Excel", { fullWidth: true }),
+  },
+  {
+    path: "/manager/news",
+    component: withManagerPage(ManagerNewsCMS, "Tin tức & Bài viết", "Quản lý nội dung"),
+  },
+  {
+    path: "/manager/news/:id",
+    component: withManagerPage(ManagerArticleEditor, "Bài viết", "Tạo / sửa bài viết", { fullWidth: true }),
+  },
+  {
+    path: "/player/tournaments",
+    component: PlayerTournamentList,
+  },
+  {
+    path: "/player/tournaments/:id",
+    component: PlayerTournamentDetail,
+  },
+  {
     path: "/player/tournaments/:id/register",
     component: PlayerTournamentRegister,
   },
@@ -305,6 +422,16 @@ export const ROUTES = [
     path: "/player/registrations",
     component: PlayerMyRegistrations,
   },
+  {
+    path: "/player/payments",
+    component: PlayerMyPayments,
+  },
+  {
+    path: "/payment/success",
+    component: PaymentReturn,
+  },
+  { path: "/news", component: NewsListPage, layout: CommonLayout },
+  { path: "/news/:slug", component: ArticleDetailPage, layout: CommonLayout },
   { path: "/event", component: EventPage, layout: CommonLayout },
   { path: "/event/:id", component: EventDetailPage, layout: CommonLayout },
   { path: "/", component: Home, layout: CommonLayout },

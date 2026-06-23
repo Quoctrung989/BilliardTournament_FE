@@ -3,6 +3,7 @@ export const MANAGER_NAV = [
     id: "overview",
     label: "Tổng quan",
     items: [
+      { label: "Dashboard", path: "/manager/dashboard", icon: "layout-dashboard" },
       { label: "Giải đấu", path: "/manager/tournaments", icon: "trophy" },
     ],
   },
@@ -14,25 +15,10 @@ export const MANAGER_NAV = [
     ],
   },
   {
-    id: "tournaments",
-    label: "Quản lý giải",
+    id: "content",
+    label: "Nội dung",
     items: [
-      {
-        label: "Tạo giải mới",
-        path: "/manager/tournaments/new",
-        icon: "layout-dashboard",
-      },
-    ],
-  },
-  {
-    id: "staff",
-    label: "Nhân viên",
-    items: [
-      {
-        label: "Quản lý nhân viên",
-        path: "/manager/staffManagement",
-        icon: "user-cog",
-      },
+      { label: "Tin tức & Bài viết", path: "/manager/news", icon: "file-text" },
     ],
   },
 ];

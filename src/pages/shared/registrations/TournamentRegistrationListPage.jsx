@@ -5,7 +5,10 @@ import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
 import AdminPagination from "../../../components/admin/ui/AdminPagination";
-import { REGISTRATION_STATUS_LABELS } from "../../../constants/registrationFormConfig";
+import {
+  REGISTRATION_STATUS_LABELS,
+  REGISTRATION_STATUS_STYLES,
+} from "../../../constants/registrationFormConfig";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../../utils/pagination";
 
@@ -152,7 +155,9 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
                     <td>{row.playerPhone}</td>
                     <td>{row.registrationType}</td>
                     <td>
-                      {REGISTRATION_STATUS_LABELS[row.status] || row.status}
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${REGISTRATION_STATUS_STYLES[row.status] || "bg-slate-100 text-slate-600"}`}>
+                        {REGISTRATION_STATUS_LABELS[row.status] || row.status}
+                      </span>
                     </td>
                     <td className="align-right">
                       <button
@@ -200,9 +205,9 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
             ) : (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">{detail.playerFullName}</h3>
-                <p className="text-sm text-slate-500">
+                <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${REGISTRATION_STATUS_STYLES[detail.status] || "bg-slate-100 text-slate-600"}`}>
                   {REGISTRATION_STATUS_LABELS[detail.status] || detail.status}
-                </p>
+                </span>
                 <dl className="text-sm space-y-2">
                   <div>
                     <dt className="text-slate-500">SĐT</dt>

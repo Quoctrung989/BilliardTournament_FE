@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import {
   AiOutlineUser,
   AiOutlineLogout,
-  AiOutlineQuestionCircle,
+  AiOutlineFileText,
+  AiOutlineCreditCard,
+  AiOutlineDown,
 } from "react-icons/ai";
 
-const navItems = [
-  { label: "Tin Mới Nhất",     path: null },
+const NAV_ITEMS = [
+  { label: "Tin Mới Nhất",     path: "/news" },
   { label: "Tỷ Số Trực Tiếp", path: null },
   { label: "Lịch Thi Đấu",    path: "/event" },
   { label: "Vé",               path: null },
@@ -17,9 +19,29 @@ const navItems = [
   { label: "Cửa Hàng",        path: null },
 ];
 
+const PLAYER_MENU = [
+  { label: "Đăng ký của tôi",    path: "/player/registrations", Icon: AiOutlineFileText },
+  { label: "Lịch sử thanh toán", path: "/player/payments",       Icon: AiOutlineCreditCard },
+];
+
 const Header = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuthStore();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const isPlayer = user?.role === "PLAYER";
+
+  /* Đóng menu khi click ngoài */
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   return (
     <div className="w-full bg-white border-b border-[#e0e0e0] px-10 h-[64px] sticky top-0 z-50">
@@ -35,7 +57,7 @@ const Header = () => {
 
         {/* Nav links */}
         <div className="flex items-center justify-evenly h-full flex-1">
-          {navItems.map(({ label, path }) => (
+          {NAV_ITEMS.map(({ label, path }) => (
             <div
               key={label}
               onClick={() => path && navigate(path)}
@@ -44,26 +66,60 @@ const Header = () => {
               {label}
             </div>
           ))}
+
+          {/* Player: thêm link nhanh đến giải đấu đang mở */}
+          {isPlayer && (
+            <div
+              onClick={() => navigate("/player/tournaments")}
+              className="flex items-center whitespace-nowrap h-full px-2 text-[11px] font-semibold tracking-widest uppercase text-[#EF342A] hover:opacity-80 cursor-pointer transition-opacity"
+            >
+              Đăng ký giải
+            </div>
+          )}
         </div>
 
-        {/* Auth buttons */}
+        {/* Auth area */}
         <div className="shrink-0 ml-6">
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-2 h-full">
-              <button className="flex items-center gap-1.5 text-[#1a1a2e] hover:text-[#EF342A] transition-colors px-3 text-[12px] font-normal whitespace-nowrap">
-                <AiOutlineUser size={17} />
-                <span>Hồ Sơ</span>
-              </button>
-              <button className="flex items-center gap-1.5 text-[#1a1a2e] hover:text-[#EF342A] transition-colors px-3 text-[12px] font-normal whitespace-nowrap">
-                <AiOutlineQuestionCircle size={17} />
-                <span>Hỗ Trợ</span>
-              </button>
+            <div className="flex items-center gap-1 h-full" ref={menuRef}>
+              {/* Nút hồ sơ / dropdown */}
               <button
-                onClick={logout}
-                className="flex items-center gap-1.5 text-[#1a1a2e] hover:text-[#EF342A] transition-colors px-3 text-[12px] font-normal whitespace-nowrap"
+                onClick={() => setMenuOpen((v) => !v)}
+                className="relative flex items-center gap-1.5 text-[#1a1a2e] hover:text-[#EF342A] transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 text-[12px] font-normal whitespace-nowrap"
               >
-                <AiOutlineLogout size={17} />
-                <span>Đăng Xuất</span>
+                <AiOutlineUser size={17} />
+                <span className="max-w-[100px] truncate">{user.fullName || user.email}</span>
+                <AiOutlineDown size={12} className={`transition-transform ${menuOpen ? "rotate-180" : ""}`} />
+
+                {/* Dropdown */}
+                {menuOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-slate-100 rounded-xl shadow-lg py-1 z-50">
+                    {isPlayer && (
+                      <>
+                        {PLAYER_MENU.map(({ label, path, Icon }) => (
+                          <button
+                            key={path}
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate(path); }}
+                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-[#EF342A] transition-colors text-left"
+                          >
+                            <Icon size={15} />
+                            {label}
+                          </button>
+                        ))}
+                        <div className="my-1 border-t border-slate-100" />
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); logout(); navigate("/"); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors text-left"
+                    >
+                      <AiOutlineLogout size={15} />
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
               </button>
             </div>
           ) : (

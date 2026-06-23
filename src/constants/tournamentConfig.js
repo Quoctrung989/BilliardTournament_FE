@@ -36,6 +36,16 @@ export const TOURNAMENT_STATUS_LABELS = {
   CANCELLED: "Đã hủy",
 };
 
+export const TOURNAMENT_STATUS_STYLES = {
+  DRAFT: "bg-slate-100 text-slate-700",
+  OPEN_FOR_REGISTRATION: "bg-emerald-100 text-emerald-800",
+  REGISTRATION_CLOSED: "bg-amber-100 text-amber-800",
+  DRAW_DONE: "bg-blue-100 text-blue-800",
+  IN_PROGRESS: "bg-violet-100 text-violet-800",
+  COMPLETED: "bg-teal-100 text-teal-800",
+  CANCELLED: "bg-red-100 text-red-700",
+};
+
 export const BRACKET_PHASES = [
   { value: "KNOCKOUT", label: "Knockout" },
   { value: "WINNERS", label: "Winners" },

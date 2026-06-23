@@ -3,6 +3,7 @@ export const OWNER_NAV = [
     id: "overview",
     label: "Tổng quan",
     items: [
+      { label: "Dashboard", path: "/owner/dashboard", icon: "layout-dashboard" },
       { label: "Giải đấu", path: "/owner/tournaments", icon: "trophy" },
     ],
   },
@@ -14,10 +15,10 @@ export const OWNER_NAV = [
     ],
   },
   {
-    id: "tournaments",
-    label: "Quản lý giải",
+    id: "content",
+    label: "Nội dung",
     items: [
-      { label: "Tạo giải mới", path: "/owner/tournaments/new", icon: "layout-dashboard" },
+      { label: "Tin tức & Bài viết", path: "/owner/news", icon: "file-text" },
     ],
   },
 ];

@@ -23,7 +23,16 @@ export const REGISTRATION_UI_COMPONENTS = [
 
 export const REGISTRATION_STATUS_LABELS = {
   PENDING_PAYMENT: "Chờ thanh toán",
-  APPROVED: "Đã duyệt",
-  REJECTED: "Từ chối",
+  PAID: "Đã thanh toán",
+  APPROVED: "Tham gia chính thức",
+  REJECTED: "Không được tham gia",
   CANCELLED: "Đã hủy",
+};
+
+export const REGISTRATION_STATUS_STYLES = {
+  PENDING_PAYMENT: "bg-amber-100 text-amber-800",
+  PAID: "bg-blue-100 text-blue-800",
+  APPROVED: "bg-emerald-100 text-emerald-800",
+  REJECTED: "bg-red-100 text-red-700",
+  CANCELLED: "bg-slate-100 text-slate-500",
 };

@@ -7,6 +7,16 @@ const unwrap = (promise) => promise.then((res) => getApiData(res));
 const unwrapPaged = (promise, fallbackSize) =>
   promise.then((res) => parsePagedResponse(getApiData(res), fallbackSize));
 
+export const listPlayerTournaments = (params) =>
+  unwrapPaged(axiosClient.get("/player/tournaments", { params }));
+
+export const getPlayerTournamentDetail = (tournamentId) =>
+  unwrap(axiosClient.get(`/player/tournaments/${tournamentId}`));
+
+/** Kiểm tra user đã đăng ký giải này chưa — trả null nếu chưa */
+export const getMyRegistrationForTournament = (tournamentId) =>
+  unwrap(axiosClient.get(`/player/tournaments/${tournamentId}/my-registration`));
+
 export const getTournamentRegistrationForm = (tournamentId) =>
   unwrap(axiosClient.get(`/player/tournaments/${tournamentId}/registration-form`));
 
