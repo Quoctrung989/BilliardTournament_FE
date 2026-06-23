@@ -237,7 +237,7 @@ export const ROUTES = [
     component: withAdminPage(
       ConfigFieldCatalogPage,
       "Catalog trường",
-      "Chỉ xem — không chỉnh sửa trên UI",
+      "Tạo và cập nhật định nghĩa field cấu hình giải",
     ),
   },
   {
@@ -438,7 +438,7 @@ export const ROUTES = [
   { path: "/login", component: LoginPage, layout: null },
   { path: "/register", component: RegisterPage, layout: null },
   { path: "/forgot-password", component: ForgotPasswordPage, layout: null },
-  { path: "/profile", component: Profile, layout: null },
+  { path: "/profile", component: Profile, layout: CommonLayout },
   { path: "/staffProfile/:slug", component: StaffProfile, layout: null },
   {
     path: "/admin/accounts", 

@@ -101,7 +101,7 @@ const RegisterPage = () => {
     }`;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ fontFamily: "'Barlow', sans-serif" }}>
+    <div className="min-h-screen flex flex-col">
       {/* Hero */}
       <div
         className="flex-1 flex flex-col items-center pt-10 pb-0 relative"

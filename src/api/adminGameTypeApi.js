@@ -11,5 +11,14 @@ const unwrapPaged = (promise, fallbackSize) =>
 export const getGameTypes = (params) =>
   unwrapPaged(axiosClient.get("/admin/game-types", { params }));
 
+/** POST /admin/game-types */
+export const createGameType = (body) =>
+  unwrap(axiosClient.post("/admin/game-types", body));
+
+/** PUT /admin/game-types/{code} */
 export const updateGameType = (code, body) =>
   unwrap(axiosClient.put(`/admin/game-types/${code}`, body));
+
+/** PATCH /admin/game-types/{code}/active */
+export const patchGameTypeActive = (code, body) =>
+  unwrap(axiosClient.patch(`/admin/game-types/${code}/active`, body));

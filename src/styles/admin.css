@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-
 /* BTMS Admin shell */
 .admin-shell {
   --admin-sidebar-w: 260px;
@@ -17,7 +15,7 @@
   --admin-border: #e2e8f0;
   --admin-radius: 12px;
   --admin-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .admin-main {
@@ -262,7 +260,7 @@
   display: inline-block;
   max-width: 100%;
   font-size: 0.6875rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono);
   background: #f1f5f9;
   color: #475569;
   padding: 0.25rem 0.5rem;
@@ -433,4 +431,246 @@
 }
 .admin-toggle[data-on="false"] .admin-toggle-knob {
   left: 2px;
+}
+
+/* Catalog field — detail modal */
+.catalog-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.catalog-detail-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 70%);
+}
+
+.catalog-detail-accent--boolean {
+  border-color: #c7d2fe;
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 65%);
+}
+
+.catalog-detail-accent--int {
+  border-color: #a5f3fc;
+  background: linear-gradient(135deg, #ecfeff 0%, #ffffff 65%);
+}
+
+.catalog-detail-accent--enum {
+  border-color: #ddd6fe;
+  background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 65%);
+}
+
+.catalog-detail-accent--string {
+  border-color: #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 65%);
+}
+
+.catalog-detail-hero-icon {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--admin-accent);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.12);
+}
+
+.catalog-detail-hero-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.catalog-detail-hero-eyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+}
+
+.catalog-detail-hero-title {
+  margin: 0.25rem 0 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  line-height: 1.35;
+}
+
+.catalog-detail-hero-key {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  color: #4338ca;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #e0e7ff;
+}
+
+.catalog-detail-status {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.catalog-detail-status--on {
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.catalog-detail-status--off {
+  color: #be123c;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+}
+
+.catalog-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 520px) {
+  .catalog-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.catalog-detail-chip {
+  padding: 0.75rem 0.875rem;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--admin-border);
+}
+
+.catalog-detail-chip-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-muted);
+  margin-bottom: 0.25rem;
+}
+
+.catalog-detail-chip-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.catalog-detail-section {
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 1rem 1.125rem;
+  background: #fff;
+}
+
+.catalog-detail-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.75rem;
+}
+
+.catalog-detail-desc {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.catalog-detail-specs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+@media (max-width: 520px) {
+  .catalog-detail-specs {
+    grid-template-columns: 1fr;
+  }
+}
+
+.catalog-detail-spec-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  margin-bottom: 0.2rem;
+}
+
+.catalog-detail-spec-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.catalog-detail-spec-code {
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  color: #334155;
+  background: #f1f5f9;
+  padding: 0.15rem 0.45rem;
+  border-radius: 5px;
+}
+
+.catalog-detail-enum-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.catalog-detail-enum-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  background: #f8fafc;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+}
+
+.catalog-detail-enum-index {
+  flex-shrink: 0;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 6px;
+  background: #e0e7ff;
+  color: #4338ca;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.catalog-detail-enum-list code {
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  color: #0f172a;
 }

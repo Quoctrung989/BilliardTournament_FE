@@ -1,12 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
+import { Eye, Plus } from "lucide-react";
 import { toast } from "react-toastify";
-import { getGameTypes, updateGameType } from "../../../api/adminGameTypeApi";
+import {
+  createGameType,
+  getGameTypes,
+  patchGameTypeActive,
+  updateGameType,
+} from "../../../api/adminGameTypeApi";
+import GameTypeForm, {
+  validateGameTypeForm,
+} from "../../../components/admin/tournament-config/GameTypeForm";
+import GameTypeDetail from "../../../components/admin/tournament-config/GameTypeDetail";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
 import AdminPagination from "../../../components/admin/ui/AdminPagination";
+import { EMPTY_GAME_TYPE_FORM, TABLE_TYPE_LABELS } from "../../../constants/gameTypeConfig";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../../utils/pagination";
+
+const rowToEditForm = (row) => ({
+  code: row.code,
+  name: row.name || "",
+  description: row.description || "",
+  defaultRaceTo: row.defaultRaceTo ?? "",
+  compatibleTableTypes: row.compatibleTableTypes || [],
+});
 
 const GameTypeListPage = () => {
   const [gameTypes, setGameTypes] = useState([]);
@@ -15,19 +34,30 @@ const GameTypeListPage = () => {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    defaultRaceTo: 1,
-    isActive: true,
-  });
+  const [activeFilter, setActiveFilter] = useState("");
+
+  const [formMode, setFormMode] = useState(null);
+  const [form, setForm] = useState(EMPTY_GAME_TYPE_FORM);
+  const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
+
+  const [confirmToggle, setConfirmToggle] = useState(null);
+  const [detail, setDetail] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await getGameTypes(buildListParams({ page, size: pageSize }));
+      const result = await getGameTypes(
+        buildListParams({
+          page,
+          size: pageSize,
+          ...(activeFilter === "true"
+            ? { isActive: true }
+            : activeFilter === "false"
+              ? { isActive: false }
+              : {}),
+        })
+      );
       setGameTypes(result.content);
       setTotalElements(result.totalElements);
       setTotalPages(result.totalPages);
@@ -37,29 +67,80 @@ const GameTypeListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, activeFilter]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const openEdit = (row) => {
-    setEditing(row);
-    setForm({
-      name: row.name || "",
-      description: row.description || "",
-      defaultRaceTo: row.defaultRaceTo ?? 1,
-      isActive: row.isActive !== false,
+  const patchForm = (updates) => {
+    setForm((f) => ({ ...f, ...updates }));
+    setFormErrors((e) => {
+      const next = { ...e };
+      Object.keys(updates).forEach((k) => delete next[k]);
+      return next;
     });
   };
 
-  const handleSave = async () => {
-    if (!editing) return;
+  const openCreate = () => {
+    setForm(EMPTY_GAME_TYPE_FORM);
+    setFormErrors({});
+    setFormMode("create");
+  };
+
+  const openEdit = (row) => {
+    setForm(rowToEditForm(row));
+    setFormErrors({});
+    setFormMode("edit");
+  };
+
+  const closeForm = () => {
+    setFormMode(null);
+    setFormErrors({});
+    setSaving(false);
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    const isCreate = formMode === "create";
+    const { body, errors } = validateGameTypeForm(form, { isCreate });
+    if (errors) {
+      setFormErrors(errors);
+      return;
+    }
+
     setSaving(true);
     try {
-      await updateGameType(editing.code, form);
-      toast.success("Cập nhật loại bi thành công");
-      setEditing(null);
+      if (isCreate) {
+        await createGameType(body);
+        toast.success("Đã tạo loại bi");
+      } else {
+        await updateGameType(form.code, body);
+        toast.success("Đã cập nhật loại bi");
+      }
+      closeForm();
+      load();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleActive = (row) => {
+    if (!row.isActive) {
+      applyPatchActive(row, true);
+      return;
+    }
+    setConfirmToggle(row);
+  };
+
+  const applyPatchActive = async (row, isActive) => {
+    setSaving(true);
+    try {
+      await patchGameTypeActive(row.code, { isActive });
+      toast.success(isActive ? "Đã kích hoạt loại bi" : "Đã tắt loại bi");
+      setConfirmToggle(null);
       load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -70,7 +151,34 @@ const GameTypeListPage = () => {
 
   return (
     <div className="space-y-6">
+      <p className="text-sm text-slate-600">
+        Cấu hình loại bi mặc định — Owner chọn khi tạo giải. Tắt active sẽ ẩn khỏi danh sách
+        chọn giải.
+      </p>
+
       <AdminCard padding={false}>
+        <div className="p-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-100">
+          <div className="w-full sm:w-44">
+            <label className="admin-label">Trạng thái</label>
+            <select
+              className="admin-select"
+              value={activeFilter}
+              onChange={(e) => {
+                setActiveFilter(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="">Tất cả</option>
+              <option value="true">Đang bật</option>
+              <option value="false">Đã tắt</option>
+            </select>
+          </div>
+          <AdminButton onClick={openCreate} className="shrink-0">
+            <Plus size={18} />
+            Tạo loại bi
+          </AdminButton>
+        </div>
+
         <div className="admin-table-wrap">
           {loading ? (
             <div className="admin-empty">Đang tải...</div>
@@ -79,20 +187,22 @@ const GameTypeListPage = () => {
           ) : (
             <table className="admin-table">
               <colgroup>
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "18%" }} />
-                <col style={{ width: "36%" }} />
                 <col style={{ width: "12%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "10%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "28%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "12%" }} />
               </colgroup>
               <thead>
                 <tr>
-                  <th>Code</th>
-                  <th>Tên</th>
+                  <th>Mã</th>
+                  <th>Tên hiển thị</th>
                   <th>Mô tả</th>
                   <th className="align-center">Race-to</th>
-                  <th className="align-center">Active</th>
+                  <th>Loại bàn</th>
+                  <th className="align-center">Kích hoạt</th>
                   <th className="align-right">Thao tác</th>
                 </tr>
               </thead>
@@ -111,17 +221,27 @@ const GameTypeListPage = () => {
                       </span>
                     </td>
                     <td className="align-center">
-                      <span className="admin-table-num">{row.defaultRaceTo}</span>
+                      <span className="admin-table-num">{row.defaultRaceTo ?? "—"}</span>
+                    </td>
+                    <td>
+                      <span className="text-xs text-slate-500">
+                        {(row.compatibleTableTypes || [])
+                          .map((t) => TABLE_TYPE_LABELS[t] || t)
+                          .join(", ") || "—"}
+                      </span>
                     </td>
                     <td className="align-center">
-                      <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
-                          row.isActive
-                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {row.isActive ? "Bật" : "Tắt"}
+                      <span className="admin-table-toggle-wrap">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={row.isActive}
+                          className="admin-toggle"
+                          data-on={row.isActive}
+                          onClick={() => handleToggleActive(row)}
+                        >
+                          <span className="admin-toggle-knob" />
+                        </button>
                       </span>
                     </td>
                     <td className="align-right">
@@ -129,6 +249,14 @@ const GameTypeListPage = () => {
                         <button
                           type="button"
                           className="admin-table-action admin-table-action--primary"
+                          onClick={() => setDetail(row)}
+                        >
+                          <Eye size={14} />
+                          Chi tiết
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-table-action admin-table-action--warning"
                           onClick={() => openEdit(row)}
                         >
                           Sửa
@@ -157,59 +285,77 @@ const GameTypeListPage = () => {
       </AdminCard>
 
       <AdminModal
-        open={!!editing}
-        onClose={() => setEditing(null)}
-        title={`Sửa loại bi: ${editing?.code || ""}`}
+        open={!!formMode}
+        onClose={closeForm}
+        title={formMode === "create" ? "Tạo loại bi" : `Sửa loại bi: ${form.code}`}
+        size="lg"
         footer={
           <>
-            <AdminButton variant="secondary" onClick={() => setEditing(null)}>
+            <AdminButton variant="secondary" onClick={closeForm} disabled={saving}>
               Hủy
             </AdminButton>
-            <AdminButton onClick={handleSave} disabled={saving}>
-              {saving ? "Đang lưu..." : "Lưu"}
+            <AdminButton type="submit" form="game-type-form" disabled={saving}>
+              {saving ? "Đang lưu…" : formMode === "create" ? "Tạo loại bi" : "Lưu thay đổi"}
             </AdminButton>
           </>
         }
       >
-        <div className="space-y-3">
-          <div>
-            <label className="admin-label">Tên</label>
-            <input
-              className="admin-input mt-1"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="admin-label">Mô tả</label>
-            <textarea
-              className="admin-input mt-1"
-              rows={2}
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="admin-label">defaultRaceTo</label>
-            <input
-              type="number"
-              min={1}
-              className="admin-input mt-1"
-              value={form.defaultRaceTo}
-              onChange={(e) =>
-                setForm({ ...form, defaultRaceTo: Number(e.target.value) })
-              }
-            />
-          </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.isActive}
-              onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-            />
-            isActive
-          </label>
-        </div>
+        <GameTypeForm
+          mode={formMode}
+          form={form}
+          errors={formErrors}
+          onChange={patchForm}
+          onSubmit={handleFormSubmit}
+        />
+      </AdminModal>
+
+      <AdminModal
+        open={!!confirmToggle}
+        onClose={() => !saving && setConfirmToggle(null)}
+        title="Tắt loại bi?"
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={() => setConfirmToggle(null)} disabled={saving}>
+              Hủy
+            </AdminButton>
+            <AdminButton
+              variant="danger"
+              onClick={() => applyPatchActive(confirmToggle, false)}
+              disabled={saving}
+            >
+              Xác nhận tắt
+            </AdminButton>
+          </>
+        }
+      >
+        Owner sẽ không chọn được &quot;{confirmToggle?.name}&quot; ({confirmToggle?.code}) khi
+        tạo giải.
+      </AdminModal>
+
+      <AdminModal
+        open={!!detail}
+        onClose={() => setDetail(null)}
+        title="Chi tiết loại bi"
+        size="lg"
+        footer={
+          detail ? (
+            <>
+              <AdminButton variant="secondary" onClick={() => setDetail(null)}>
+                Đóng
+              </AdminButton>
+              <AdminButton
+                onClick={() => {
+                  openEdit(detail);
+                  setDetail(null);
+                }}
+              >
+                Sửa loại bi
+              </AdminButton>
+            </>
+          ) : null
+        }
+      >
+        <GameTypeDetail item={detail} loading={false} />
       </AdminModal>
     </div>
   );
