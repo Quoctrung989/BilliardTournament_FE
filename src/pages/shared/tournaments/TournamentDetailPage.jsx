@@ -278,26 +278,47 @@ const TournamentDetailPage = ({ api, basePath }) => {
 
         {isRegClosed && (
           <AdminButton
-            variant="secondary"
-            disabled={statusChanging}
-            onClick={() =>
-              handleStatusChange("DRAW_DONE", "Xác nhận đã bốc thăm?")
-            }
+            variant="primary"
+            onClick={() => navigate(`${basePath}/${id}/draw`)}
           >
-            Xác nhận bốc thăm
+            🎲 Bốc thăm & Sinh bracket
           </AdminButton>
         )}
 
         {detail.status === "DRAW_DONE" && (
-          <AdminButton
-            variant="primary"
-            disabled={statusChanging}
-            onClick={() =>
-              handleStatusChange("IN_PROGRESS", "Bắt đầu giải đấu?")
-            }
-          >
-            Bắt đầu giải đấu
-          </AdminButton>
+          <>
+            <AdminButton
+              variant="primary"
+              onClick={() => navigate(`${basePath}/${id}/draw`)}
+            >
+              Xem / Quản lý bracket
+            </AdminButton>
+            <AdminButton
+              variant="secondary"
+              disabled={statusChanging}
+              onClick={() => handleStatusChange("IN_PROGRESS", "Bắt đầu giải đấu?")}
+            >
+              Bắt đầu giải đấu
+            </AdminButton>
+          </>
+        )}
+
+        {detail.status === "IN_PROGRESS" && (
+          <>
+            <AdminButton
+              variant="secondary"
+              onClick={() => navigate(`${basePath}/${id}/draw`)}
+            >
+              Quản lý trận đấu
+            </AdminButton>
+            <AdminButton
+              variant="primary"
+              disabled={statusChanging}
+              onClick={() => handleStatusChange("COMPLETED", "Kết thúc giải đấu? Không thể hoàn tác.")}
+            >
+              🏆 Kết thúc giải đấu
+            </AdminButton>
+          </>
         )}
 
         {detail.isRegister && ["OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED", "DRAW_DONE", "IN_PROGRESS"].includes(detail.status) && (

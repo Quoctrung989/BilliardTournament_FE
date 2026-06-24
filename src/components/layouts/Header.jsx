@@ -21,6 +21,7 @@ const NAV_ITEMS = [
 
 const PLAYER_MENU = [
   { label: "Đăng ký của tôi",    path: "/player/registrations", Icon: AiOutlineFileText },
+  { label: "Lịch thi đấu",       path: "/player/matches",        Icon: AiOutlineFileText },
   { label: "Lịch sử thanh toán", path: "/player/payments",       Icon: AiOutlineCreditCard },
 ];
 

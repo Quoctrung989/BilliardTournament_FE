@@ -31,6 +31,8 @@ import PlayerTournamentDetailPage from "../pages/Player/PlayerTournamentDetailPa
 import PaymentSuccessPage from "../pages/Payment/PaymentSuccessPage";
 import MyPaymentsPage from "../pages/Payment/MyPaymentsPage";
 import ParticipantListPage from "../pages/shared/participants/ParticipantListPage";
+import DrawPage from "../pages/shared/matches/DrawPage";
+import PlayerMatchSchedulePage from "../pages/Player/PlayerMatchSchedulePage";
 import DashboardPage from "../pages/shared/DashboardPage";
 import NewsListPage from "../pages/News/NewsListPage";
 import ArticleDetailPage from "../pages/News/ArticleDetailPage";
@@ -50,6 +52,7 @@ import {
   managerNewsCmsApi,
 } from "../api/newsApi";
 import { getOwnerStats, getManagerStats } from "../api/dashboardApi";
+import { ownerMatchApi, managerMatchApi } from "../api/matchApi";
 import { withAdminPage } from "../components/admin/withAdminPage";
 import { withStaffPage } from "../components/staff/withStaffPage";
 import { withOwnerPage } from "../components/owner/withOwnerPage";
@@ -125,6 +128,13 @@ const ManagerDashboard = () => (
   <DashboardPage statsLoader={getManagerStats} basePath="/manager" title="Manager — Tổng quan" />
 );
 
+const OwnerDrawPage = () => (
+  <DrawPage api={ownerMatchApi} basePath="/owner/tournaments" />
+);
+const ManagerDrawPage = () => (
+  <DrawPage api={managerMatchApi} basePath="/manager/tournaments" />
+);
+
 const OwnerNewsCMS = () => (
   <NewsCMSPage api={ownerNewsCmsApi} editorPath="/owner/news" />
 );
@@ -174,6 +184,14 @@ const PlayerMyPayments = () => (
   <PlayerRoute>
     <CommonLayout>
       <MyPaymentsPage />
+    </CommonLayout>
+  </PlayerRoute>
+);
+
+const PlayerMatchSchedule = () => (
+  <PlayerRoute>
+    <CommonLayout>
+      <PlayerMatchSchedulePage />
     </CommonLayout>
   </PlayerRoute>
 );
@@ -333,6 +351,10 @@ export const ROUTES = [
     component: withOwnerPage(OwnerParticipantList, "Người tham gia", "Thêm thủ công hoặc import Excel", { fullWidth: true }),
   },
   {
+    path: "/owner/tournaments/:id/draw",
+    component: withOwnerPage(OwnerDrawPage, "Bốc thăm & Lịch đấu", "Sinh bracket và quản lý trận đấu", { fullWidth: true }),
+  },
+  {
     path: "/owner/news",
     component: withOwnerPage(OwnerNewsCMS, "Tin tức & Bài viết", "Quản lý nội dung"),
   },
@@ -399,6 +421,10 @@ export const ROUTES = [
     component: withManagerPage(ManagerParticipantList, "Người tham gia", "Thêm thủ công hoặc import Excel", { fullWidth: true }),
   },
   {
+    path: "/manager/tournaments/:id/draw",
+    component: withManagerPage(ManagerDrawPage, "Bốc thăm & Lịch đấu", "Sinh bracket và quản lý trận đấu", { fullWidth: true }),
+  },
+  {
     path: "/manager/news",
     component: withManagerPage(ManagerNewsCMS, "Tin tức & Bài viết", "Quản lý nội dung"),
   },
@@ -425,6 +451,10 @@ export const ROUTES = [
   {
     path: "/player/payments",
     component: PlayerMyPayments,
+  },
+  {
+    path: "/player/matches",
+    component: PlayerMatchSchedule,
   },
   {
     path: "/payment/success",
