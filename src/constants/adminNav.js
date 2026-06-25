@@ -53,6 +53,7 @@ export const ADMIN_NAV = [
     collapsible: true,
     matchPrefix: "/admin/registration-form",
     icon: "user-cog",
+    labelNav: "Quản lý cài đặt form đăng ký",
     children: [
       {
         label: "Catalog field đăng ký",

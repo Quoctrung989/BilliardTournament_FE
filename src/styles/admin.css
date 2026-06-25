@@ -1,3 +1,11 @@
+/* Sidebar nav — hide scrollbar visually, still scrollable */
+.admin-sidebar-nav {
+  scrollbar-width: none;
+}
+.admin-sidebar-nav::-webkit-scrollbar {
+  display: none;
+}
+
 /* BTMS Admin shell */
 .admin-shell {
   --admin-sidebar-w: 260px;
@@ -21,11 +29,14 @@
 .admin-main {
   background: var(--admin-bg);
   min-height: 100vh;
+  overflow-x: hidden;
+  transition: margin-left 0.25s ease, width 0.25s ease;
 }
 
 .admin-content {
   padding: 1.5rem 1.75rem 2.5rem;
   max-width: 1440px;
+  width: 100%;
 }
 
 .admin-content--full {
@@ -284,7 +295,8 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.25rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .admin-table-action {

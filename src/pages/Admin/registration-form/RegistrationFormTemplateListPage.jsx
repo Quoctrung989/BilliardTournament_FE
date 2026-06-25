@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Eye, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import {
+  getRegistrationFormTemplate,
   getRegistrationFormTemplates,
   patchRegistrationFormTemplateActive,
 } from "../../../api/adminRegistrationFormTemplateApi";
+import RegistrationFormTemplateDetail from "../../../components/admin/registration-form/RegistrationFormTemplateDetail";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
@@ -23,6 +25,8 @@ const RegistrationFormTemplateListPage = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [isActiveFilter, setIsActiveFilter] = useState("");
   const [confirmDeactivate, setConfirmDeactivate] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,6 +52,20 @@ const RegistrationFormTemplateListPage = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  const openDetail = async (row) => {
+    setDetail(row);
+    setDetailLoading(true);
+    try {
+      const data = await getRegistrationFormTemplate(row.id);
+      setDetail(data);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      setDetail(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const handleToggleActive = async (row) => {
     if (!row.isActive) {
@@ -101,13 +119,21 @@ const RegistrationFormTemplateListPage = () => {
             <div className="admin-empty">Chưa có template form đăng ký.</div>
           ) : (
             <table className="admin-table">
+              <colgroup>
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "26%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "24%" }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Code</th>
                   <th>Tên</th>
                   <th className="align-center">Fields</th>
                   <th className="align-center">Sẵn sàng</th>
-                  <th className="align-center">Active</th>
+                  <th className="align-center">Kích hoạt</th>
                   <th className="align-right">Thao tác</th>
                 </tr>
               </thead>
@@ -127,22 +153,25 @@ const RegistrationFormTemplateListPage = () => {
                       <span
                         className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
                           row.isReady
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-amber-50 text-amber-700"
+                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                            : "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
                         }`}
                       >
                         {row.isReady ? "OK" : "Thiếu field"}
                       </span>
                     </td>
                     <td className="align-center">
-                      <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
-                          row.isActive
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {row.isActive ? "Bật" : "Tắt"}
+                      <span className="admin-table-toggle-wrap">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={row.isActive}
+                          className="admin-toggle"
+                          data-on={row.isActive}
+                          onClick={() => handleToggleActive(row)}
+                        >
+                          <span className="admin-toggle-knob" />
+                        </button>
                       </span>
                     </td>
                     <td className="align-right">
@@ -150,28 +179,19 @@ const RegistrationFormTemplateListPage = () => {
                         <button
                           type="button"
                           className="admin-table-action admin-table-action--primary"
+                          onClick={() => openDetail(row)}
+                        >
+                          <Eye size={14} />
+                          Chi tiết
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-table-action admin-table-action--warning"
                           onClick={() =>
                             navigate(`/admin/registration-form/templates/${row.id}/edit`)
                           }
                         >
                           Sửa
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-table-action"
-                          onClick={() =>
-                            navigate(`/admin/registration-form/templates/${row.id}/edit?step=3`)
-                          }
-                        >
-                          <Eye size={14} className="inline mr-1" />
-                          Preview
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-table-action"
-                          onClick={() => handleToggleActive(row)}
-                        >
-                          {row.isActive ? "Tắt" : "Bật"}
                         </button>
                       </div>
                     </td>
@@ -196,6 +216,34 @@ const RegistrationFormTemplateListPage = () => {
         />
       </AdminCard>
 
+      {/* Modal Chi tiết */}
+      <AdminModal
+        open={!!detail}
+        onClose={() => setDetail(null)}
+        title="Chi tiết template form"
+        size="lg"
+        footer={
+          !detailLoading && detail?.id ? (
+            <>
+              <AdminButton variant="secondary" onClick={() => setDetail(null)}>
+                Đóng
+              </AdminButton>
+              <AdminButton
+                onClick={() => {
+                  setDetail(null);
+                  navigate(`/admin/registration-form/templates/${detail.id}/edit`);
+                }}
+              >
+                Sửa template
+              </AdminButton>
+            </>
+          ) : null
+        }
+      >
+        <RegistrationFormTemplateDetail item={detail} loading={detailLoading} />
+      </AdminModal>
+
+      {/* Modal xác nhận tắt */}
       <AdminModal
         open={!!confirmDeactivate}
         onClose={() => setConfirmDeactivate(null)}

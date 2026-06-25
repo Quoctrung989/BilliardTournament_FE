@@ -4,6 +4,8 @@ import {
   ChevronDown,
   ChevronLeft,
   LayoutDashboard,
+  PanelLeftClose,
+  PanelLeftOpen,
   Settings,
   Trophy,
   UserCog,
@@ -21,63 +23,133 @@ const iconMap = {
   "user-cog": UserCog,
 };
 
-const NavLink = ({ active, onClick, icon: Icon, label, indent }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
-      indent ? "pl-9 pr-3 py-2" : "px-3 py-2.5"
-    } ${
-      active
-        ? "bg-indigo-600/90 text-white shadow-sm"
-        : "text-slate-300 hover:bg-slate-800 hover:text-white"
-    }`}
-  >
-    {Icon && <Icon size={18} strokeWidth={2} className="flex-shrink-0 opacity-90" />}
-    <span className="truncate text-left">{label}</span>
-  </button>
-);
+const NavLink = ({ active, onClick, icon: Icon, label, indent, collapsed }) => {
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        title={label}
+        className={`w-full flex items-center justify-center rounded-lg py-2.5 transition-colors ${
+          active
+            ? "bg-indigo-600/90 text-white shadow-sm"
+            : "text-slate-300 hover:bg-slate-800 hover:text-white"
+        }`}
+      >
+        {Icon && <Icon size={18} strokeWidth={2} className="flex-shrink-0 opacity-90" />}
+      </button>
+    );
+  }
 
-const AdminSidebar = ({ navConfig = ADMIN_NAV }) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
+        indent ? "pl-9 pr-3 py-2" : "px-3 py-2.5"
+      } ${
+        active
+          ? "bg-indigo-600/90 text-white shadow-sm"
+          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+      }`}
+    >
+      {Icon && <Icon size={18} strokeWidth={2} className="flex-shrink-0 opacity-90" />}
+      <span className="truncate text-left">{label}</span>
+    </button>
+  );
+};
+
+const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const configSection = navConfig.find((s) => s.id === "config");
-  const [configOpen, setConfigOpen] = useState(
-    location.pathname.startsWith(configSection?.matchPrefix || "")
-  );
+
+  const [openSections, setOpenSections] = useState(() => {
+    const initial = {};
+    navConfig.forEach((s) => {
+      if (s.collapsible) {
+        initial[s.id] = location.pathname.startsWith(s.matchPrefix || "");
+      }
+    });
+    return initial;
+  });
+
+  const toggleSection = (id) =>
+    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const isActive = (path) =>
     location.pathname === path ||
     (path !== "/admin/dashboard" && location.pathname.startsWith(path + "/"));
 
   return (
-    <aside className="admin-shell fixed left-0 top-0 z-40 flex h-screen w-[var(--admin-sidebar-w)] flex-col bg-[var(--admin-sidebar)] text-white border-r border-slate-800/50">
-      <div className="flex items-center gap-3 px-5 min-h-[var(--admin-header-h)] py-4 border-b border-slate-700/50 flex-shrink-0">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-600 flex items-center justify-center font-bold text-sm shadow-lg">
+    <aside
+      className={`admin-shell fixed left-0 top-0 z-40 flex h-screen flex-col bg-[var(--admin-sidebar)] text-white border-r border-slate-800/50 transition-all duration-250 ease-in-out ${
+        collapsed ? "w-16" : "w-[var(--admin-sidebar-w)]"
+      }`}
+    >
+      {/* Header */}
+      <div
+        className={`flex items-center min-h-[var(--admin-header-h)] py-4 border-b border-slate-700/50 flex-shrink-0 ${
+          collapsed ? "justify-center px-2" : "gap-3 px-5"
+        }`}
+      >
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-600 flex items-center justify-center font-bold text-sm shadow-lg flex-shrink-0">
           B
         </div>
-        <div>
-          <p className="font-bold text-base tracking-tight leading-none">BTMS</p>
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">
-            Billiards
-          </p>
-        </div>
+
+        {!collapsed && (
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-base tracking-tight leading-none">BTMS</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">
+              Billiards
+            </p>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={onToggle}
+          title={collapsed ? "Mở rộng menu" : "Thu gọn menu"}
+          className={`rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex-shrink-0 ${
+            collapsed ? "mt-0" : ""
+          }`}
+        >
+          {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+        </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin">
+      {/* Nav */}
+      <nav className={`admin-sidebar-nav flex-1 overflow-y-auto py-3 space-y-3 ${collapsed ? "px-2" : "px-3"}`}>
         {navConfig.map((section) => {
           if (section.collapsible) {
             const sectionActive = location.pathname.startsWith(section.matchPrefix);
             const SettingsIcon = iconMap[section.icon] || Settings;
+
+            if (collapsed) {
+              return (
+                <div key={section.id} className="space-y-0.5">
+                  {section.children.map((child) => (
+                    <NavLink
+                      key={child.path}
+                      collapsed
+                      active={isActive(child.path)}
+                      label={child.label}
+                      icon={Settings}
+                      onClick={() => navigate(child.path)}
+                    />
+                  ))}
+                </div>
+              );
+            }
+
             return (
               <div key={section.id}>
-                <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                   {section.label}
                 </p>
                 <button
                   type="button"
-                  onClick={() => setConfigOpen((v) => !v)}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  onClick={() => toggleSection(section.id)}
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     sectionActive
                       ? "bg-slate-800 text-white"
                       : "text-slate-300 hover:bg-slate-800"
@@ -89,10 +161,10 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV }) => {
                   </span>
                   <ChevronDown
                     size={16}
-                    className={`transition-transform ${configOpen ? "rotate-180" : ""}`}
+                    className={`transition-transform ${openSections[section.id] ? "rotate-180" : ""}`}
                   />
                 </button>
-                {configOpen && (
+                {openSections[section.id] && (
                   <div className="mt-1 space-y-0.5">
                     {section.children.map((child) => (
                       <NavLink
@@ -111,15 +183,18 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV }) => {
 
           return (
             <div key={section.id}>
-              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                {section.label}
-              </p>
+              {!collapsed && (
+                <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  {section.label}
+                </p>
+              )}
               <div className="space-y-0.5">
                 {section.items.map((item) => {
                   const Icon = iconMap[item.icon];
                   return (
                     <NavLink
                       key={item.path + item.label}
+                      collapsed={collapsed}
                       active={isActive(item.path)}
                       icon={Icon}
                       label={item.label}
@@ -133,14 +208,18 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV }) => {
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-700/50">
+      {/* Footer */}
+      <div className={`border-t border-slate-700/50 ${collapsed ? "p-2" : "p-4"}`}>
         <button
           type="button"
           onClick={() => navigate("/")}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          title="Về trang chủ"
+          className={`w-full flex items-center rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors ${
+            collapsed ? "justify-center py-2.5" : "justify-center gap-2 py-2.5"
+          }`}
         >
           <ChevronLeft size={18} />
-          Về trang chủ
+          {!collapsed && "Về trang chủ"}
         </button>
       </div>
     </aside>

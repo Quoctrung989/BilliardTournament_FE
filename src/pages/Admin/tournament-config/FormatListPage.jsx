@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import {
-  bootstrapDefaults,
   getFormats,
   patchFormatActive,
 } from "../../../api/adminFormatApi";
@@ -76,16 +75,6 @@ const FormatListPage = () => {
     }
   };
 
-  const handleBootstrap = async (code) => {
-    try {
-      await bootstrapDefaults(code, { overwrite: false });
-      toast.success("Bootstrap mặc định thành công");
-      loadFormats();
-    } catch (err) {
-      toast.error(getApiErrorMessage(err));
-    }
-  };
-
   return (
     <div className="space-y-6">
       <AdminCard padding={false}>
@@ -151,7 +140,7 @@ const FormatListPage = () => {
                   <th>Tên</th>
                   <th>Code</th>
                   <th>Setup</th>
-                  <th className="align-center">Active</th>
+                  <th className="align-center">Kích hoạt</th>
                   <th className="align-center">Fields</th>
                   <th className="align-center">Rules</th>
                   <th className="align-right">Thao tác</th>
@@ -203,14 +192,6 @@ const FormatListPage = () => {
                           }
                         >
                           Sửa
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-table-action admin-table-action--warning"
-                          onClick={() => handleBootstrap(row.code)}
-                        >
-                          <Sparkles size={14} />
-                          Bootstrap
                         </button>
                       </div>
                     </td>
