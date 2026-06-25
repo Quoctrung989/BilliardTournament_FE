@@ -43,6 +43,45 @@ const toLocalInput = (iso) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+/** "YYYY-MM-DDTHH:mm" từ một Date object, dùng cho thuộc tính min */
+const toMinAttr = (date) => toLocalInput(date.toISOString());
+
+const NOW_MIN = toMinAttr(new Date());
+
+/**
+ * Validate 3 trường ngày. Trả về object { registrationDeadline, startAt, endAt }
+ * với chuỗi lỗi (rỗng = hợp lệ).
+ */
+const validateDates = ({ registrationDeadline, startAt, endAt }) => {
+  const now = new Date();
+  const errs = { registrationDeadline: "", startAt: "", endAt: "" };
+
+  const rd = registrationDeadline ? new Date(registrationDeadline) : null;
+  const sa = startAt ? new Date(startAt) : null;
+  const ea = endAt ? new Date(endAt) : null;
+
+  if (rd && rd <= now)
+    errs.registrationDeadline = "Hạn đăng ký không được là thời điểm trong quá khứ.";
+
+  if (sa) {
+    if (sa <= now)
+      errs.startAt = "Ngày bắt đầu thi đấu không được là thời điểm trong quá khứ.";
+    else if (rd && sa <= rd)
+      errs.startAt = "Ngày bắt đầu thi đấu phải sau hạn đăng ký.";
+  }
+
+  if (ea) {
+    if (ea <= now)
+      errs.endAt = "Ngày kết thúc không được là thời điểm trong quá khứ.";
+    else if (rd && ea <= rd)
+      errs.endAt = "Ngày kết thúc phải sau hạn đăng ký.";
+    else if (sa && ea < sa)
+      errs.endAt = "Ngày kết thúc phải từ ngày bắt đầu thi đấu trở đi.";
+  }
+
+  return errs;
+};
+
 const fmtDateLocal = (localStr) => {
   if (!localStr) return "—";
   try {
@@ -78,6 +117,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const [registrationTemplates, setRegistrationTemplates] = useState([]);
   const [basic, setBasic] = useState(defaultBasic);
   const [tournamentStatus, setTournamentStatus] = useState("DRAFT");
+
+  const [dateErrors, setDateErrors] = useState({ registrationDeadline: "", startAt: "", endAt: "" });
 
   const [seedingMethod, setSeedingMethod] = useState("RANDOM");
   const [configFields, setConfigFields] = useState([]);
@@ -203,6 +244,13 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     toast.error(getApiErrorMessage(err));
   };
 
+  /** Cập nhật 1 trường ngày + re-validate toàn bộ 3 trường */
+  const handleDateChange = (field, value) => {
+    const next = { ...basic, [field]: value };
+    setBasic((b) => ({ ...b, [field]: value }));
+    setDateErrors(validateDates(next));
+  };
+
   const handleSaveStep1 = async () => {
     if (!basic.name.trim() || !basic.gameType || !basic.format) {
       toast.warn("Vui lòng điền tên, loại bi và thể thức");
@@ -210,6 +258,12 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     }
     if (basic.isRegister && !basic.registrationFormTemplateId) {
       toast.warn("Chọn template form đăng ký khi bật đăng ký online");
+      return;
+    }
+    const errs = validateDates(basic);
+    setDateErrors(errs);
+    if (Object.values(errs).some(Boolean)) {
+      toast.warn("Vui lòng kiểm tra lại các trường ngày tháng");
       return;
     }
     setSaving(true);
@@ -407,30 +461,42 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               <label className="admin-label">Hạn đăng ký</label>
               <input
                 type="datetime-local"
-                className="admin-input w-full"
+                className={`admin-input w-full ${dateErrors.registrationDeadline ? "border-rose-400 focus:ring-rose-300" : ""}`}
                 value={basic.registrationDeadline}
-                onChange={(e) => setBasic((b) => ({ ...b, registrationDeadline: e.target.value }))}
+                min={NOW_MIN}
+                onChange={(e) => handleDateChange("registrationDeadline", e.target.value)}
               />
+              {dateErrors.registrationDeadline && (
+                <p className="mt-1 text-xs text-rose-600">{dateErrors.registrationDeadline}</p>
+              )}
             </div>
 
             <div>
               <label className="admin-label">Bắt đầu thi đấu</label>
               <input
                 type="datetime-local"
-                className="admin-input w-full"
+                className={`admin-input w-full ${dateErrors.startAt ? "border-rose-400 focus:ring-rose-300" : ""}`}
                 value={basic.startAt}
-                onChange={(e) => setBasic((b) => ({ ...b, startAt: e.target.value }))}
+                min={basic.registrationDeadline || NOW_MIN}
+                onChange={(e) => handleDateChange("startAt", e.target.value)}
               />
+              {dateErrors.startAt && (
+                <p className="mt-1 text-xs text-rose-600">{dateErrors.startAt}</p>
+              )}
             </div>
 
             <div>
               <label className="admin-label">Kết thúc</label>
               <input
                 type="datetime-local"
-                className="admin-input w-full"
+                className={`admin-input w-full ${dateErrors.endAt ? "border-rose-400 focus:ring-rose-300" : ""}`}
                 value={basic.endAt}
-                onChange={(e) => setBasic((b) => ({ ...b, endAt: e.target.value }))}
+                min={basic.startAt || basic.registrationDeadline || NOW_MIN}
+                onChange={(e) => handleDateChange("endAt", e.target.value)}
               />
+              {dateErrors.endAt && (
+                <p className="mt-1 text-xs text-rose-600">{dateErrors.endAt}</p>
+              )}
             </div>
 
             {/* Registration toggle */}

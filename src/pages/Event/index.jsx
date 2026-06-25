@@ -234,7 +234,7 @@ const EventPage = () => {
       </div>
 
       {/* Filter bar */}
-      <div className="bg-[#f7f7f7]/95 backdrop-blur-sm border-b border-gray-200 sticky top-[100px] z-40">
+      <div className="bg-[#f7f7f7]/95 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-[1600px] mx-auto px-6 py-4">
           <div className="flex flex-col lg:flex-row lg:items-center gap-3">
             <div className="flex gap-2 flex-wrap">

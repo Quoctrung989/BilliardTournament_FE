@@ -5,6 +5,7 @@ import {
   createCatalogItem,
   getCatalog,
   getCatalogItem,
+  patchCatalogItemActive,
   updateCatalogItem,
 } from "../../../api/adminConfigFieldApi";
 import ConfigFieldCatalogForm from "../../../components/admin/tournament-config/ConfigFieldCatalogForm";
@@ -33,6 +34,7 @@ const ConfigFieldCatalogPage = () => {
 
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [confirmToggle, setConfirmToggle] = useState(null);
 
   const loadCatalog = useCallback(async () => {
     setLoading(true);
@@ -128,6 +130,25 @@ const ConfigFieldCatalogPage = () => {
   const handleEditFromDetail = (fieldKey) => {
     closeDetail();
     openEdit(fieldKey);
+  };
+
+  const handleToggleActive = (row) => {
+    if (!row.isActive) {
+      applyToggleActive(row.fieldKey, true);
+      return;
+    }
+    setConfirmToggle(row);
+  };
+
+  const applyToggleActive = async (fieldKey, isActive) => {
+    try {
+      await patchCatalogItemActive(fieldKey, { isActive });
+      toast.success(isActive ? "Đã kích hoạt trường" : "Đã tắt trường");
+      setConfirmToggle(null);
+      loadCatalog();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    }
   };
 
   return (
@@ -234,14 +255,17 @@ const ConfigFieldCatalogPage = () => {
                         </span>
                       </td>
                       <td className="align-center">
-                        <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            row.isActive !== false
-                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {row.isActive !== false ? "Bật" : "Tắt"}
+                        <span className="admin-table-toggle-wrap">
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={row.isActive !== false}
+                            className="admin-toggle"
+                            data-on={row.isActive !== false}
+                            onClick={() => handleToggleActive(row)}
+                          >
+                            <span className="admin-toggle-knob" />
+                          </button>
                         </span>
                       </td>
                       <td className="align-right">
@@ -337,6 +361,28 @@ const ConfigFieldCatalogPage = () => {
         }
       >
         <ConfigFieldCatalogDetail item={detail} loading={detailLoading} />
+      </AdminModal>
+
+      <AdminModal
+        open={!!confirmToggle}
+        onClose={() => setConfirmToggle(null)}
+        title="Tắt trường cấu hình?"
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={() => setConfirmToggle(null)}>
+              Hủy
+            </AdminButton>
+            <AdminButton
+              variant="danger"
+              onClick={() => applyToggleActive(confirmToggle.fieldKey, false)}
+            >
+              Xác nhận tắt
+            </AdminButton>
+          </>
+        }
+      >
+        Trường <strong>{confirmToggle?.label}</strong> ({confirmToggle?.fieldKey}) sẽ không hiển thị
+        trong wizard cấu hình.
       </AdminModal>
     </div>
   );

@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { Eye, Plus, Search, UserMinus, UserPlus } from "lucide-react";
+import { Eye, Plus, Search, UserPlus } from "lucide-react";
 import { toast } from "react-toastify";
 import AdminButton from "../../admin/ui/AdminButton";
 import AdminCard from "../../admin/ui/AdminCard";
 import AdminModal from "../../admin/ui/AdminModal";
 import AdminPagination from "../../admin/ui/AdminPagination";
-import AccountStatusBadge from "./AccountStatusBadge";
+import AccountDetail from "./AccountDetail";
 import RoleBadge from "./RoleBadge";
-import { GENDER_OPTIONS } from "../../../constants/accountConfig";
+import ImageUploader from "../ImageUploader";
+import { ACCOUNT_STATUS_LABELS, GENDER_OPTIONS } from "../../../constants/accountConfig";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../../utils/pagination";
 
@@ -23,15 +24,6 @@ const EMPTY_EMPLOYEE_FORM = {
   dateOfBirth: "",
   gender: "",
   bio: "",
-};
-
-const formatDate = (value) => {
-  if (!value) return "—";
-  try {
-    return new Date(value).toLocaleDateString("vi-VN");
-  } catch {
-    return value;
-  }
 };
 
 const AvatarCell = ({ row }) => {
@@ -201,7 +193,10 @@ const AccountManagementPage = ({ config }) => {
     setDetailData(null);
   };
 
-  const canDeactivate = (row) => row.status === "ACTIVE";
+  const handleToggle = (row) => {
+    if (row.status !== "ACTIVE") return;
+    setConfirmDeactivate(row);
+  };
 
   const isSimpleAccountForm = createType === "admin" || createType === "owner";
 
@@ -314,11 +309,12 @@ const AccountManagementPage = ({ config }) => {
               <colgroup>
                 <col style={{ width: "6%" }} />
                 <col style={{ width: "18%" }} />
-                <col style={{ width: "20%" }} />
+                <col style={{ width: "22%" }} />
                 <col style={{ width: "12%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "10%" }} />
+                <col style={{ width: "8%" }} />
                 <col style={{ width: "14%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "10%" }} />
               </colgroup>
               <thead>
                 <tr>
@@ -326,65 +322,86 @@ const AccountManagementPage = ({ config }) => {
                   <th>Họ tên</th>
                   <th>Email</th>
                   <th className="align-center">Vai trò</th>
+                  <th className="align-center">Kích hoạt</th>
                   <th className="align-center">Trạng thái</th>
                   <th>SĐT</th>
                   <th className="align-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((row) => (
-                  <tr key={row.id}>
-                    <td className="align-center">
-                      <AvatarCell row={row} />
-                    </td>
-                    <td>
-                      <span className="admin-table-name" title={row.fullName || row.displayName}>
-                        {row.fullName || row.displayName || "—"}
-                      </span>
-                      {row.displayName && row.fullName && (
-                        <span className="block text-xs text-slate-500 truncate">
-                          @{row.displayName}
+                {accounts.map((row) => {
+                  const isActive = row.status === "ACTIVE";
+                  return (
+                    <tr key={row.id}>
+                      <td className="align-center">
+                        <AvatarCell row={row} />
+                      </td>
+                      <td>
+                        <span className="admin-table-name" title={row.fullName || row.displayName}>
+                          {row.fullName || row.displayName || "—"}
                         </span>
-                      )}
-                    </td>
-                    <td>
-                      <span className="text-slate-700 truncate block" title={row.email}>
-                        {row.email}
-                      </span>
-                    </td>
-                    <td className="align-center">
-                      <RoleBadge role={row.role} />
-                    </td>
-                    <td className="align-center">
-                      <AccountStatusBadge status={row.status} />
-                    </td>
-                    <td>
-                      <span className="text-slate-600">{row.phone || "—"}</span>
-                    </td>
-                    <td className="align-right">
-                      <div className="admin-table-actions">
-                        <button
-                          type="button"
-                          className="admin-table-action admin-table-action--primary"
-                          onClick={() => openDetail(row)}
-                        >
-                          <Eye size={14} />
-                          Chi tiết
-                        </button>
-                        {canDeactivate(row) && (
+                        {row.displayName && row.fullName && (
+                          <span className="block text-xs text-slate-500 truncate">
+                            @{row.displayName}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <span className="text-slate-700 truncate block" title={row.email}>
+                          {row.email}
+                        </span>
+                      </td>
+                      <td className="align-center">
+                        <RoleBadge role={row.role} />
+                      </td>
+                      <td className="align-center">
+                        <span className="admin-table-toggle-wrap">
                           <button
                             type="button"
-                            className="admin-table-action admin-table-action--warning"
-                            onClick={() => setConfirmDeactivate(row)}
+                            role="switch"
+                            aria-checked={isActive}
+                            className={`admin-toggle ${!isActive ? "opacity-60 cursor-not-allowed" : ""}`}
+                            data-on={isActive}
+                            onClick={() => handleToggle(row)}
+                            title={isActive ? "Nhấn để khóa tài khoản" : "Tài khoản đã bị khóa"}
                           >
-                            <UserMinus size={14} />
-                            Khóa
+                            <span className="admin-toggle-knob" />
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        </span>
+                      </td>
+                      <td className="align-center">
+                        <span
+                          className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ring-1 ${
+                            isActive
+                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                              : row.status === "LOCKED"
+                                ? "bg-rose-50 text-rose-700 ring-rose-200"
+                                : row.status === "PENDING"
+                                  ? "bg-amber-50 text-amber-700 ring-amber-200"
+                                  : "bg-slate-100 text-slate-600 ring-slate-200"
+                          }`}
+                        >
+                          {ACCOUNT_STATUS_LABELS[row.status] ?? row.status}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="text-slate-600">{row.phone || "—"}</span>
+                      </td>
+                      <td className="align-right">
+                        <div className="admin-table-actions">
+                          <button
+                            type="button"
+                            className="admin-table-action admin-table-action--primary"
+                            onClick={() => openDetail(row)}
+                          >
+                            <Eye size={14} />
+                            Chi tiết
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -543,12 +560,14 @@ const AccountManagementPage = ({ config }) => {
                 </select>
               </div>
               <div className="sm:col-span-2">
-                <label className="admin-label">Avatar URL</label>
-                <input
-                  type="url"
-                  className="admin-input mt-1"
-                  value={employeeForm.avatarUrl}
-                  onChange={(e) => setEmployeeForm({ ...employeeForm, avatarUrl: e.target.value })}
+                <ImageUploader
+                  label="Ảnh đại diện"
+                  folder="avatars"
+                  previewUrl={employeeForm.avatarUrl}
+                  aspectClass="h-28 w-28 rounded-full"
+                  onUpload={({ objectKey }) =>
+                    setEmployeeForm({ ...employeeForm, avatarUrl: objectKey })
+                  }
                 />
               </div>
               <div className="sm:col-span-2">
@@ -602,47 +621,7 @@ const AccountManagementPage = ({ config }) => {
           </AdminButton>
         }
       >
-        {detailLoading ? (
-          <p className="text-slate-400 animate-pulse">Đang tải…</p>
-        ) : detailData ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <AvatarCell row={detailData} />
-              <div>
-                <p className="font-semibold text-slate-900 text-base">
-                  {detailData.fullName || detailData.displayName || detailData.email}
-                </p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  <RoleBadge role={detailData.role} />
-                  <AccountStatusBadge status={detailData.status} />
-                </div>
-              </div>
-            </div>
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-              {[
-                ["Email", detailData.email],
-                ["Số điện thoại", detailData.phone],
-                ["Tên hiển thị", detailData.displayName],
-                ["Ngày sinh", formatDate(detailData.dateOfBirth)],
-                ["Giới tính", detailData.gender],
-                ["Profile hoàn tất", detailData.profileCompleted != null ? String(detailData.profileCompleted) : null],
-              ].map(([label, value]) =>
-                value ? (
-                  <div key={label}>
-                    <dt className="text-xs uppercase text-slate-500">{label}</dt>
-                    <dd className="mt-0.5 text-slate-800">{value}</dd>
-                  </div>
-                ) : null
-              )}
-            </dl>
-            {detailData.bio && (
-              <div>
-                <p className="text-xs uppercase text-slate-500 mb-1">Giới thiệu</p>
-                <p className="text-slate-700">{detailData.bio}</p>
-              </div>
-            )}
-          </div>
-        ) : null}
+        <AccountDetail item={detailData} loading={detailLoading} />
       </AdminModal>
     </div>
   );

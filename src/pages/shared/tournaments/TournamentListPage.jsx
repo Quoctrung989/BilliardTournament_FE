@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, FileText, Plus, Settings, Users } from "lucide-react";
+import { ChevronDown, Eye, FileText, Plus, Settings, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
@@ -17,20 +17,114 @@ const STATUS_OPTIONS = [
   ...Object.entries(TOURNAMENT_STATUS_LABELS).map(([value, label]) => ({ value, label })),
 ];
 
+const PARTICIPANT_LABELS = {
+  SINGLE: "Đơn",
+  DOUBLE: "Đôi",
+  TEAM: "Đội",
+};
+
 const fmtDate = (iso) => {
-  if (!iso) return "—";
+  if (!iso) return null;
   try {
-    return new Date(iso).toLocaleString("vi-VN", {
+    return new Date(iso).toLocaleDateString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
   } catch {
-    return "—";
+    return null;
   }
 };
 
-const TournamentListPage = ({ api, basePath, roleLabel }) => {
+/* ── Dropdown menu per row ───────────────────────────── */
+const RowMenu = ({ row, basePath, navigate }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const go = (path) => {
+    setOpen(false);
+    navigate(path);
+  };
+
+  const isDraft = row.status === "DRAFT";
+
+  return (
+    <div ref={ref} className="relative inline-block text-left">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
+      >
+        Thao tác
+        <ChevronDown
+          size={13}
+          className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 z-50 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1 overflow-hidden">
+          {/* Chi tiết */}
+          <button
+            type="button"
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors"
+            onClick={() => go(`${basePath}/${row.id}`)}
+          >
+            <Eye size={15} className="shrink-0 text-indigo-400" />
+            Chi tiết
+          </button>
+
+              <div className="my-1 border-t border-slate-100" />
+
+          {isDraft && (
+            <button
+              type="button"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-amber-700 hover:bg-amber-50 text-left transition-colors"
+              onClick={() => go(`${basePath}/${row.id}/edit?step=2`)}
+            >
+              <Settings size={15} className="shrink-0" />
+              Cấu hình giải
+            </button>
+          )}
+
+          {row.isRegister && (
+            <button
+              type="button"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 text-left transition-colors"
+              onClick={() => go(`${basePath}/${row.id}/registrations`)}
+            >
+              <FileText size={15} className="shrink-0 text-slate-400" />
+              Đơn đăng ký
+            </button>
+          )}
+
+          {!isDraft && (
+            <button
+              type="button"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 text-left transition-colors"
+              onClick={() => go(`${basePath}/${row.id}/participants`)}
+            >
+              <Users size={15} className="shrink-0 text-slate-400" />
+              Người tham gia
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── Main page ───────────────────────────────────────── */
+const TournamentListPage = ({ api, basePath }) => {
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,8 +132,9 @@ const TournamentListPage = ({ api, basePath, roleLabel }) => {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [filters, setFilters] = useState({ status: "", search: "" });
+  const [statusFilter, setStatusFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [searchApplied, setSearchApplied] = useState("");
 
   const loadTournaments = useCallback(async () => {
     setLoading(true);
@@ -47,8 +142,8 @@ const TournamentListPage = ({ api, basePath, roleLabel }) => {
       const params = buildListParams({
         page,
         size: pageSize,
-        ...(filters.status ? { status: filters.status } : {}),
-        ...(filters.search ? { search: filters.search } : {}),
+        ...(statusFilter ? { status: statusFilter } : {}),
+        ...(searchApplied ? { search: searchApplied } : {}),
       });
       const result = await api.listTournaments(params);
       setTournaments(result.content);
@@ -60,7 +155,7 @@ const TournamentListPage = ({ api, basePath, roleLabel }) => {
     } finally {
       setLoading(false);
     }
-  }, [api, page, pageSize, filters]);
+  }, [api, page, pageSize, statusFilter, searchApplied]);
 
   useEffect(() => {
     loadTournaments();
@@ -68,20 +163,16 @@ const TournamentListPage = ({ api, basePath, roleLabel }) => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setFilters((f) => ({ ...f, search: searchInput.trim() }));
-    setPage(0);
-  };
-
-  const handleStatusChange = (status) => {
-    setFilters((f) => ({ ...f, status }));
+    setSearchApplied(searchInput.trim());
     setPage(0);
   };
 
   return (
     <div className="space-y-6">
       <AdminCard padding={false}>
+        {/* Toolbar */}
         <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
-          <div className="flex flex-wrap gap-4 flex-1">
+          <div className="flex flex-wrap gap-4 flex-1 min-w-0">
             <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[200px] max-w-md">
               <label className="admin-label">Tìm theo tên</label>
               <div className="flex gap-2">
@@ -91,15 +182,17 @@ const TournamentListPage = ({ api, basePath, roleLabel }) => {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
-                <AdminButton type="submit" variant="secondary">Tìm</AdminButton>
+                <AdminButton type="submit" variant="secondary" className="shrink-0">
+                  Tìm
+                </AdminButton>
               </div>
             </form>
-            <div className="w-full sm:w-52">
+            <div className="w-full sm:w-52 shrink-0">
               <label className="admin-label">Trạng thái</label>
               <select
                 className="admin-select w-full"
-                value={filters.status}
-                onChange={(e) => handleStatusChange(e.target.value)}
+                value={statusFilter}
+                onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
               >
                 {STATUS_OPTIONS.map((o) => (
                   <option key={o.value || "all"} value={o.value}>{o.label}</option>
@@ -107,140 +200,124 @@ const TournamentListPage = ({ api, basePath, roleLabel }) => {
               </select>
             </div>
           </div>
-          <AdminButton
-            variant="primary"
-            onClick={() => navigate(`${basePath}/new`)}
-            className="inline-flex items-center gap-2 shrink-0"
-          >
-            <Plus size={16} />
+          <AdminButton onClick={() => navigate(`${basePath}/new`)} className="shrink-0 lg:pb-0.5">
+            <Plus size={18} />
             Tạo giải mới
           </AdminButton>
         </div>
 
+        {/* Table */}
         <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left">Tên giải</th>
-                <th className="px-4 py-3 text-left">Loại bi / Thể thức</th>
-                <th className="px-4 py-3 text-left">Hình thức</th>
-                <th className="px-4 py-3 text-left">Trạng thái</th>
-                <th className="px-4 py-3 text-left">Config</th>
-                <th className="px-4 py-3 text-left">Đăng ký</th>
-                <th className="px-4 py-3 text-left">Hạn ĐK / Bắt đầu</th>
-                <th className="px-4 py-3 text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
+          {loading ? (
+            <div className="admin-empty">
+              <div className="admin-skeleton h-4 w-48 mx-auto mb-2" />
+              <div className="admin-skeleton h-3 w-32 mx-auto" />
+            </div>
+          ) : tournaments.length === 0 ? (
+            <div className="admin-empty">
+              Chưa có giải đấu. Nhấn &quot;Tạo giải mới&quot; để bắt đầu.
+            </div>
+          ) : (
+            <table className="admin-table">
+              <colgroup>
+                <col style={{ width: "23%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "13%" }} />
+                <col style={{ width: "9%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "10%" }} />
+              </colgroup>
+              <thead>
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
-                    Đang tải...
-                  </td>
+                  <th>Tên giải</th>
+                  <th>Loại bi / Thể thức</th>
+                  <th className="align-center">Hình thức</th>
+                  <th className="align-center">Trạng thái</th>
+                  <th className="align-center">Cấu hình</th>
+                  <th className="align-center">Đăng ký</th>
+                  <th>Thời gian</th>
+                  <th className="align-right">Thao tác</th>
                 </tr>
-              )}
-              {!loading && tournaments.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
-                    Chưa có giải đấu. Nhấn &quot;Tạo giải mới&quot; để bắt đầu.
-                  </td>
-                </tr>
-              )}
-              {!loading &&
-                tournaments.map((row) => (
-                  <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50/50">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-slate-900">{row.name}</p>
-                      <p className="text-xs text-slate-400">#{row.id}</p>
+              </thead>
+              <tbody>
+                {tournaments.map((row) => (
+                  <tr key={row.id}>
+                    <td>
+                      <span className="admin-table-name" title={row.name}>
+                        {row.name}
+                      </span>
+                      <span className="block text-xs text-slate-400">#{row.id}</span>
                     </td>
-                    <td className="px-4 py-3 text-sm">
-                      <p>{row.gameType}</p>
-                      <p className="text-xs text-slate-400">{row.formatName || row.format}</p>
+                    <td>
+                      <span className="text-sm text-slate-700">{row.gameType || "—"}</span>
+                      {(row.formatName || row.format) && (
+                        <span className="block text-xs text-slate-400">
+                          {row.formatName || row.format}
+                        </span>
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {row.participantType === "SINGLE" ? "Đơn"
-                        : row.participantType === "DOUBLE" ? "Đôi"
-                        : row.participantType === "TEAM" ? "Đội"
-                        : row.participantType || "—"}
+                    <td className="align-center">
+                      <span className="text-sm text-slate-600">
+                        {PARTICIPANT_LABELS[row.participantType] || row.participantType || "—"}
+                      </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="align-center">
                       <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                          TOURNAMENT_STATUS_STYLES[row.status] || "bg-slate-100 text-slate-700"
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          TOURNAMENT_STATUS_STYLES[row.status] ||
+                          "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
                         }`}
                       >
                         {TOURNAMENT_STATUS_LABELS[row.status] || row.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm">
-                      {row.configComplete ? (
-                        <span className="text-emerald-600 font-medium">✓ Hoàn tất</span>
-                      ) : (
-                        <span className="text-amber-600">Chưa xong</span>
+                    <td className="align-center">
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ring-1 ${
+                          row.configComplete
+                            ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                            : "bg-amber-50 text-amber-700 ring-amber-200"
+                        }`}
+                      >
+                        {row.configComplete ? "Xong" : "Chưa xong"}
+                      </span>
+                    </td>
+                    <td className="align-center">
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ring-1 ${
+                          row.isRegister
+                            ? "bg-indigo-50 text-indigo-700 ring-indigo-200"
+                            : "bg-slate-100 text-slate-500 ring-slate-200"
+                        }`}
+                      >
+                        {row.isRegister ? "Online" : "Không"}
+                      </span>
+                    </td>
+                    <td>
+                      {row.registrationDeadline && (
+                        <p className="text-xs text-slate-500">
+                          Hạn ĐK: {fmtDate(row.registrationDeadline)}
+                        </p>
+                      )}
+                      {row.startAt && (
+                        <p className="text-xs text-slate-500">
+                          Bắt đầu: {fmtDate(row.startAt)}
+                        </p>
+                      )}
+                      {!row.registrationDeadline && !row.startAt && (
+                        <span className="text-xs text-slate-400">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm">
-                      {row.isRegister ? (
-                        <span className="text-indigo-600 font-medium">Online</span>
-                      ) : (
-                        <span className="text-slate-400">Không</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">
-                      {row.registrationDeadline ? (
-                        <p>Hạn ĐK: {fmtDate(row.registrationDeadline)}</p>
-                      ) : null}
-                      {row.startAt ? (
-                        <p>Bắt đầu: {fmtDate(row.startAt)}</p>
-                      ) : null}
-                      {!row.registrationDeadline && !row.startAt && "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          type="button"
-                          className="admin-table-action"
-                          title="Chi tiết"
-                          onClick={() => navigate(`${basePath}/${row.id}`)}
-                        >
-                          <Eye size={15} />
-                        </button>
-                        {row.status === "DRAFT" && (
-                          <button
-                            type="button"
-                            className="admin-table-action"
-                            title="Cấu hình"
-                            onClick={() => navigate(`${basePath}/${row.id}/edit?step=2`)}
-                          >
-                            <Settings size={15} />
-                          </button>
-                        )}
-                        {row.isRegister && (
-                          <button
-                            type="button"
-                            className="admin-table-action"
-                            title="Quản lý đăng ký"
-                            onClick={() => navigate(`${basePath}/${row.id}/registrations`)}
-                          >
-                            <FileText size={15} />
-                          </button>
-                        )}
-                        {row.status !== "DRAFT" && (
-                          <button
-                            type="button"
-                            className="admin-table-action"
-                            title="Người tham gia (thêm thủ công / import Excel)"
-                            onClick={() => navigate(`${basePath}/${row.id}/participants`)}
-                          >
-                            <Users size={15} />
-                          </button>
-                        )}
-                      </div>
+                    <td className="align-right">
+                      <RowMenu row={row} basePath={basePath} navigate={navigate} />
                     </td>
                   </tr>
                 ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          )}
         </div>
 
         <AdminPagination
@@ -253,10 +330,6 @@ const TournamentListPage = ({ api, basePath, roleLabel }) => {
           disabled={loading}
         />
       </AdminCard>
-
-      <p className="text-xs text-slate-400 px-1">
-        {roleLabel}: danh sách giải từ cấu hình Admin — có thể chỉnh config trước khi mở đăng ký.
-      </p>
     </div>
   );
 };

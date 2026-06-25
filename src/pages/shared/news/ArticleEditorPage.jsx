@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
+import ImageUploader from "../../../components/shared/ImageUploader";
 import { getApiErrorMessage } from "../../../utils/apiError";
 
 const slugify = (text) =>
@@ -119,12 +120,14 @@ const ArticleEditorPage = ({ api, basePath }) => {
           </div>
 
           <div className="sm:col-span-2">
-            <label className="admin-label">URL ảnh thumbnail</label>
-            <input
-              className="admin-input w-full mt-1"
-              value={form.thumbnailUrl}
-              onChange={(e) => setForm((f) => ({ ...f, thumbnailUrl: e.target.value }))}
-              placeholder="https://..."
+            <ImageUploader
+              label="Ảnh thumbnail"
+              folder="thumbnails"
+              previewUrl={form.thumbnailUrl}
+              aspectClass="h-40 w-full rounded-xl"
+              onUpload={({ url }) =>
+                setForm((f) => ({ ...f, thumbnailUrl: url }))
+              }
             />
           </div>
 

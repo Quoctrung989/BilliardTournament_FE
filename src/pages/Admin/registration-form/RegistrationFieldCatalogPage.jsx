@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   createRegistrationField,
   getRegistrationFieldCatalog,
+  getRegistrationFieldCatalogItem,
   patchRegistrationFieldActive,
   updateRegistrationField,
 } from "../../../api/adminRegistrationFieldApi";
+import RegistrationFieldDetail from "../../../components/admin/registration-form/RegistrationFieldDetail";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
@@ -41,6 +43,9 @@ const RegistrationFieldCatalogPage = () => {
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [confirmToggle, setConfirmToggle] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -85,6 +90,20 @@ const RegistrationFieldCatalogPage = () => {
       maxValue: row.maxValue ?? "",
       isActive: row.isActive !== false,
     });
+  };
+
+  const openDetail = async (fieldKey) => {
+    setDetail({ fieldKey });
+    setDetailLoading(true);
+    try {
+      const data = await getRegistrationFieldCatalogItem(fieldKey);
+      setDetail(data);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      setDetail(null);
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const buildPayload = () => {
@@ -134,10 +153,19 @@ const RegistrationFieldCatalogPage = () => {
     }
   };
 
-  const handleToggleActive = async (row) => {
+  const handleToggleActive = (row) => {
+    if (!row.isActive) {
+      applyToggleActive(row.fieldKey, true);
+      return;
+    }
+    setConfirmToggle(row);
+  };
+
+  const applyToggleActive = async (fieldKey, isActive) => {
     try {
-      await patchRegistrationFieldActive(row.fieldKey, { isActive: !row.isActive });
-      toast.success(row.isActive ? "Đã tắt field" : "Đã bật field");
+      await patchRegistrationFieldActive(fieldKey, { isActive });
+      toast.success(isActive ? "Đã kích hoạt field" : "Đã tắt field");
+      setConfirmToggle(null);
       load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -176,13 +204,21 @@ const RegistrationFieldCatalogPage = () => {
             <div className="admin-empty">Chưa có field trong catalog.</div>
           ) : (
             <table className="admin-table">
+              <colgroup>
+                <col style={{ width: "22%" }} />
+                <col style={{ width: "22%" }} />
+                <col style={{ width: "13%" }} />
+                <col style={{ width: "13%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "22%" }} />
+              </colgroup>
               <thead>
                 <tr>
-                  <th>fieldKey</th>
-                  <th>label</th>
-                  <th>dataType</th>
-                  <th>uiComponent</th>
-                  <th className="align-center">Active</th>
+                  <th>Field Key</th>
+                  <th>Nhãn</th>
+                  <th>Kiểu dữ liệu</th>
+                  <th>Thành phần UI</th>
+                  <th className="align-center">Kích hoạt</th>
                   <th className="align-right">Thao tác</th>
                 </tr>
               </thead>
@@ -195,17 +231,24 @@ const RegistrationFieldCatalogPage = () => {
                     <td>
                       <span className="admin-table-name">{row.label}</span>
                     </td>
-                    <td>{row.dataType}</td>
-                    <td>{row.uiComponent}</td>
+                    <td>
+                      <span className="text-slate-600 text-sm">{row.dataType}</span>
+                    </td>
+                    <td>
+                      <span className="text-slate-600 text-sm">{row.uiComponent}</span>
+                    </td>
                     <td className="align-center">
-                      <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
-                          row.isActive
-                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {row.isActive ? "Bật" : "Tắt"}
+                      <span className="admin-table-toggle-wrap">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={row.isActive}
+                          className="admin-toggle"
+                          data-on={row.isActive}
+                          onClick={() => handleToggleActive(row)}
+                        >
+                          <span className="admin-toggle-knob" />
+                        </button>
                       </span>
                     </td>
                     <td className="align-right">
@@ -213,16 +256,17 @@ const RegistrationFieldCatalogPage = () => {
                         <button
                           type="button"
                           className="admin-table-action admin-table-action--primary"
-                          onClick={() => openEdit(row)}
+                          onClick={() => openDetail(row.fieldKey)}
                         >
-                          Sửa
+                          <Eye size={14} />
+                          Chi tiết
                         </button>
                         <button
                           type="button"
-                          className="admin-table-action"
-                          onClick={() => handleToggleActive(row)}
+                          className="admin-table-action admin-table-action--warning"
+                          onClick={() => openEdit(row)}
                         >
-                          {row.isActive ? "Tắt" : "Bật"}
+                          Sửa
                         </button>
                       </div>
                     </td>
@@ -247,6 +291,7 @@ const RegistrationFieldCatalogPage = () => {
         />
       </AdminCard>
 
+      {/* Modal Tạo / Sửa */}
       <AdminModal
         open={!!modal}
         onClose={() => setModal(null)}
@@ -353,6 +398,51 @@ const RegistrationFieldCatalogPage = () => {
             </div>
           </div>
         </div>
+      </AdminModal>
+
+      {/* Modal Chi tiết */}
+      <AdminModal
+        open={!!detail}
+        onClose={() => setDetail(null)}
+        title="Chi tiết field đăng ký"
+        size="lg"
+        footer={
+          !detailLoading && detail?.fieldKey ? (
+            <>
+              <AdminButton variant="secondary" onClick={() => setDetail(null)}>
+                Đóng
+              </AdminButton>
+              <AdminButton onClick={() => { setDetail(null); openEdit(detail); }}>
+                Sửa field
+              </AdminButton>
+            </>
+          ) : null
+        }
+      >
+        <RegistrationFieldDetail item={detail} loading={detailLoading} />
+      </AdminModal>
+
+      {/* Modal xác nhận tắt */}
+      <AdminModal
+        open={!!confirmToggle}
+        onClose={() => setConfirmToggle(null)}
+        title="Tắt field?"
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={() => setConfirmToggle(null)}>
+              Hủy
+            </AdminButton>
+            <AdminButton
+              variant="danger"
+              onClick={() => applyToggleActive(confirmToggle.fieldKey, false)}
+            >
+              Xác nhận tắt
+            </AdminButton>
+          </>
+        }
+      >
+        Field <strong>{confirmToggle?.label}</strong> ({confirmToggle?.fieldKey}) sẽ không hiển thị
+        trong form đăng ký.
       </AdminModal>
     </div>
   );
