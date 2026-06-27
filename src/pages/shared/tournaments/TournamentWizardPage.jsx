@@ -191,12 +191,16 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     if (!tournamentId) return;
     setLoading(true);
     try {
-      const [resolved, validation] = await Promise.all([
+      const [resolved, validation, form] = await Promise.all([
         api.getResolvedConfig(tournamentId),
         api.validateConfig(tournamentId),
+        api.getConfigForm(tournamentId),
       ]);
       setResolvedConfig(resolved);
       setValidateResult(validation);
+      setSeedingMethod(form.seedingMethod || "RANDOM");
+      setConfigFields(form.fields || []);
+      setRaceToRules(form.raceToRules || []);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -679,18 +683,42 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 </div>
 
                 {/* Config fields */}
-                {resolvedConfig?.fields && Object.keys(resolvedConfig.fields).length > 0 && (
+                {configFields.length > 0 && (
                   <div className="mb-6">
-                    <p className="text-xs text-slate-400 uppercase mb-2">Cấu hình giải</p>
-                    <div className="bg-slate-50 rounded-lg border border-slate-100 divide-y divide-slate-100">
-                      {Object.entries(resolvedConfig.fields).map(([key, val]) => (
-                        <div key={key} className="flex justify-between px-4 py-2 text-sm">
-                          <span className="text-slate-500 font-mono text-xs">{key}</span>
-                          <span className="font-medium text-slate-800">
-                            {typeof val === "boolean" ? (val ? "Có" : "Không") : String(val)}
-                          </span>
-                        </div>
-                      ))}
+                    <p className="text-xs text-slate-400 uppercase mb-3">Cấu hình giải</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {configFields.map((field) => {
+                        const val = field.value ?? field.defaultValue;
+                        const isBool = field.uiComponent === "CHECKBOX";
+                        const boolOn = isBool ? String(val) === "true" : false;
+                        return (
+                          <div key={field.fieldKey} className="admin-card p-4">
+                            <div className="flex items-start justify-between gap-2 mb-1.5">
+                              <p className="font-medium text-slate-800 text-sm leading-snug">
+                                {field.label || field.fieldKey}
+                              </p>
+                              {field.source && (
+                                <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                                  {field.source === "TOURNAMENT" ? "Đã chỉnh" : "Mặc định"}
+                                </span>
+                              )}
+                            </div>
+                            {field.description && (
+                              <p className="text-xs text-slate-500 mb-2 leading-relaxed">{field.description}</p>
+                            )}
+                            <div className="pt-1 border-t border-slate-100 mt-2">
+                              {isBool ? (
+                                <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${boolOn ? "text-green-700" : "text-slate-400"}`}>
+                                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${boolOn ? "bg-green-500" : "bg-slate-300"}`} />
+                                  {boolOn ? "Kích hoạt" : "Tắt"}
+                                </span>
+                              ) : (
+                                <span className="text-sm font-semibold text-slate-900">{String(val ?? "—")}</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

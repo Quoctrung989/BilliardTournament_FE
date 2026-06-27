@@ -29,7 +29,7 @@ const ParticipantListPage = ({ api, basePath }) => {
   const [addModal, setAddModal] = useState(false);
   const [importResult, setImportResult] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [form, setForm] = useState({ displayName: "", phone: "" });
+  const [form, setForm] = useState({ displayName: "", phone: "", seedNo: "" });
   const [withdrawModal, setWithdrawModal] = useState(null);
 
   const load = useCallback(async () => {
@@ -51,12 +51,21 @@ const ParticipantListPage = ({ api, basePath }) => {
       toast.warn("Vui lòng nhập tên hiển thị");
       return;
     }
+    const seedNo = form.seedNo.trim() ? Number(form.seedNo) : undefined;
+    if (seedNo !== undefined && (isNaN(seedNo) || seedNo < 1)) {
+      toast.warn("Hạt giống phải là số nguyên từ 1 trở lên");
+      return;
+    }
     setActionLoading(true);
     try {
-      await api.addManual(tournamentId, { displayName: form.displayName.trim(), phone: form.phone.trim() });
+      await api.addManual(tournamentId, {
+        displayName: form.displayName.trim(),
+        phone: form.phone.trim() || undefined,
+        seedNo: seedNo,
+      });
       toast.success("Đã thêm người tham gia");
       setAddModal(false);
-      setForm({ displayName: "", phone: "" });
+      setForm({ displayName: "", phone: "", seedNo: "" });
       load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -100,15 +109,12 @@ const ParticipantListPage = ({ api, basePath }) => {
     }
   };
 
-  const downloadTemplate = () => {
-    const csv = "Tên hiển thị,Số điện thoại\nNguyễn Văn A,0901234567\n";
-    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "template_import_participant.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+  const downloadTemplate = async () => {
+    try {
+      await api.downloadImportTemplate(tournamentId);
+    } catch {
+      toast.error("Tải template thất bại");
+    }
   };
 
   const active = items.filter((p) => p.status === "ACTIVE").length;
@@ -274,17 +280,30 @@ const ParticipantListPage = ({ api, basePath }) => {
               onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
             />
           </div>
-          <div>
-            <label className="admin-label">Số điện thoại</label>
-            <input
-              className="admin-input w-full mt-1"
-              placeholder="0901234567"
-              value={form.phone}
-              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="admin-label">Số điện thoại</label>
+              <input
+                className="admin-input w-full mt-1"
+                placeholder="0901234567"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="admin-label">Hạt giống</label>
+              <input
+                type="number"
+                min={1}
+                className="admin-input w-full mt-1"
+                placeholder="1, 2, 3..."
+                value={form.seedNo}
+                onChange={(e) => setForm((f) => ({ ...f, seedNo: e.target.value }))}
+              />
+            </div>
           </div>
           <p className="text-xs text-slate-400">
-            Import nhiều người cùng lúc → dùng nút "Import Excel". Tải file mẫu Excel ở trang danh sách.
+            Import nhiều người cùng lúc → dùng nút "Import Excel". Tải template từ nút bên phải.
           </p>
         </div>
       </AdminModal>
