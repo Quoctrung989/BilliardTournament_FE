@@ -22,6 +22,22 @@ export const createParticipantApi = (scope) => ({
 
   withdraw: (participantId) =>
     unwrap(axiosClient.patch(`/${scope}/participants/${participantId}/withdraw`)),
+
+  downloadImportTemplate: async (tournamentId) => {
+    const res = await axiosClient.get(
+      `/${scope}/tournaments/${tournamentId}/participants/import-template`,
+      { responseType: "blob" }
+    );
+    const disposition = res.headers?.["content-disposition"] || "";
+    const match = disposition.match(/filename="?([^";\s]+)"?/i);
+    const filename = match?.[1] || "template_import_participant.xlsx";
+    const url = URL.createObjectURL(new Blob([res.data]));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 });
 
 export const ownerParticipantApi  = createParticipantApi("owner");
