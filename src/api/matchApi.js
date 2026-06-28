@@ -11,8 +11,21 @@ export const getMatchEvents   = (matchId)      => unwrap(axiosClient.get(`/match
 
 /* ── Owner / Manager ── */
 export const createMatchApi = (scope) => ({
+  // Tournament info (needed for status-driven UI)
+  getTournament: (tournamentId)    => unwrap(axiosClient.get(`/${scope}/tournaments/${tournamentId}`)),
+  getParticipants:(tournamentId)   => unwrap(axiosClient.get(`/${scope}/tournaments/${tournamentId}/participants`)),
+
   // Bracket generation
-  generateDraw:  (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/draw`, {})),
+  generateDraw:        (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/draw`, {})),
+  confirmDraw:         (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/draw/confirm`)),
+  swapPlayers:         (tournamentId, body) => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/draw/swap`, body)),
+  // CUT_TO_SE: điền SE bracket từ DE survivors
+  populateFinalBracket:(tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/populate-final-bracket`)),
+  // GROUP_PLAYOFF: xếp hạng + loại bottom
+  getStandings:        (tournamentId)    => unwrap(axiosClient.get(`/${scope}/tournaments/${tournamentId}/standings`)),
+  eliminateBottom:     (tournamentId, body) => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/eliminate-bottom`, body)),
+  // GROUP_PLAYOFF: populate playoff bracket từ standings
+  generatePlayoff:     (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/generate-playoff`)),
 
   // Read stages + matches
   getStages:     (tournamentId)    => unwrap(axiosClient.get(`/${scope}/tournaments/${tournamentId}/stages`)),
