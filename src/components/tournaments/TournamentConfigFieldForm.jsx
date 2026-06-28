@@ -32,16 +32,21 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
     if (ui === "CHECKBOX") {
       const checked = String(value) === "true";
       return (
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={(e) =>
-              updateField(index, { value: e.target.checked ? "true" : "false" })
-            }
-          />
-          <span className="text-sm">{checked ? "Bật" : "Tắt"}</span>
-        </label>
+        <div className="flex items-center gap-2.5 pt-1">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={checked}
+            data-on={String(checked)}
+            onClick={() => updateField(index, { value: checked ? "false" : "true" })}
+            className="admin-toggle flex-shrink-0"
+          >
+            <span className="admin-toggle-knob" />
+          </button>
+          <span className={`text-sm font-medium ${checked ? "text-green-700" : "text-slate-400"}`}>
+            {checked ? "Kích hoạt" : "Tắt"}
+          </span>
+        </div>
       );
     }
 
@@ -73,24 +78,23 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {fields.map((field, index) => (
-        <div
-          key={field.fieldKey ?? index}
-          className="admin-card p-4 grid gap-2 sm:grid-cols-[1fr_2fr] sm:items-center"
-        >
-          <div>
-            <p className="font-medium text-slate-800">
-              {field.label || field.fieldKey}
-              {field.isRequired && <span className="text-red-500 ml-1">*</span>}
-            </p>
-            {field.description && (
-              <p className="text-xs text-slate-500 mt-0.5">{field.description}</p>
-            )}
-            {field.source && (
-              <p className="text-[10px] uppercase tracking-wide text-slate-400 mt-1">
-                {field.source === "TOURNAMENT" ? "Đã chỉnh" : "Mặc định Admin"}
+        <div key={field.fieldKey ?? index} className="admin-card p-4">
+          <div className="mb-3">
+            <div className="flex items-start justify-between gap-2">
+              <p className="font-medium text-slate-800 text-sm leading-snug">
+                {field.label || field.fieldKey}
+                {field.isRequired && <span className="text-red-500 ml-1">*</span>}
               </p>
+              {field.source && (
+                <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                  {field.source === "TOURNAMENT" ? "Đã chỉnh" : "Mặc định"}
+                </span>
+              )}
+            </div>
+            {field.description && (
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">{field.description}</p>
             )}
           </div>
           <div>{renderValueInput(field, index)}</div>
