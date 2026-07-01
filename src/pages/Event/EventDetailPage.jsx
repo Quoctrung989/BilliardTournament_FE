@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   Calendar, DollarSign,
-  ArrowLeft, Info, List, Radio, BarChart2, Trophy, Users, CreditCard, UserCheck,
+  ArrowLeft, Info, List, Radio, BarChart2, Trophy, Users, CreditCard, UserCheck, Monitor, X,
 } from "lucide-react";
 import MatchesTab from "./MatchesTab";
 import RankingTab from "./RankingTab";
@@ -40,6 +40,20 @@ const fmtCurrency = (v) => {
   return `${Number(v).toLocaleString("vi-VN")} đ`;
 };
 
+/* "Vô địch 4tr | Á quân 2.4tr · Hạng 3 1.6tr" -> [{ label, value }] */
+const parsePrizeTiers = (description) => {
+  if (!description) return [];
+  return description
+    .split(/[|·•]/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const words = part.split(/\s+/);
+      const value = words.pop();
+      return { label: words.join(" ") || "Giải thưởng", value };
+    });
+};
+
 /* ─── Tabs ──────────────────────────────────────────────────────── */
 const TABS = [
   { id: "info",         label: "Thông tin", Icon: Info      },
@@ -71,21 +85,18 @@ const RegistrationCard = ({ t, onRegister, myRegistration = null }) => {
   const pct = max > 0 ? Math.min(100, (approved / max) * 100) : 0;
 
   return (
-    <div className="rounded-3xl overflow-hidden shadow-sm border border-gray-100 bg-white">
+    <div className="rounded-3xl overflow-hidden shadow-sm" style={{ background: "#1e293b" }}>
       {/* Header */}
-      <div
-        className="px-5 py-4 border-b border-gray-100"
-        style={{ background: canRegister ? "linear-gradient(90deg,#0d1b2e,#1e3a5f)" : undefined }}
-      >
+      <div className="px-5 py-4 border-b border-white/10">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Users size={15} className={canRegister ? "text-white/60" : "text-slate-400"} />
-            <span className={`text-[10px] font-bold tracking-[0.15em] uppercase ${canRegister ? "text-white/50" : "text-slate-400"}`}>
+            <Users size={15} className="text-slate-200" />
+            <span className="text-xs font-bold tracking-[0.15em] uppercase text-white/90">
               Đăng ký tham dự
             </span>
           </div>
           {max > 0 && (
-            <span className={`text-xs font-semibold ${isFull ? "text-red-400" : remaining <= 3 ? "text-amber-400" : canRegister ? "text-emerald-400" : "text-slate-400"}`}>
+            <span className={`text-xs font-semibold ${isFull ? "text-red-400" : remaining <= 3 ? "text-amber-400" : "text-emerald-400"}`}>
               {isFull ? "Đã đủ người" : `Còn ${remaining} slot`}
             </span>
           )}
@@ -96,28 +107,28 @@ const RegistrationCard = ({ t, onRegister, myRegistration = null }) => {
         {/* Slot bar */}
         {max > 0 && (
           <div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-1">
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-1">
               <div
                 className={`h-full rounded-full transition-all ${isFull ? "bg-red-400" : remaining <= 3 ? "bg-amber-400" : "bg-emerald-400"}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <p className="text-xs text-slate-400">{approved} / {max} người tham gia đã xác nhận</p>
+            <p className="text-xs text-white/50">{approved} / {max} người tham gia đã xác nhận</p>
           </div>
         )}
 
         {/* Fee + deadline info */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-slate-50 rounded-xl px-4 py-3">
-            <p className="text-[9px] text-slate-400 uppercase tracking-wide mb-1">Phí tham dự</p>
-            <p className={`text-sm font-bold ${hasEntryFee ? "text-[#0d1b2e]" : "text-emerald-600"}`}>
+          <div className="bg-white/[0.12] border border-white/10 rounded-xl px-4 py-3">
+            <p className="text-[9px] text-white/60 uppercase tracking-wide mb-1">Phí tham dự</p>
+            <p className={`text-sm font-bold ${hasEntryFee ? "text-white" : "text-emerald-400"}`}>
               {fmtCurrency(t.entryFee)}
             </p>
           </div>
           {t.registrationDeadline && (
-            <div className="bg-slate-50 rounded-xl px-4 py-3">
-              <p className="text-[9px] text-slate-400 uppercase tracking-wide mb-1">Hạn đăng ký</p>
-              <p className="text-sm font-bold text-[#0d1b2e]">{fmtDate(t.registrationDeadline)}</p>
+            <div className="bg-white/[0.12] border border-white/10 rounded-xl px-4 py-3">
+              <p className="text-[9px] text-white/60 uppercase tracking-wide mb-1">Hạn đăng ký</p>
+              <p className="text-sm font-bold text-white">{fmtDate(t.registrationDeadline)}</p>
             </div>
           )}
         </div>
@@ -125,11 +136,11 @@ const RegistrationCard = ({ t, onRegister, myRegistration = null }) => {
         {/* Action */}
         {alreadyRegistered ? (
           <div className="space-y-2">
-            <div className="py-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
-              <span className="text-emerald-500 text-xl">✓</span>
+            <div className="py-3 px-4 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 flex items-center gap-3">
+              <span className="text-emerald-400 text-xl">✓</span>
               <div>
-                <p className="text-sm font-bold text-emerald-800">Bạn đã đăng ký giải này</p>
-                <p className="text-xs text-emerald-600">
+                <p className="text-sm font-bold text-emerald-200">Bạn đã đăng ký giải này</p>
+                <p className="text-xs text-emerald-300/80">
                   Trạng thái: <strong>{REG_STATUS_LABELS[myRegistration.status] || myRegistration.status}</strong>
                 </p>
               </div>
@@ -147,7 +158,7 @@ const RegistrationCard = ({ t, onRegister, myRegistration = null }) => {
             <button
               type="button"
               onClick={() => navigate("/player/registrations")}
-              className="w-full py-2.5 rounded-2xl text-sm font-medium border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors text-center"
+              className="w-full py-2.5 rounded-2xl text-sm font-medium border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/10 transition-colors text-center"
             >
               Xem đăng ký của tôi
             </button>
@@ -163,12 +174,12 @@ const RegistrationCard = ({ t, onRegister, myRegistration = null }) => {
             {hasEntryFee ? `Đăng ký & thanh toán ${fmtCurrency(t.entryFee)}` : "Đăng ký tham dự — Miễn phí"}
           </button>
         ) : isFull ? (
-          <div className="py-3 rounded-2xl bg-red-50 border border-red-100 text-center">
-            <p className="text-sm font-semibold text-red-600">Giải đã đủ {max} người — không còn slot</p>
+          <div className="py-3 rounded-2xl bg-red-500/15 border border-red-400/30 text-center">
+            <p className="text-sm font-semibold text-red-300">Giải đã đủ {max} người — không còn slot</p>
           </div>
         ) : !isOpen ? (
-          <div className="py-3 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-            <p className="text-sm text-slate-500">
+          <div className="py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-center">
+            <p className="text-sm text-white/60">
               {t.status === "IN_PROGRESS" ? "Giải đang diễn ra"
                 : t.status === "COMPLETED" ? "Giải đã kết thúc"
                 : t.status === "REGISTRATION_CLOSED" ? "Đã đóng đăng ký"
@@ -176,8 +187,8 @@ const RegistrationCard = ({ t, onRegister, myRegistration = null }) => {
             </p>
           </div>
         ) : (
-          <div className="py-3 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-            <p className="text-sm text-slate-500">Giải này không nhận đăng ký online.</p>
+          <div className="py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-center">
+            <p className="text-sm text-white/60">Giải này không nhận đăng ký online.</p>
           </div>
         )}
       </div>
@@ -186,69 +197,133 @@ const RegistrationCard = ({ t, onRegister, myRegistration = null }) => {
 };
 
 /* ─── Info tab ──────────────────────────────────────────────────── */
-const InfoTab = ({ t, onRegister, myRegistration }) => (
+const InfoTab = ({ t, onRegister, myRegistration, onGoLive }) => (
   <div className="space-y-4">
     {/* Registration CTA — luôn hiển thị đầu tiên */}
     <RegistrationCard t={t} onRegister={onRegister} myRegistration={myRegistration} />
 
-    {/* Card: Meta + giải thưởng */}
+    {/* Card tổng: Meta + cơ cấu giải thưởng + trực tiếp (liền mạch) */}
     <div className="rounded-3xl overflow-hidden shadow-sm border border-gray-100">
-      <div className="bg-white grid grid-cols-2 sm:grid-cols-3 divide-x divide-gray-100 border-b border-gray-100">
+      {/* Info bar */}
+      <div className="bg-white grid grid-cols-2 divide-x divide-gray-100">
         {[
-          { Icon: Calendar, label: "Thời gian", value: `${fmtDate(t.startAt)} – ${fmtDate(t.endAt)}` },
-          { Icon: DollarSign, label: "Phí đăng ký", value: fmtCurrency(t.entryFee) },
-          { Icon: Users, label: "Số người tối đa", value: `${t.maxParticipants} người` },
+          { Icon: Calendar, label: "Ngày thi đấu", value: `${fmtDate(t.startAt)} – ${fmtDate(t.endAt)}` },
+          { Icon: DollarSign, label: "Tổng giải thưởng", value: t.prizePool ? fmtCurrency(t.prizePool) : "—" },
         ].map(({ Icon, label, value }) => (
-          <div key={label} className="flex items-center gap-3 px-5 py-5">
-            <Icon size={16} className="text-[#0d1b2e]/30 shrink-0" />
+          <div key={label} className="flex items-center gap-3 px-5 py-5 sm:px-6">
+            <Icon size={16} className="shrink-0 text-slate-300" />
             <div className="min-w-0">
-              <p className="text-[9px] text-gray-400 uppercase tracking-wide font-medium leading-none mb-1">{label}</p>
-              <p className="text-sm font-semibold text-[#0d1b2e] truncate leading-snug">{value}</p>
+              <p className="mb-1 text-[10px] font-medium uppercase leading-none tracking-wide text-slate-400">{label}</p>
+              <p className="truncate text-sm font-semibold leading-snug text-[#0d1b2e] sm:text-base">{value}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {(t.prizePool || t.prizeDescription) && (
-        <div className="px-5 py-6" style={{ background: "linear-gradient(180deg, #0f2035 0%, #0d1b2e 100%)" }}>
-          <div className="flex items-center gap-1.5 mb-3">
-            <Trophy size={13} className="text-yellow-400" />
-            <span className="text-[10px] font-bold tracking-[0.18em] text-white/40 uppercase">Giải thưởng</span>
-          </div>
-          {t.prizePool && <p className="text-2xl font-black text-yellow-400 mb-2">{fmtCurrency(t.prizePool)}</p>}
-          {t.prizeDescription && <p className="text-sm text-white/60 leading-relaxed">{t.prizeDescription}</p>}
+      {/* Khối tối: cơ cấu giải thưởng + trực tiếp */}
+      {(t.prizeDescription || t.status === "IN_PROGRESS") && (
+        <div style={{ background: "#131d30" }}>
+          {/* Cơ cấu giải thưởng */}
+          {t.prizeDescription && (
+            <div className="px-5 py-6 sm:px-7">
+              <div className="mb-4 flex items-center gap-2">
+                <Trophy size={14} className="text-yellow-400" />
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/45">Cơ cấu giải thưởng</span>
+              </div>
+              {(() => {
+                const tiers = parsePrizeTiers(t.prizeDescription);
+                if (tiers.length === 0) {
+                  return <p className="text-sm leading-relaxed text-white/60">{t.prizeDescription}</p>;
+                }
+                return (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {tiers.map((tier, i) => (
+                      <div
+                        key={`${tier.label}-${i}`}
+                        className={`rounded-2xl border px-4 py-4 sm:px-5 ${
+                          i === 0
+                            ? "border-yellow-400/25 bg-yellow-400/[0.06]"
+                            : "border-white/[0.06] bg-white/[0.04]"
+                        }`}
+                      >
+                        <p className="mb-2 truncate text-[10px] uppercase tracking-[0.12em] text-white/40">{tier.label}</p>
+                        <p className={`text-xl font-black leading-none sm:text-2xl ${i === 0 ? "text-yellow-400" : "text-white"}`}>
+                          {tier.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Trực tiếp */}
+          {t.status === "IN_PROGRESS" && (
+            <button
+              type="button"
+              onClick={onGoLive}
+              className="group relative block w-full overflow-hidden border-t border-white/5 text-left"
+            >
+              <img
+                src={t.thumbnailUrl || FALLBACK_IMAGE}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover object-center opacity-70"
+                onError={(e) => { e.target.src = FALLBACK_IMAGE; }}
+              />
+              <div
+                className="absolute inset-0"
+                style={{ background: "linear-gradient(90deg, rgba(19,29,48,0.97) 35%, rgba(19,29,48,0.6) 100%)" }}
+              />
+              <div className="relative flex items-center justify-between gap-4 px-5 py-4 sm:px-7 sm:py-5">
+                <div className="flex items-center gap-3">
+                  <Monitor size={18} className="shrink-0 text-white/50" />
+                  <div className="leading-tight">
+                    <p className="text-[10px] uppercase tracking-[0.15em] text-white/40">Trực tiếp tại</p>
+                    <p className="text-base font-black uppercase italic tracking-tight text-white sm:text-lg">
+                      Billiards <span className="text-[#ef342a]">Live</span> TV
+                    </p>
+                  </div>
+                </div>
+                <span className="shrink-0 rounded-full bg-[#ef342a] px-5 py-2 text-xs font-black uppercase italic tracking-wide text-white transition-transform group-hover:scale-105 sm:text-sm">
+                  Xem ngay
+                </span>
+              </div>
+            </button>
+          )}
         </div>
       )}
     </div>
 
-    {/* Card: Mô tả & config */}
-    {(t.description || t.configSummary) && (
-      <div className="rounded-3xl overflow-hidden shadow-sm border border-gray-100 bg-white p-6 space-y-4">
-        {t.description && (
-          <div>
-            <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase mb-2">Giới thiệu</p>
-            <p className="text-sm text-slate-700 leading-relaxed">{t.description}</p>
-          </div>
-        )}
-        {t.configSummary && (
-          <div className="pt-3 border-t border-gray-100">
-            <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase mb-3">Thể thức thi đấu</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {[
-                t.configSummary.seedingMethod && { label: "Xếp hạt giống", value: t.configSummary.seedingMethod === "RANDOM" ? "Ngẫu nhiên" : t.configSummary.seedingMethod === "ELO" ? "Theo ELO" : "Thủ công" },
-                t.configSummary.bracketSize != null && { label: "Bracket", value: `${t.configSummary.bracketSize} slot` },
-                t.configSummary.finalRaceTo != null && { label: "Race-to CK", value: `Race to ${t.configSummary.finalRaceTo}` },
-                t.configSummary.breakRule && { label: "Luật break", value: t.configSummary.breakRule === "ALTERNATE_BREAK" ? "Luân phiên" : t.configSummary.breakRule === "WINNER_BREAK" ? "Người thắng" : "Người thua" },
-                t.configSummary.thirdPlaceMatch != null && { label: "Tranh hạng 3", value: t.configSummary.thirdPlaceMatch ? "Có" : "Không" },
-              ].filter(Boolean).map(({ label, value }) => (
-                <div key={label} className="bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
-                  <p className="text-[9px] text-slate-400 uppercase tracking-wide mb-1">{label}</p>
-                  <p className="text-sm font-semibold text-slate-800">{value}</p>
-                </div>
-              ))}
+    {/* Card: Giới thiệu */}
+    {t.description && (
+      <div className="rounded-3xl shadow-sm border border-gray-100 bg-white p-6">
+        <p className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase mb-2">Giới thiệu</p>
+        <p className="text-sm text-slate-700 leading-relaxed">{t.description}</p>
+      </div>
+    )}
+
+    {/* Card: Thể thức thi đấu — nền xám tối làm nổi bật */}
+    {t.configSummary && (
+      <div className="rounded-3xl shadow-sm px-5 py-6 sm:px-7" style={{ background: "#1e293b" }}>
+        <div className="mb-4 flex items-center gap-2">
+          <BarChart2 size={15} className="text-slate-200" />
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/90">Thể thức thi đấu</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {[
+            t.configSummary.seedingMethod && { label: "Xếp hạt giống", value: t.configSummary.seedingMethod === "RANDOM" ? "Ngẫu nhiên" : t.configSummary.seedingMethod === "ELO" ? "Theo ELO" : "Thủ công" },
+            t.configSummary.bracketSize != null && { label: "Bracket", value: `${t.configSummary.bracketSize} slot` },
+            t.configSummary.finalRaceTo != null && { label: "Race-to CK", value: `Race to ${t.configSummary.finalRaceTo}` },
+            t.configSummary.breakRule && { label: "Luật break", value: t.configSummary.breakRule === "ALTERNATE_BREAK" ? "Luân phiên" : t.configSummary.breakRule === "WINNER_BREAK" ? "Người thắng" : "Người thua" },
+            t.configSummary.thirdPlaceMatch != null && { label: "Tranh hạng 3", value: t.configSummary.thirdPlaceMatch ? "Có" : "Không" },
+          ].filter(Boolean).map(({ label, value }) => (
+            <div key={label} className="rounded-xl border border-white/10 bg-white/[0.12] px-4 py-3">
+              <p className="mb-1 text-[9px] uppercase tracking-wide text-white/60">{label}</p>
+              <p className="text-sm font-semibold text-white">{value}</p>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     )}
 
@@ -282,8 +357,85 @@ const ComingSoon = ({ label }) => (
   </div>
 );
 
+const PARTICIPANT_STATUS_LABELS = {
+  ACTIVE: "Đang thi đấu",
+  WITHDRAWN: "Đã rút lui",
+  ELIMINATED: "Đã bị loại",
+};
+
+/* Popup chi tiết cơ thủ đã đăng ký giải */
+const ParticipantModal = ({ p, index, onClose }) => {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  if (!p) return null;
+
+  const rows = [
+    { label: "Số điện thoại", value: p.phone },
+    { label: "Email", value: p.email },
+    { label: "Câu lạc bộ", value: p.clubName || p.club },
+    { label: "Địa chỉ", value: p.address },
+    { label: "ELO", value: p.elo ?? p.rating },
+    { label: "Số hạt giống", value: p.seedNo != null ? `#${p.seedNo}` : null },
+    { label: "Ngày đăng ký", value: p.registeredAt ? fmtDate(p.registeredAt) : p.createdAt ? fmtDate(p.createdAt) : null },
+    { label: "Trạng thái", value: PARTICIPANT_STATUS_LABELS[p.status] || p.status },
+  ].filter((r) => r.value != null && r.value !== "");
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-md overflow-hidden rounded-3xl shadow-2xl"
+        style={{ background: "#1e293b" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="relative border-b border-white/10 px-6 pb-6 pt-7 text-center">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-4 top-4 text-white/40 transition-colors hover:text-white"
+          >
+            <X size={20} />
+          </button>
+          <div
+            className="mx-auto mb-3 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl text-2xl font-black text-white/80"
+            style={{ background: "linear-gradient(135deg,#010851,#1e3a5f)" }}
+          >
+            {p.avatarUrl
+              ? <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
+              : (p.displayName?.charAt(0)?.toUpperCase() || "?")}
+          </div>
+          <h3 className="text-lg font-bold text-white">{p.displayName}</h3>
+          {index != null && <p className="mt-0.5 text-xs text-white/40">Cơ thủ #{index}</p>}
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5">
+          {rows.length === 0 ? (
+            <p className="py-4 text-center text-sm text-white/50">Chưa có thêm thông tin công khai.</p>
+          ) : (
+            <div className="space-y-3">
+              {rows.map((r) => (
+                <div key={r.label} className="flex items-center justify-between gap-4">
+                  <span className="text-xs uppercase tracking-wide text-white/40">{r.label}</span>
+                  <span className="text-right text-sm font-semibold text-white">{r.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PlayersTab = ({ participants }) => {
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState(null);
   const filtered = participants.filter(
     (p) =>
       !search ||
@@ -291,12 +443,11 @@ const PlayersTab = ({ participants }) => {
       p.phone?.includes(search)
   );
   return (
-    <div className="rounded-3xl overflow-hidden shadow-sm border border-gray-100 bg-white">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100"
-           style={{ background: "linear-gradient(90deg, #010851 0%, #0d1b2e 100%)" }}>
+    <div className="rounded-3xl overflow-hidden shadow-sm" style={{ background: "#1e293b" }}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
         <div className="flex items-center gap-2">
-          <Users size={14} className="text-white/60" />
-          <span className="text-[10px] font-bold tracking-[0.18em] text-white uppercase">
+          <Users size={14} className="text-slate-200" />
+          <span className="text-[11px] font-bold tracking-[0.18em] text-white/90 uppercase">
             Danh sách cơ thủ
           </span>
         </div>
@@ -308,36 +459,46 @@ const PlayersTab = ({ participants }) => {
           placeholder="Tìm tên hoặc số điện thoại..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-xl pl-4 pr-4 py-2 placeholder:text-gray-400 focus:outline-none focus:bg-white mb-4"
+          className="w-full bg-white/[0.06] border border-white/10 text-white text-sm font-light rounded-xl pl-4 pr-4 py-2 placeholder:text-white/30 focus:outline-none focus:bg-white/10 mb-4"
         />
         {filtered.length === 0 ? (
-          <div className="text-center py-10 text-slate-400 text-sm">
+          <div className="text-center py-10 text-white/40 text-sm">
             {participants.length === 0 ? "Danh sách cơ thủ chưa được công bố" : "Không tìm thấy"}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {filtered.map((p, i) => (
-              <div
+              <button
                 key={p.id}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#f8f9fb] border border-gray-100"
+                type="button"
+                onClick={() => setSelected({ p, index: i + 1 })}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-left transition-colors hover:bg-white/[0.09] focus:outline-none focus:ring-1 focus:ring-white/20"
               >
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-black text-white/70"
-                  style={{ background: "linear-gradient(135deg,#010851,#0d1b2e)" }}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-black text-white/80 overflow-hidden"
+                  style={{ background: "linear-gradient(135deg,#010851,#1e3a5f)" }}
                 >
-                  {i + 1}
+                  {p.avatarUrl
+                    ? <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
+                    : i + 1}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[#010851] truncate">{p.displayName}</p>
-                  {p.seedNo && (
-                    <p className="text-[10px] text-slate-400">Hạt #{p.seedNo}</p>
+                  <p className="text-sm font-semibold text-white truncate">{p.displayName}</p>
+                  {p.seedNo != null && (
+                    <p className="text-[10px] text-white/40">Hạt #{p.seedNo}</p>
                   )}
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
       </div>
+
+      <ParticipantModal
+        p={selected?.p}
+        index={selected?.index}
+        onClose={() => setSelected(null)}
+      />
     </div>
   );
 };
@@ -457,7 +618,7 @@ const EventDetailPage = () => {
 
       {/* Tab content */}
       <div className="w-full max-w-[1400px] mx-auto px-2 sm:px-3 py-4 rounded-3xl overflow-hidden">
-        {activeTab === "info"    && <InfoTab t={tournament} onRegister={handleRegister} myRegistration={myRegistration} />}
+        {activeTab === "info"    && <InfoTab t={tournament} onRegister={handleRegister} myRegistration={myRegistration} onGoLive={() => setActiveTab("live")} />}
         {activeTab === "players" && <PlayersTab participants={participants} />}
         {activeTab === "matches" && <MatchesTab tournament={tournamentShim} />}
         {activeTab === "live"    && <ComingSoon label="Trực tiếp" />}
