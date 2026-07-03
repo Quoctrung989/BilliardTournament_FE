@@ -152,8 +152,13 @@ const ChampionCard = ({ player, tournamentStatus }) => {
 };
 
 /* ─── Rank row ──────────────────────────────────────────────────────── */
+const MEDAL_STYLE = {
+  2: { ring: "ring-1 ring-gray-300",   bg: "#f3f4f6", icon: "text-gray-400"   }, // bạc
+  3: { ring: "ring-1 ring-amber-300",  bg: "#fef3e2", icon: "text-amber-500"  }, // đồng
+};
 const RankRow = ({ player, isLast }) => {
   const isTBD = player.name === "TBD";
+  const medal = MEDAL_STYLE[player.rank];
   return (
     <div className={`flex items-center gap-4 px-5 py-3.5 hover:bg-[#f8f9fb] transition-colors ${!isLast ? "border-b border-gray-100" : ""}`}>
       {/* Rank badge */}
@@ -163,12 +168,12 @@ const RankRow = ({ player, isLast }) => {
 
       {/* Avatar */}
       <div
-        className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center"
-        style={{ background: "#f0f2f6" }}
+        className={`w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center ${medal?.ring || ""}`}
+        style={{ background: medal?.bg || "#f0f2f6" }}
       >
         {isTBD
           ? <span className="text-gray-300 text-sm font-bold">?</span>
-          : <Medal size={15} className={player.rank === 2 ? "text-gray-400" : "text-gray-300"} />
+          : <Medal size={15} className={medal?.icon || "text-gray-300"} />
         }
       </div>
 

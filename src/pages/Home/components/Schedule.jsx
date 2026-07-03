@@ -33,15 +33,15 @@ const newsData = [
 const Schedule = () => {
   return (
     <div className="w-full flex flex-col gap-6 p-6 max-w-[1600px] mx-auto">
-      <div className="bg-[var(--wnt25-color-light)] p-4 rounded-md flex justify-between items-center">
-        <h2 className="text-lg font-bold">Schedule</h2>
-        <button className="flex h-10 w-wrapper items-center justify-center rounded-md border border-gray-300 text-sm transition hover:bg-gray-100 italic">
+      <div className="bg-[var(--wnt25-color-light)] dark:bg-[#161a22] p-4 rounded-md flex justify-between items-center">
+        <h2 className="text-lg font-bold dark:text-gray-100">Schedule</h2>
+        <button className="flex h-10 w-wrapper items-center justify-center rounded-md border border-gray-300 dark:border-white/20 text-sm dark:text-gray-200 transition hover:bg-gray-100 dark:hover:bg-white/10 italic">
           Full Schedule
         </button>
       </div>
       <div className="mx-auto grid grid-cols-1 gap-6 p-4 lg:grid-cols-[1fr_1fr] items-stretch">
         <div className="h-full">
-          <div className="group flex h-full flex-col overflow-hidden rounded-l-[24px] border border-gray-300 bg-white shadow-sm cursor-pointer">
+          <div className="group flex h-full flex-col overflow-hidden rounded-l-[24px] border border-gray-300 dark:border-white/10 bg-white dark:bg-[#161a22] dark:text-gray-200 shadow-sm cursor-pointer">
             <img
               src={newsData[0].image}
               alt=""
@@ -54,12 +54,12 @@ const Schedule = () => {
                   <span className="text-[14px] font-bold px-2 py-1 border-[1px] rounded-lg border-[var(--wnt25-color-red)] text-[var(--wnt25-color-red)] text-xs">
                     May 26 - 31 2026
                   </span>
-                  <span className="text-[22px] font-bold  text-[var(--wnt25-color-dark)] text-sm">
+                  <span className="text-[22px] font-bold  text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-sm">
                     CAPSTONE
                   </span>
                 </div>
 
-                <span className="font-italic text-[12px] text-[var(--wnt25-color-dark)] text-sm font-bold ">
+                <span className="font-italic text-[12px] text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-sm font-bold ">
                   Major
                 </span>
               </div>
@@ -80,7 +80,7 @@ const Schedule = () => {
           {newsData.slice(1).map((item) => (
             <div
               key={item.id}
-              className="group flex-1 overflow-hidden flex rounded-r-[22px] border border-l-transparent border-gray-300 bg-white shadow-sm cursor-pointer"
+              className="group flex-1 overflow-hidden flex rounded-r-[22px] border border-l-transparent border-gray-300 dark:border-white/10 bg-white dark:bg-[#161a22] dark:text-gray-200 shadow-sm cursor-pointer"
             >
               <div className="flex justify-center items-center p-4  max-w-[30%]">
                 <img
@@ -89,7 +89,7 @@ const Schedule = () => {
                   className="h-[150px]  object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105"
                 />
               </div>
-              <div className="h-[84%] my-auto py-4 w-[1px] bg-gray-300"></div>
+              <div className="h-[84%] my-auto py-4 w-[1px] bg-gray-300 dark:bg-white/10"></div>
 
               <div className="flex flex-col p-4 gap-4 min-w-[70%]">
                 <div className="flex w-full justify-between items-center">
@@ -97,12 +97,12 @@ const Schedule = () => {
                     <span className="text-[14px] p-1 font-bold border-[1px] rounded-lg border-[var(--wnt25-color-red)] text-[var(--wnt25-color-red)] text-xs">
                       May 26 - 31 2026
                     </span>
-                    <span className="text-[14px] font-bold  text-[var(--wnt25-color-dark)] text-sm">
+                    <span className="text-[14px] font-bold  text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-sm">
                       CAPSTONE
                     </span>
                   </div>
 
-                  <span className="font-italic text-[12px] text-[var(--wnt25-color-dark)] text-xs font-bold opacity-[90%]">
+                  <span className="font-italic text-[12px] text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-xs font-bold opacity-[90%]">
                     Ranking
                   </span>
                 </div>
