@@ -84,7 +84,7 @@ const Ranked = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-10 xl:grid-cols-[1.15fr_2.2fr]">
-        <div className="group overflow-hidden rounded-l-[16px] border-b-[2px] border-l-[2px] border-white">
+        <div className="group overflow-hidden rounded-l-[16px] border-b-[2px] border-l-[2px] border-gray-200 dark:border-white">
           <div className="relative overflow-hidden">
             <div
               className={`h-[300px] flex items-end relative bg-[var(--wnt25-color-light)] border-b-[30px]  w-full `}
@@ -125,16 +125,16 @@ const Ranked = () => {
 
           <div className="flex items-end justify-between px-6 py-4">
             <div>
-              <p className="text-[20px] font-medium leading-none text-white">
+              <p className="text-[20px] font-medium leading-none text-[#1d2430] dark:text-white">
                 Fedor
               </p>
 
-              <h3 className="text-[36px] font-black uppercase leading-none text-white">
+              <h3 className="text-[36px] font-black uppercase leading-none text-[#1d2430] dark:text-white">
                 Gorst
               </h3>
             </div>
 
-            <button className="flex h-12 w-12 items-center justify-center rounded-md border border-white/30 text-2xl transition hover:bg-white/10">
+            <button className="flex h-12 w-12 items-center justify-center rounded-md border border-gray-300 dark:border-white/30 text-2xl text-[#1d2430] dark:text-white transition hover:bg-gray-100 dark:hover:bg-white/10">
               ↗
             </button>
           </div>
@@ -170,9 +170,9 @@ const Ranked = () => {
                 </div>
 
                 <div
-                  className={`p-4 rounded-bl-[8px] border-b border-l border-white h-[70px] `}
+                  className={`p-4 rounded-bl-[8px] border-b border-l border-gray-200 dark:border-white h-[70px] `}
                 >
-                  <h3 className="text-[15px] font-black uppercase leading-tight text-[var(--wnt25-color-light)] flex flex-col">
+                  <h3 className="text-[15px] font-black uppercase leading-tight text-[#1d2430] dark:text-[var(--wnt25-color-light)] flex flex-col">
                     <span>{firstName}</span>
                     <span>{rest.join(" ")}</span>
                   </h3>

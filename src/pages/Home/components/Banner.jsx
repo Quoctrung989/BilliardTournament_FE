@@ -6,7 +6,7 @@ const Banner = () => {
       <img
         src="https://matchroompool.com/wp-content/uploads/us-open-2026_desktop-players.png"
         alt=""
-        className="h-full object-cover"
+        className="w-full h-full object-cover"
       />
     </div>
   );
