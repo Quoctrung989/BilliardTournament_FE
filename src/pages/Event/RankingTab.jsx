@@ -1,330 +1,361 @@
-import { useState, useMemo } from "react";
-import { Search, Trophy, ChevronDown, Medal, Star } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, Trophy } from "lucide-react";
+import { getPublicTournamentRankings } from "../../api/publicTournamentApi";
+import {
+  DEFAULT_COUNTRY,
+  DEFAULT_PLAYER_AVATAR,
+  RankLabel,
+  RankingBadge,
+  RankingEmptyMessage,
+  TournamentStatus,
+} from "../../constants/rankingEnums";
 
-/* ─── Ranking data per tournament ───────────────────────────────────── */
-const RANKING_BY_TOURNAMENT = {
-  /* Tournament 1 — Vietnam 9-Ball Open 2026 (IN_PROGRESS)
-     Vòng 1 xong, Bán kết đang diễn ra → xếp hạng tạm thời */
-  1: [
-    { rank:1,     label:"#1",   name:"Nguyễn Văn Anh",    flag:"🇻🇳", country:"Việt Nam",    prize:15000, note:"Vào chung kết"  },
-    { rank:2,     label:"#2",   name:"TBD",                flag:"",    country:"—",           prize:7000,  note:"Chờ bán kết 2" },
-    { rank:"3-4", label:"#3-4", name:"Carlo Biado",        flag:"🇵🇭", country:"Philippines", prize:3500,  note:"Thua bán kết"  },
-    { rank:"3-4", label:"#3-4", name:"James Aranas",       flag:"🇵🇭", country:"Philippines", prize:3500,  note:"Đang thi đấu"  },
-    { rank:"5-8", label:"#5-8", name:"Ko Pin Yi",          flag:"🇹🇼", country:"Đài Loan",    prize:1450,  note:"Thua vòng 1"   },
-    { rank:"5-8", label:"#5-8", name:"Trần Đức Minh",      flag:"🇻🇳", country:"Việt Nam",    prize:1450,  note:"Thua vòng 1"   },
-    { rank:"5-8", label:"#5-8", name:"Lê Quang Hùng",      flag:"🇻🇳", country:"Việt Nam",    prize:1450,  note:"Thua vòng 1"   },
-    { rank:"5-8", label:"#5-8", name:"Trần Quốc Tuấn",     flag:"🇻🇳", country:"Việt Nam",    prize:1450,  note:"Thua vòng 1"   },
-  ],
-  /* Tournament 2 — Carom 3 Băng (IN_PROGRESS) — vòng bảng chưa xong */
-  2: [
-    { rank:1,     label:"#1",   name:"Trần Quốc Khánh",   flag:"🇻🇳", country:"Việt Nam",    prize:9000,  note:"Dẫn đầu bảng"  },
-    { rank:2,     label:"#2",   name:"Nguyễn Hoàng Long",  flag:"🇻🇳", country:"Việt Nam",    prize:4500,  note:"Hạng 2 bảng"   },
-    { rank:3,     label:"#3",   name:"Lê Thanh Tùng",      flag:"🇻🇳", country:"Việt Nam",    prize:2500,  note:""              },
-    { rank:4,     label:"#4",   name:"Phạm Văn Đức",       flag:"🇻🇳", country:"Việt Nam",    prize:1333,  note:""              },
-    { rank:5,     label:"#5",   name:"Vũ Mạnh Cường",      flag:"🇻🇳", country:"Việt Nam",    prize:1333,  note:""              },
-    { rank:6,     label:"#6",   name:"Đinh Trọng Khương",   flag:"🇻🇳", country:"Việt Nam",    prize:1333,  note:""              },
-  ],
-  /* Tournament 3 — Đà Nẵng 8-Ball (COMPLETED) — kết quả chính thức */
-  3: [
-    { rank:1,     label:"#1",   name:"Nguyễn Xuân Trường", flag:"🇻🇳", country:"Việt Nam",    prize:7000,  note:"Vô địch"  },
-    { rank:2,     label:"#2",   name:"Phạm Tuấn Kiệt",     flag:"🇻🇳", country:"Việt Nam",    prize:3500,  note:"Á quân"   },
-    { rank:"3-4", label:"#3-4", name:"Trần Minh Tuấn",      flag:"🇻🇳", country:"Việt Nam",    prize:1500,  note:""         },
-    { rank:"3-4", label:"#3-4", name:"Lê Văn Hưng",         flag:"🇻🇳", country:"Việt Nam",    prize:1500,  note:""         },
-    { rank:"5-8", label:"#5-8", name:"Nguyễn Đức Anh",      flag:"🇻🇳", country:"Việt Nam",    prize:500,   note:""         },
-    { rank:"5-8", label:"#5-8", name:"Hoàng Văn Linh",       flag:"🇻🇳", country:"Việt Nam",    prize:500,   note:""         },
-    { rank:"5-8", label:"#5-8", name:"Ngô Đình Nhân",        flag:"🇻🇳", country:"Việt Nam",    prize:500,   note:""         },
-    { rank:"5-8", label:"#5-8", name:"Bùi Văn An",           flag:"🇻🇳", country:"Việt Nam",    prize:500,   note:""         },
-  ],
-  /* Tournament 4 — Bi-a Trẻ (OPEN_FOR_REGISTRATION) — chưa có xếp hạng */
-  4: [],
-  /* Tournament 5 — Billiards Miền Bắc (REGISTRATION_CLOSED) — chưa thi */
-  5: [],
-  /* Tournament 6 — HCM 8-Ball Open (COMPLETED) */
-  6: [
-    { rank:1,     label:"#1",   name:"Carlo Biado",         flag:"🇵🇭", country:"Philippines", prize:12000, note:"Vô địch"  },
-    { rank:2,     label:"#2",   name:"Ko Pin Yi",           flag:"🇹🇼", country:"Đài Loan",    prize:6000,  note:"Á quân"   },
-    { rank:"3-4", label:"#3-4", name:"Trần Thanh Lâm",      flag:"🇻🇳", country:"Việt Nam",    prize:2500,  note:""         },
-    { rank:"3-4", label:"#3-4", name:"Nguyễn Hoàng Nam",    flag:"🇻🇳", country:"Việt Nam",    prize:2500,  note:""         },
-    { rank:"5-8", label:"#5-8", name:"Phạm Thanh Chương",   flag:"🇻🇳", country:"Việt Nam",    prize:1000,  note:""         },
-    { rank:"5-8", label:"#5-8", name:"Lê Đức Thịnh",        flag:"🇻🇳", country:"Việt Nam",    prize:1000,  note:""         },
-    { rank:"5-8", label:"#5-8", name:"Efren Reyes",          flag:"🇵🇭", country:"Philippines", prize:1000,  note:""         },
-    { rank:"5-8", label:"#5-8", name:"Chang Yi-Jen",         flag:"🇹🇼", country:"Đài Loan",    prize:1000,  note:""         },
-  ],
+/* ─── Helpers ───────────────────────────────────────────────────────── */
+
+const splitName = (fullName = "") => {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) return { first: "", last: parts[0] || "" };
+  return { first: parts.slice(0, -1).join(" "), last: parts.at(-1) };
 };
 
-const fmtUSD = (n) => `$${Number(n).toLocaleString("en-US")}`;
+/* ─── WNT-style name ──────────────────────────────────────────────────── */
 
-/* ─── Rank badge ────────────────────────────────────────────────────── */
-const RankBadge = ({ label, size = "sm" }) => {
-  const isFirst = label === "#1";
-  const base = size === "lg"
-    ? "text-sm font-bold px-3 py-1 rounded-xl min-w-[48px] text-center"
-    : "text-xs font-semibold px-2 py-0.5 rounded-lg min-w-[40px] text-center";
+const PlayerName = ({ name, variant = "row" }) => {
+  const { first, last } = splitName(name);
+  const isHero = variant === "hero";
+
   return (
-    <span className={`${base} ${
-      isFirst
-        ? "bg-yellow-400/20 text-yellow-600 border border-yellow-400/40"
-        : "bg-[#0d1b2e]/8 text-[#0d1b2e]/60 border border-[#0d1b2e]/10"
-    }`}>
+    <p style={{
+      margin: 0,
+      fontSize: isHero ? "1.75rem" : "0.9rem",
+      color: isHero ? "#e8c65a" : "#0d1b2e",
+      lineHeight: 1.25,
+      letterSpacing: isHero ? "-0.02em" : "normal",
+    }}>
+      {first && (
+        <span style={{ fontWeight: 400, fontStyle: "normal" }}>{first} </span>
+      )}
+      <span style={{ fontWeight: 800, fontStyle: "italic", textTransform: "uppercase" }}>
+        {last}
+      </span>
+    </p>
+  );
+};
+
+/* ─── Rank label ───────────────────────────────────────────────────────── */
+
+const RankLabelDisplay = ({ label, variant = "row" }) => {
+  const isHero = variant === "hero";
+  return (
+    <span style={{
+      fontWeight: 800,
+      fontStyle: "italic",
+      fontSize: isHero ? "2rem" : "1.1rem",
+      color: isHero ? "#c9a227" : "rgba(13,27,46,0.6)",
+      lineHeight: 1,
+      minWidth: isHero ? undefined : "3.5rem",
+      textAlign: isHero ? undefined : "center",
+      flexShrink: 0,
+    }}>
       {label}
     </span>
   );
 };
 
-/* ─── Champion card (#1) ────────────────────────────────────────────── */
-const ChampionCard = ({ player, tournamentStatus }) => {
-  const isTBD = player.name === "TBD";
+/* ─── Country line ────────────────────────────────────────────────────── */
+
+const CountryLine = ({ tone = "row" }) => {
+  const isHero = tone === "hero";
+  return (
+    <p style={{
+      margin: "0.35rem 0 0",
+      fontSize: isHero ? "0.7rem" : "0.65rem",
+      color: isHero ? "rgba(201,162,39,0.7)" : "#94a3b8",
+      fontWeight: 600,
+      textTransform: "uppercase",
+      letterSpacing: "0.1em",
+      display: "flex",
+      alignItems: "center",
+      gap: "0.35rem",
+    }}>
+      <span style={{ fontSize: "0.75rem", lineHeight: 1 }}>{DEFAULT_COUNTRY.flag}</span>
+      {DEFAULT_COUNTRY.name}
+    </p>
+  );
+};
+
+/* ─── #1 Champion hero ─────────────────────────────────────────────── */
+
+const ChampionHero = ({ player, isProvisional, onNavigate }) => {
+  if (!player) return null;
 
   return (
     <div
-      className="relative rounded-3xl overflow-hidden"
       style={{
-        background: "linear-gradient(135deg, #0d1b2e 0%, #132236 60%, #0d2040 100%)",
-        border: "1.5px solid rgba(234,179,8,0.45)",
-        boxShadow: "0 4px 32px rgba(234,179,8,0.12)",
+        position: "relative",
+        borderRadius: "0.75rem",
+        overflow: "hidden",
+        background: "linear-gradient(120deg, #0a1628 0%, #10294b 50%, #0a1628 100%)",
+        border: "1.5px solid rgba(201,162,39,0.55)",
+        boxShadow: "0 0 0 1px rgba(201,162,39,0.15), 0 10px 40px rgba(10,22,40,0.45)",
+        cursor: "pointer",
       }}
+      onClick={() => onNavigate(player.participantId)}
     >
-      {/* Gold shimmer top strip */}
-      <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(234,179,8,0.6), transparent)" }} />
-
-      <div className="flex items-center gap-5 px-7 py-6">
+      <div style={{ display: "flex", alignItems: "stretch", minHeight: "155px" }}>
         {/* Avatar */}
-        <div className="relative shrink-0">
-          <div
-            className="w-20 h-20 rounded-2xl flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
-          >
-            {isTBD
-              ? <span className="text-white/20 text-2xl font-bold">?</span>
-              : <Trophy size={28} className="text-yellow-400/60" />
-            }
-          </div>
-          {/* #1 badge on avatar */}
-          <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg">
-            <Star size={13} className="text-yellow-900 fill-yellow-900" />
-          </div>
+        <div style={{
+          position: "relative", width: "120px", flexShrink: 0,
+          display: "flex", alignItems: "flex-end", justifyContent: "center",
+        }}>
+          <img
+            src={player.avatarUrl || DEFAULT_PLAYER_AVATAR}
+            alt={player.displayName}
+            onError={(e) => { e.currentTarget.src = DEFAULT_PLAYER_AVATAR; }}
+            style={{
+              height: "145px", width: "100%", objectFit: "cover", objectPosition: "top",
+              WebkitMaskImage: "linear-gradient(to bottom, #000 85%, transparent 100%)",
+            }}
+          />
         </div>
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <RankBadge label="#1" size="sm" />
-            {tournamentStatus === "IN_PROGRESS" && (
-              <span className="text-[9px] font-medium text-yellow-400/70 bg-yellow-400/10 px-2 py-0.5 rounded-full border border-yellow-400/20">
+        {/* Content */}
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column", justifyContent: "center",
+          padding: "1.25rem 1.5rem", gap: "0.4rem", minWidth: 0,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+            <RankLabelDisplay label={RankLabel.CHAMPION} variant="hero" />
+            {isProvisional && (
+              <span style={{
+                fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.1em",
+                color: "rgba(201,162,39,0.8)", border: "1px solid rgba(201,162,39,0.4)",
+                padding: "0.15rem 0.5rem", borderRadius: "999px",
+              }}>
                 Tạm thời
               </span>
             )}
           </div>
+          <PlayerName name={player.displayName} variant="hero" />
+          <CountryLine tone="hero" />
+        </div>
 
-          {isTBD ? (
-            <p className="text-white/35 text-lg font-light italic">Chờ kết quả...</p>
-          ) : (
-            <>
-              <p className="text-white font-semibold text-xl leading-tight">
-                {player.name.split(" ").slice(0, -1).join(" ")}{" "}
-                <span className="font-extrabold italic">{player.name.split(" ").at(-1)}</span>
-              </p>
-              <p className="text-white/45 text-xs font-light mt-1 flex items-center gap-1.5">
-                <span className="text-base leading-none">{player.flag}</span>
-                {player.country.toUpperCase()}
-              </p>
-            </>
-          )}
-
-          {player.note && (
-            <span className="inline-block mt-2 text-[9px] font-medium text-white/30 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
+        {/* Note */}
+        {player.note && (
+          <div style={{
+            display: "flex", alignItems: "center", paddingRight: "2rem", flexShrink: 0,
+          }}>
+            <span style={{
+              color: "#c9a227", fontSize: "0.875rem",
+              fontWeight: 700, fontStyle: "italic", textTransform: "uppercase", letterSpacing: "0.05em",
+            }}>
               {player.note}
             </span>
-          )}
-        </div>
-
-        {/* Prize */}
-        <div className="shrink-0 text-right">
-          <p className="text-yellow-400 text-2xl font-extrabold tabular-nums">{fmtUSD(player.prize)}</p>
-          <p className="text-white/30 text-[10px] font-light mt-0.5">giải thưởng</p>
-        </div>
-      </div>
-
-      {/* Gold shimmer bottom strip */}
-      <div className="h-0.5 w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(234,179,8,0.6), transparent)" }} />
-    </div>
-  );
-};
-
-/* ─── Rank row ──────────────────────────────────────────────────────── */
-const RankRow = ({ player, isLast }) => {
-  const isTBD = player.name === "TBD";
-  return (
-    <div className={`flex items-center gap-4 px-5 py-3.5 hover:bg-[#f8f9fb] transition-colors ${!isLast ? "border-b border-gray-100" : ""}`}>
-      {/* Rank badge */}
-      <div className="w-12 shrink-0 flex justify-center">
-        <RankBadge label={player.label} />
-      </div>
-
-      {/* Avatar */}
-      <div
-        className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center"
-        style={{ background: "#f0f2f6" }}
-      >
-        {isTBD
-          ? <span className="text-gray-300 text-sm font-bold">?</span>
-          : <Medal size={15} className={player.rank === 2 ? "text-gray-400" : "text-gray-300"} />
-        }
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        {isTBD ? (
-          <p className="text-gray-400 text-sm font-light italic">Chờ kết quả...</p>
-        ) : (
-          <>
-            <p className="text-[#0d1b2e] text-sm leading-tight">
-              {player.name.split(" ").slice(0, -1).join(" ")}{" "}
-              <span className="font-semibold">{player.name.split(" ").at(-1)}</span>
-            </p>
-            <p className="text-gray-400 text-[10px] font-light mt-0.5 flex items-center gap-1">
-              <span className="text-xs leading-none">{player.flag}</span>
-              {player.country}
-            </p>
-          </>
+          </div>
         )}
-        {player.note && (
-          <span className="inline-block mt-1 text-[9px] font-light text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
-            {player.note}
-          </span>
-        )}
-      </div>
-
-      {/* Prize */}
-      <div className="shrink-0 text-right">
-        <p className="text-[#ef342a] text-base font-bold tabular-nums">{fmtUSD(player.prize)}</p>
       </div>
     </div>
   );
 };
 
-/* ─── Main RankingTab ───────────────────────────────────────────────── */
+/* ─── List row ───────────────────────────────────────────────────────── */
+
+const RankRow = ({ player, isLast, onNavigate }) => (
+  <div
+    style={{
+      display: "flex", alignItems: "center", gap: "1rem",
+      padding: "0.875rem 1.75rem",
+      borderBottom: isLast ? "none" : "1px solid #f0f2f5",
+      transition: "background 0.15s",
+      cursor: "pointer",
+    }}
+    onClick={() => onNavigate(player.participantId)}
+    onMouseEnter={(e) => { e.currentTarget.style.background = "#f8f9fb"; }}
+    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+  >
+    <RankLabelDisplay label={player.rankLabel} />
+    <img
+      src={player.avatarUrl || DEFAULT_PLAYER_AVATAR}
+      alt={player.displayName}
+      onError={(e) => { e.currentTarget.src = DEFAULT_PLAYER_AVATAR; }}
+      style={{
+        width: "48px", height: "48px", borderRadius: "50%",
+        objectFit: "cover", objectPosition: "top",
+        background: "#f1f5f9", border: "1px solid #e2e8f0", flexShrink: 0,
+      }}
+    />
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <PlayerName name={player.displayName} />
+      <CountryLine />
+    </div>
+    {player.note && (
+      <span style={{
+        color: "#94a3b8", fontSize: "0.75rem", fontWeight: 500,
+        fontStyle: "italic", flexShrink: 0,
+      }}>
+        {player.note}
+      </span>
+    )}
+  </div>
+);
+
+/* ─── Main tab ──────────────────────────────────────────────────────────── */
+
 const RankingTab = ({ tournament }) => {
-  const [nameSearch,  setNameSearch]  = useState("");
-  const [rankFilter,  setRankFilter]  = useState("");
+  const navigate = useNavigate();
+  const [entries, setEntries] = useState([]);
+  const [isOfficial, setIsOfficial] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [nameSearch, setNameSearch] = useState("");
+  const goToProfile = (participantId) => navigate(`/event/players/${participantId}`);
 
-  const allRankings = RANKING_BY_TOURNAMENT[tournament?.id] || [];
-  const isInProgress = tournament?.status === "IN_PROGRESS";
-  const noData = allRankings.length === 0;
-
-  /* Rank group options derived from data */
-  const rankGroups = useMemo(() => {
-    const seen = new Set();
-    return allRankings
-      .map((r) => r.label)
-      .filter((l) => { if (seen.has(l)) return false; seen.add(l); return true; });
-  }, [allRankings]);
+  useEffect(() => {
+    if (!tournament?.id) return;
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    getPublicTournamentRankings(tournament.id)
+      .then((data) => {
+        if (cancelled) return;
+        setEntries(data?.entries || []);
+        setIsOfficial(!!data?.isOfficial);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setEntries([]);
+          setError(RankingEmptyMessage.LOAD_ERROR);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [tournament?.id]);
 
   const filtered = useMemo(() => {
-    return allRankings.filter((r) => {
-      const okName = !nameSearch || r.name.toLowerCase().includes(nameSearch.toLowerCase());
-      const okRank = !rankFilter  || r.label === rankFilter;
-      return okName && okRank;
-    });
-  }, [allRankings, nameSearch, rankFilter]);
+    if (!nameSearch.trim()) return entries;
+    const q = nameSearch.trim().toLowerCase();
+    return entries.filter((e) => e.displayName?.toLowerCase().includes(q));
+  }, [entries, nameSearch]);
 
-  const champion = filtered[0];
-  const rest     = filtered.slice(1);
+  const champion = filtered.find((e) => e.rankLabel === RankLabel.CHAMPION);
+  const rest = champion
+    ? filtered.filter((e) => e.participantId !== champion.participantId)
+    : filtered;
 
-  /* No data states */
-  if (noData) {
+  const isProvisional = !isOfficial && entries.length > 0;
+
+  if (loading) {
     return (
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center py-20 gap-3">
-        <Trophy size={36} className="text-gray-200" />
-        <p className="text-gray-400 text-sm font-medium">Chưa có xếp hạng</p>
-        <p className="text-gray-300 text-xs font-light">
-          {tournament?.status === "OPEN_FOR_REGISTRATION"
-            ? "Giải đấu chưa bắt đầu"
-            : "Chờ kết thúc đăng ký"}
+      <div style={{
+        background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: "6rem 2rem",
+      }}>
+        <p style={{ color: "#94a3b8", fontSize: "0.875rem" }}>Đang tải xếp hạng...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        padding: "5rem 2rem", gap: "0.5rem",
+      }}>
+        <p style={{ color: "#64748b", fontSize: "0.875rem" }}>{error}</p>
+      </div>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <div style={{
+        background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        padding: "5rem 2rem", gap: "0.75rem",
+      }}>
+        <Trophy size={36} style={{ color: "#e2e8f0" }} />
+        <p style={{ color: "#94a3b8", fontSize: "0.875rem", fontWeight: 500 }}>
+          {RankingEmptyMessage.NO_PLAYERS}
+        </p>
+        <p style={{ color: "#cbd5e1", fontSize: "0.75rem" }}>
+          {tournament?.status === TournamentStatus.COMPLETED
+            ? RankingEmptyMessage.NO_DATA_COMPLETED
+            : RankingEmptyMessage.NO_DATA_IN_PROGRESS}
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      {/* Badge + search */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.75rem", padding: "0 0.25rem" }}>
+        <span style={{
+          fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.1em",
+          fontWeight: 600, padding: "0.2rem 0.75rem", borderRadius: "999px",
+          border: "1px solid",
+          ...(isOfficial
+            ? { background: "#f0fdf4", color: "#15803d", borderColor: "#bbf7d0" }
+            : { background: "#fffbeb", color: "#b45309", borderColor: "#fde68a" }),
+        }}>
+          {isOfficial ? RankingBadge.OFFICIAL : RankingBadge.PROVISIONAL}
+        </span>
 
-      {/* ── Status + filter bar ── */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm px-5 py-4">
-        <div className="flex flex-wrap items-center gap-3">
-
-          {/* Status badge */}
-          <div className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full shrink-0 ${
-            isInProgress
-              ? "bg-yellow-50 text-yellow-600 border border-yellow-200"
-              : "bg-green-50 text-green-600 border border-green-200"
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isInProgress ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`} />
-            {isInProgress ? "Xếp hạng tạm thời" : "Kết quả chính thức"}
-          </div>
-
-          {/* Search by name */}
-          <div className="relative flex-1 min-w-[180px]">
-            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Tìm tên cơ thủ..."
-              value={nameSearch}
-              onChange={(e) => setNameSearch(e.target.value)}
-              className="w-full bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-8 pr-4 py-2 placeholder:text-gray-400 focus:outline-none focus:border-[#0d1b2e]/15 focus:bg-white transition-all"
-            />
-          </div>
-
-          {/* Filter by rank group */}
-          <div className="relative min-w-[150px]">
-            <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <select
-              value={rankFilter}
-              onChange={(e) => setRankFilter(e.target.value)}
-              className="w-full appearance-none bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-4 pr-8 py-2 focus:outline-none focus:border-[#0d1b2e]/15 transition-all cursor-pointer"
-            >
-              <option value="">Tất cả thứ hạng</option>
-              {rankGroups.map((g) => (
-                <option key={g} value={g}>{g}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Count */}
-          <span className="text-[11px] text-gray-400 font-light shrink-0">
-            {filtered.length}/{allRankings.length} cơ thủ
-          </span>
+        <div style={{ position: "relative", flex: 1, minWidth: "200px", maxWidth: "260px", marginLeft: "auto" }}>
+          <Search size={13} style={{
+            position: "absolute", left: "0.7rem", top: "50%",
+            transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none",
+          }} />
+          <input
+            type="text"
+            placeholder="Tìm cơ thủ..."
+            value={nameSearch}
+            onChange={(e) => setNameSearch(e.target.value)}
+            style={{
+              width: "100%", background: "#f8f9fb", border: "1px solid #e8ecf0",
+              borderRadius: "999px", padding: "0.45rem 0.9rem 0.45rem 2rem",
+              fontSize: "0.8rem", outline: "none", boxSizing: "border-box", color: "#0d1b2e",
+            }}
+          />
         </div>
+
+        <span style={{ fontSize: "0.7rem", color: "#b0bac8" }}>{filtered.length} cơ thủ</span>
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm text-center py-14">
-          <p className="text-gray-400 text-sm font-light">Không tìm thấy cơ thủ.</p>
-          <button
-            onClick={() => { setNameSearch(""); setRankFilter(""); }}
-            className="mt-2 text-[#ef342a] text-xs hover:underline"
-          >
-            Xóa bộ lọc
-          </button>
-        </div>
-      ) : (
-        <>
-          {/* ── Champion card ── */}
-          {champion && <ChampionCard player={champion} tournamentStatus={tournament?.status} />}
+      {/* Champion hero */}
+      {champion && (
+        <ChampionHero player={champion} isProvisional={isProvisional} onNavigate={goToProfile} />
+      )}
 
-          {/* ── Rest of rankings ── */}
-          {rest.length > 0 && (
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-              {rest.map((player, idx) => (
-                <RankRow
-                  key={`${player.name}-${idx}`}
-                  player={player}
-                  isLast={idx === rest.length - 1}
-                />
-              ))}
-            </div>
-          )}
-        </>
+      {/* Rest list */}
+      {rest.length > 0 && (
+        <div style={{
+          background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf0",
+          overflow: "hidden", boxShadow: "0 6px 28px rgba(10,22,40,0.07)",
+        }}>
+          {rest.map((player, idx) => (
+            <RankRow
+              key={`${player.participantId}-${idx}`}
+              player={player}
+              isLast={idx === rest.length - 1}
+              onNavigate={goToProfile}
+            />
+          ))}
+        </div>
+      )}
+
+      {filtered.length === 0 && (
+        <div style={{
+          background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0",
+          textAlign: "center", padding: "3rem 1.5rem",
+          color: "#94a3b8", fontSize: "0.875rem",
+        }}>
+          {RankingEmptyMessage.SEARCH_NOT_FOUND}
+        </div>
       )}
     </div>
   );

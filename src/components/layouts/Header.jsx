@@ -1,13 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import { normalizeRole } from "../../utils/auth";
+import { ROLES } from "../../constants/auth";
 import {
   AiOutlineUser,
   AiOutlineLogout,
   AiOutlineFileText,
   AiOutlineCreditCard,
   AiOutlineDown,
+  AiOutlineDashboard,
 } from "react-icons/ai";
+
+const DASHBOARD_PATH_BY_ROLE = {
+  [ROLES.ADMIN]: "/admin/dashboard",
+  [ROLES.OWNER]: "/owner/dashboard",
+  [ROLES.MANAGER]: "/manager/dashboard",
+  [ROLES.STAFF]: "/staff/dashboard",
+};
 
 const NAV_ITEMS = [
   { label: "Tin Mới Nhất",     path: "/news" },
@@ -31,7 +41,10 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
-  const isPlayer = user?.role === "PLAYER";
+  const role = normalizeRole(user?.role);
+  const isPlayer = role === ROLES.PLAYER;
+  const dashboardPath = DASHBOARD_PATH_BY_ROLE[role];
+  const canManage = [ROLES.ADMIN, ROLES.OWNER, ROLES.MANAGER].includes(role);
 
   useEffect(() => {
     const handler = (e) => {
@@ -99,6 +112,16 @@ const Header = () => {
                       <AiOutlineUser size={15} />
                       Hồ sơ
                     </button>
+                    {canManage && dashboardPath && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate(dashboardPath); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-[#EF342A] transition-colors text-left"
+                      >
+                        <AiOutlineDashboard size={15} />
+                        Quản lý
+                      </button>
+                    )}
                     {isPlayer && (
                       <>
                         <div className="my-1 border-t border-slate-100" />
