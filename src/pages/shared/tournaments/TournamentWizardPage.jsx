@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from "react-rout
 import { toast } from "react-toastify";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
+import ImageUploader from "../../../components/shared/ImageUploader";
 import TournamentConfigFieldForm from "../../../components/tournaments/TournamentConfigFieldForm";
 import TournamentRaceToOverrides from "../../../components/tournaments/TournamentRaceToOverrides";
 import TournamentWizardStepper from "../../../components/tournaments/TournamentWizardStepper";
@@ -15,6 +16,8 @@ import {
 const defaultBasic = {
   name: "",
   description: "",
+  thumbnailUrl: "",
+  bannerUrl: "",
   gameType: "",
   format: "",
   participantType: "SINGLE",
@@ -149,6 +152,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
       setBasic({
         name: detail.name || "",
         description: detail.description || "",
+        thumbnailUrl: detail.thumbnailUrl || "",
+        bannerUrl: detail.bannerUrl || "",
         gameType: detail.gameType || "",
         format: detail.format || "",
         participantType: detail.participantType || "SINGLE",
@@ -221,6 +226,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const buildBasicPayload = () => ({
     name: basic.name.trim(),
     description: basic.description?.trim() || null,
+    thumbnailUrl: basic.thumbnailUrl?.trim() || "",
+    bannerUrl: basic.bannerUrl?.trim() || "",
     gameType: basic.gameType,
     format: basic.format,
     participantType: basic.participantType,
@@ -368,6 +375,30 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 placeholder="Giới thiệu ngắn về giải đấu..."
                 value={basic.description}
                 onChange={(e) => setBasic((b) => ({ ...b, description: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <ImageUploader
+                label="Ảnh thumbnail"
+                folder="tournament-thumbnails"
+                previewUrl={basic.thumbnailUrl}
+                aspectClass="h-40 w-full rounded-xl"
+                onUpload={({ objectKey }) =>
+                  setBasic((b) => ({ ...b, thumbnailUrl: objectKey }))
+                }
+              />
+            </div>
+
+            <div>
+              <ImageUploader
+                label="Ảnh banner"
+                folder="tournament-banners"
+                previewUrl={basic.bannerUrl}
+                aspectClass="h-40 w-full rounded-xl"
+                onUpload={({ objectKey }) =>
+                  setBasic((b) => ({ ...b, bannerUrl: objectKey }))
+                }
               />
             </div>
 

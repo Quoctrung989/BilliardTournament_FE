@@ -36,6 +36,7 @@ import PlayerMatchSchedulePage from "../pages/Player/PlayerMatchSchedulePage";
 import DashboardPage from "../pages/shared/DashboardPage";
 import NewsListPage from "../pages/News/NewsListPage";
 import ArticleDetailPage from "../pages/News/ArticleDetailPage";
+import PlayerProfilePage from "../pages/Event/PlayerProfilePage";
 import NewsCMSPage from "../pages/shared/news/NewsCMSPage";
 import ArticleEditorPage from "../pages/shared/news/ArticleEditorPage";
 import PlayerRoute from "../components/guards/PlayerRoute";
@@ -463,6 +464,7 @@ export const ROUTES = [
   { path: "/news", component: NewsListPage, layout: CommonLayout },
   { path: "/news/:slug", component: ArticleDetailPage, layout: CommonLayout },
   { path: "/event", component: EventPage, layout: CommonLayout },
+  { path: "/event/players/:participantId", component: PlayerProfilePage, layout: CommonLayout },
   { path: "/event/:id", component: EventDetailPage, layout: CommonLayout },
   { path: "/", component: Home, layout: CommonLayout },
   { path: "/login", component: LoginPage, layout: null },

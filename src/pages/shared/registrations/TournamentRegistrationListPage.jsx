@@ -189,71 +189,73 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
         />
       </AdminCard>
 
-      {detail && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div
-            className="absolute inset-0 bg-slate-900/40"
-            onClick={() => setDetail(null)}
-            role="presentation"
-          />
-          <div className="relative w-full max-w-lg admin-card h-full shadow-2xl p-6 overflow-y-auto rounded-none sm:rounded-l-xl">
-            <button type="button" className="text-sm text-gray-500 mb-4" onClick={() => setDetail(null)}>
+      <AdminModal
+        open={!!detail}
+        onClose={() => setDetail(null)}
+        title="Chi tiết đăng ký"
+        size="lg"
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={() => setDetail(null)}>
               Đóng
-            </button>
-            {detail.loading ? (
-              <p className="animate-pulse text-gray-400">Đang tải...</p>
-            ) : (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">{detail.playerFullName}</h3>
-                <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${REGISTRATION_STATUS_STYLES[detail.status] || "bg-slate-100 text-slate-600"}`}>
-                  {REGISTRATION_STATUS_LABELS[detail.status] || detail.status}
-                </span>
-                <dl className="text-sm space-y-2">
-                  <div>
-                    <dt className="text-slate-500">SĐT</dt>
-                    <dd>{detail.playerPhone}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">Ghi chú</dt>
-                    <dd>{detail.note || "—"}</dd>
-                  </div>
-                </dl>
-                {detail.fieldValues?.length > 0 && (
-                  <div>
-                    <p className="text-xs uppercase text-slate-500 mb-2">Thông tin form</p>
-                    <ul className="space-y-2 text-sm">
-                      {detail.fieldValues.map((fv) => (
-                        <li key={fv.fieldKey} className="border-b border-slate-100 pb-2">
-                          <span className="text-slate-500">{fv.label}</span>
-                          <p className="font-medium">{fv.value}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {detail.status === "PENDING_PAYMENT" && (
-                  <div className="flex gap-2 pt-4">
-                    <AdminButton
-                      variant="primary"
-                      disabled={actionLoading}
-                      onClick={() => handleApprove(detail.id)}
-                    >
-                      Duyệt
-                    </AdminButton>
-                    <AdminButton
-                      variant="danger"
-                      disabled={actionLoading}
-                      onClick={() => setRejectModal({ id: detail.id })}
-                    >
-                      Từ chối
-                    </AdminButton>
-                  </div>
-                )}
+            </AdminButton>
+            {detail && !detail.loading && detail.status === "PENDING_PAYMENT" && (
+              <>
+                <AdminButton
+                  variant="danger"
+                  disabled={actionLoading}
+                  onClick={() => setRejectModal({ id: detail.id })}
+                >
+                  Từ chối
+                </AdminButton>
+                <AdminButton
+                  variant="primary"
+                  disabled={actionLoading}
+                  onClick={() => handleApprove(detail.id)}
+                >
+                  Duyệt
+                </AdminButton>
+              </>
+            )}
+          </>
+        }
+      >
+        {detail?.loading ? (
+          <p className="animate-pulse text-gray-400">Đang tải...</p>
+        ) : detail ? (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">{detail.playerFullName}</h3>
+              <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${REGISTRATION_STATUS_STYLES[detail.status] || "bg-slate-100 text-slate-600"}`}>
+                {REGISTRATION_STATUS_LABELS[detail.status] || detail.status}
+              </span>
+            </div>
+            <dl className="text-sm space-y-2">
+              <div>
+                <dt className="text-slate-500">SĐT</dt>
+                <dd className="font-medium text-slate-900">{detail.playerPhone}</dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">Ghi chú</dt>
+                <dd className="font-medium text-slate-900">{detail.note || "—"}</dd>
+              </div>
+            </dl>
+            {detail.fieldValues?.length > 0 && (
+              <div>
+                <p className="text-xs uppercase text-slate-500 mb-2">Thông tin form</p>
+                <ul className="space-y-2 text-sm">
+                  {detail.fieldValues.map((fv) => (
+                    <li key={fv.fieldKey} className="border-b border-slate-100 pb-2">
+                      <span className="text-slate-500">{fv.label}</span>
+                      <p className="font-medium text-slate-900">{fv.value}</p>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
-        </div>
-      )}
+        ) : null}
+      </AdminModal>
 
       <AdminModal
         open={!!rejectModal}

@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, LogOut, Search, Settings } from "lucide-react";
+import { Bell, ChevronDown, LayoutDashboard, LogOut, Search, Settings } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
+import { ROLES } from "../../constants/auth";
+import { normalizeRole } from "../../utils/auth";
+
+const DASHBOARD_PATH_BY_ROLE = {
+  [ROLES.ADMIN]: "/admin/dashboard",
+  [ROLES.OWNER]: "/owner/dashboard",
+  [ROLES.MANAGER]: "/manager/dashboard",
+  [ROLES.STAFF]: "/staff/dashboard",
+};
 
 const breadcrumbMap = {
   "/admin/dashboard": "Dashboard",
@@ -37,6 +46,9 @@ const AdminHeader = ({ title, subtitle }) => {
   };
 
   const initials = (user?.email || "A").slice(0, 2).toUpperCase();
+  const role = normalizeRole(user?.role);
+  const dashboardPath = DASHBOARD_PATH_BY_ROLE[role];
+  const canManage = [ROLES.ADMIN, ROLES.OWNER, ROLES.MANAGER].includes(role);
 
   return (
     <header
@@ -99,26 +111,30 @@ const AdminHeader = ({ title, subtitle }) => {
 
           {menuOpen && (
             <div className="absolute right-0 mt-2 w-56 admin-card py-1 shadow-xl border border-slate-200 z-50">
-              <button
-                type="button"
-                className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                onClick={() => {
-                  navigate("/admin/dashboard");
-                  setMenuOpen(false);
-                }}
-              >
-                <Settings size={16} /> Tổng quan
-              </button>
-              <button
-                type="button"
-                className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                onClick={() => {
-                  navigate("/admin/tournament-config/formats");
-                  setMenuOpen(false);
-                }}
-              >
-                <Settings size={16} /> Cài đặt mặc định
-              </button>
+              {canManage && dashboardPath && (
+                <button
+                  type="button"
+                  className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  onClick={() => {
+                    navigate(dashboardPath);
+                    setMenuOpen(false);
+                  }}
+                >
+                  <LayoutDashboard size={16} /> Quản lý
+                </button>
+              )}
+              {role === ROLES.ADMIN && (
+                <button
+                  type="button"
+                  className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  onClick={() => {
+                    navigate("/admin/tournament-config/formats");
+                    setMenuOpen(false);
+                  }}
+                >
+                  <Settings size={16} /> Cài đặt mặc định
+                </button>
+              )}
               <hr className="my-1 border-slate-100" />
               <button
                 type="button"

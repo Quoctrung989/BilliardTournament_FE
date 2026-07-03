@@ -4,7 +4,7 @@ import Footer from "./Footer";
 
 const CommonLayout = ({ children }) => {
   return (
-    <div className="max-w-[1400px] mx-auto w-full">
+    <div className="w-full">
       <Header />
       {children}
       <Footer />
