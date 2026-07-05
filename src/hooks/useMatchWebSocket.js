@@ -31,7 +31,9 @@ export function useMatchWebSocket(tournamentId, onMatchUpdate) {
         const topic = `/topic/tournament/${tournamentId}/matches`;
         subscribeRef.current = client.subscribe(topic, (msg) => {
           try {
-            const match = JSON.parse(msg.body);
+            const payload = JSON.parse(msg.body);
+            // Backend gửi MatchUpdateMessage wrapper: { type, match, matches }
+            const match = payload?.match ?? payload;
             callbackRef.current?.(match);
           } catch (e) {
             console.warn("[WS] parse error", e);
