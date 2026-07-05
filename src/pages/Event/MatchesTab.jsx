@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { Search, List, GitBranch, ChevronDown, Trophy, BarChart2, Wifi } from "lucide-react";
 import { getPublicStages } from "../../api/matchApi";
 import { useMatchWebSocket } from "../../hooks/useMatchWebSocket";
@@ -146,11 +146,11 @@ const computeStandings = (matches) => {
 /* ═══════════════════════════════════════════════════════════════════
    SHARED DISPLAY COMPONENTS
 ═══════════════════════════════════════════════════════════════════ */
-const BracketCard = ({ match, compact }) => {
+const BracketCard = ({ match, compact, flashIds }) => {
   const isLive     = match?.status === "live";
   const isUpcoming = match?.status === "upcoming";
-  const isDone     = match?.status === "done";
-  const W = compact ? 190 : 218;
+  const isFlashing = match && flashIds?.has(match.id);
+  const W = compact ? 180 : 210;
 
   if (!match) return (
     <div className="rounded-xl border border-dashed border-white/10 flex items-center justify-center"
@@ -160,10 +160,10 @@ const BracketCard = ({ match, compact }) => {
   );
 
   return (
-    <div className={`rounded-xl overflow-hidden border transition-colors ${isLive?"border-red-500/50":"border-white/[0.09]"}`}
-         style={{ width:W, height:74, background: isLive?"rgba(239,52,42,0.09)":"rgba(255,255,255,0.045)", boxShadow: isLive?"0 0 0 1px rgba(239,52,42,0.15)":"none" }}>
-      <div className="flex items-center justify-between px-3 pt-1.5 pb-1 border-b border-white/[0.06]">
-        <span className="text-[9px] text-sky-300/50 font-semibold italic tracking-wide">{match.table}</span>
+    <div className={`rounded-xl overflow-hidden border ${isLive?"border-red-500/40":"border-white/10"} ${isFlashing?"ws-flash":""}`}
+         style={{ width:W, height:70, background: isLive?"rgba(239,52,42,0.08)":"rgba(255,255,255,0.06)" }}>
+      <div className="flex items-center justify-between px-2.5 pt-1.5 pb-0.5">
+        <span className="text-[9px] text-white/30 font-medium">{match.table}</span>
         {isLive
           ? <span className="flex items-center gap-1 text-[9px] text-red-400 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"/>LIVE</span>
           : isDone
@@ -198,15 +198,16 @@ const BracketCard = ({ match, compact }) => {
   );
 };
 
-const MatchRow = ({ m, matchNum }) => {
-  const num    = matchNum ?? m.seq;
-  const isLive = m.status === "live";
-  const isDone = m.status === "done";
-  const p1Win  = m.winSide === 1;
-  const p2Win  = m.winSide === 2;
+const MatchRow = ({ m, matchNum, flashIds }) => {
+  const num        = matchNum ?? m.seq;
+  const isLive     = m.status === "live";
+  const isDone     = m.status === "done";
+  const p1Win      = m.winSide === 1;
+  const p2Win      = m.winSide === 2;
+  const isFlashing = flashIds?.has(m.id);
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 border-b border-white/[0.05] last:border-0 transition-colors ${isLive?"":"hover:bg-white/[0.03]"}`}
+    <div className={`flex items-center gap-3 px-4 py-3 border-b border-white/[0.05] last:border-0 transition-colors ${isLive?"":"hover:bg-white/[0.03]"} ${isFlashing?"ws-flash":""}`}
          style={isLive?{background:"rgba(239,52,42,0.07)"}:{}}>
       <div className="shrink-0 w-10 text-center">
         <span className="text-[11px] italic font-bold text-sky-400/60">{m.table}</span>
@@ -251,7 +252,7 @@ const BRACKET_BADGE = {
   GF: { label:"GF", cls:"bg-yellow-500/15 text-yellow-400"   },
 };
 
-const ListView = ({ matches, rounds }) => {
+const ListView = ({ matches, rounds, flashIds }) => {
   const matchNumMap = useMemo(() => {
     const map = {};
     let idx = 0;
@@ -279,7 +280,7 @@ const ListView = ({ matches, rounds }) => {
               </div>
               <span className="text-[10px] font-light text-white/70">Race to {round.raceTO}</span>
             </div>
-            <div>{rMatches.map(m=><MatchRow key={m.id} m={m} matchNum={matchNumMap[m.id]}/>)}</div>
+            <div>{rMatches.map(m=><MatchRow key={m.id} m={m} matchNum={matchNumMap[m.id]} flashIds={flashIds}/>)}</div>
           </div>
         );
       })}
@@ -400,7 +401,7 @@ function buildBracketGeometry(rounds, matchesByRound) {
   return { posTop, posXL, svgH, svgW, paths };
 }
 
-const BracketView = ({ matches, rounds }) => {
+const BracketView = ({ matches, rounds, flashIds }) => {
   const matchesByRound = useMemo(() => {
     const map = {};
     rounds.forEach(r => {
@@ -432,7 +433,7 @@ const BracketView = ({ matches, rounds }) => {
         {rounds.map((r,ri)=>
           (matchesByRound[r.id]||[]).map((m,mi)=>(
             <div key={m.id} className="absolute" style={{left:posXL(ri),top:posTop(ri,mi)}}>
-              <BracketCard match={m} compact={false}/>
+              <BracketCard match={m} compact={false} flashIds={flashIds}/>
             </div>
           ))
         )}
@@ -444,7 +445,7 @@ const BracketView = ({ matches, rounds }) => {
 /* ═══════════════════════════════════════════════════════════════════
    DOUBLE ELIMINATION VIEWS
 ═══════════════════════════════════════════════════════════════════ */
-const DoubleEliminationBracketView = ({ stages }) => {
+const DoubleEliminationBracketView = ({ stages, flashIds }) => {
   const wbStage  = stages.find(s=>s.stageType==="WINNERS");
   const lbStage  = stages.find(s=>s.stageType==="LOSERS");
   const gfStage  = stages.find(s=>s.stageType==="GRAND_FINAL");
@@ -466,7 +467,7 @@ const DoubleEliminationBracketView = ({ stages }) => {
             <span className="text-white text-xs font-semibold tracking-wide">NHÁNH THẮNG (WINNER BRACKET)</span>
             <span className="ml-auto text-[10px] text-white/30">Thua → Nhánh Thua</span>
           </div>
-          <BracketView matches={wbMatches} rounds={wbRounds}/>
+          <BracketView matches={wbMatches} rounds={wbRounds} flashIds={flashIds}/>
         </div>
       )}
       {lbMatches.length > 0 && (
@@ -477,7 +478,7 @@ const DoubleEliminationBracketView = ({ stages }) => {
             <span className="text-white text-xs font-semibold tracking-wide">NHÁNH THUA (LOSER BRACKET)</span>
             <span className="ml-auto text-[10px] text-white/30">Thắng → Chung kết</span>
           </div>
-          <BracketView matches={lbMatches} rounds={lbRounds}/>
+          <BracketView matches={lbMatches} rounds={lbRounds} flashIds={flashIds}/>
         </div>
       )}
       {gfMatch && (
@@ -489,7 +490,7 @@ const DoubleEliminationBracketView = ({ stages }) => {
             <span className="ml-auto text-[10px] text-yellow-400/50">Race to {gfMatch.raceTo}</span>
           </div>
           <div className="p-5 flex justify-center">
-            <BracketCard match={gfMatch} compact={false}/>
+            <BracketCard match={gfMatch} compact={false} flashIds={flashIds}/>
           </div>
         </div>
       )}
@@ -552,6 +553,9 @@ const MatchesTab = ({ tournament }) => {
 
   useEffect(() => { load(); }, [load]);
 
+  const [flashIds, setFlashIds] = useState(() => new Set());
+  const flashTimers = useRef({});
+
   /* ── WebSocket: cập nhật tỷ số real-time ── */
   const handleMatchUpdate = useCallback((updatedMatch) => {
     setWsConnected(true);
@@ -560,7 +564,6 @@ const MatchesTab = ({ tournament }) => {
       const matchIdx = stage.matches.findIndex(m => m.id === updatedMatch.id);
       if (matchIdx === -1) return stage;
       const newMatches = [...stage.matches];
-      // Merge API response format vào stage.matches
       newMatches[matchIdx] = {
         ...newMatches[matchIdx],
         player1Score: updatedMatch.player1Score,
@@ -571,6 +574,14 @@ const MatchesTab = ({ tournament }) => {
       };
       return { ...stage, matches: newMatches };
     }));
+
+    // Flash effect: dùng string ID vì apiMatchToComp chuyển id → String
+    const sid = String(updatedMatch.id);
+    setFlashIds(prev => { const s = new Set(prev); s.add(sid); return s; });
+    clearTimeout(flashTimers.current[sid]);
+    flashTimers.current[sid] = setTimeout(() => {
+      setFlashIds(prev => { const s = new Set(prev); s.delete(sid); return s; });
+    }, 1500);
   }, []);
 
   useMatchWebSocket(tournament?.id, handleMatchUpdate);
@@ -719,29 +730,29 @@ const MatchesTab = ({ tournament }) => {
       {/* Single Elimination */}
       {format === "single_elimination" && validView === "list" && (
         filteredKo.length > 0
-          ? <ListView matches={filteredKo} rounds={koRounds}/>
+          ? <ListView matches={filteredKo} rounds={koRounds} flashIds={flashIds}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
       {format === "single_elimination" && validView === "bracket" && (
         koMatches.length > 0
-          ? <BracketView matches={koMatches} rounds={koRounds}/>
+          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds}/>
           : <NoBracket/>
       )}
 
       {/* Double Elimination */}
       {format === "double_elimination" && validView === "list" && (
         filteredMatches.length > 0
-          ? <ListView matches={filteredMatches} rounds={rounds}/>
+          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
       {format === "double_elimination" && validView === "bracket" && (
-        <DoubleEliminationBracketView stages={stages}/>
+        <DoubleEliminationBracketView stages={stages} flashIds={flashIds}/>
       )}
 
       {/* Group stage / Round robin: Lịch đấu */}
       {(format === "group_stage" || format === "round_robin") && validView === "list" && (
         filteredMatches.length > 0
-          ? <ListView matches={filteredMatches} rounds={rounds}/>
+          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
 
