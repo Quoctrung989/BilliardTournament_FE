@@ -285,6 +285,15 @@ const TournamentDetailPage = ({ api, basePath }) => {
           </AdminButton>
         )}
 
+        {detail.status === "DRAW_PREVIEW" && (
+          <AdminButton
+            variant="primary"
+            onClick={() => navigate(`${basePath}/${id}/draw`)}
+          >
+            🎲 Xem & Xác nhận bracket (Preview)
+          </AdminButton>
+        )}
+
         {detail.status === "DRAW_DONE" && (
           <>
             <AdminButton
@@ -321,7 +330,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
           </>
         )}
 
-        {detail.isRegister && ["OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED", "DRAW_DONE", "IN_PROGRESS"].includes(detail.status) && (
+        {detail.isRegister && ["OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED", "DRAW_PREVIEW", "DRAW_DONE", "IN_PROGRESS"].includes(detail.status) && (
           <AdminButton
             variant="secondary"
             onClick={() => navigate(`${basePath}/${id}/registrations`)}

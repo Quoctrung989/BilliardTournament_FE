@@ -20,9 +20,9 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-[#ececec] px-4 pt-12 pb-28">
+    <footer className="bg-[#ececec] dark:bg-[#0f1117] dark:text-gray-200 px-4 pt-12 pb-28 transition-colors duration-300">
       <div className="mx-auto max-w-[1400px]">
-        <div className="grid grid-cols-1 gap-y-10 gap-x-12 border-b border-black/10 pb-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-y-10 gap-x-12 border-b border-black/10 dark:border-white/10 pb-10 sm:grid-cols-2 lg:grid-cols-4">
           {footerLinks.map((group, index) => (
             <div key={index} className="flex flex-col gap-2">
               {group.map((item) => (
@@ -34,6 +34,7 @@ const Footer = () => {
                     text-[12px]
                     font-light
                     text-[#1f1f1f]
+                    dark:text-gray-300
                     transition-opacity
                     duration-200
                     hover:opacity-60
@@ -48,24 +49,24 @@ const Footer = () => {
 
         <div className="flex flex-col gap-8 pt-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center">
-            <h1 className="text-[60px] font-black italic leading-none tracking-tight text-[#2b2b2b]">
+            <h1 className="text-[60px] font-black italic leading-none tracking-tight text-[#2b2b2b] dark:text-white">
               CAPS<span className="text-red-500">.</span>
             </h1>
           </div>
 
           <div className="max-w-[540px]">
-            <p className="text-[12px] font-normal text-[#2b2b2b]">
+            <p className="text-[12px] font-normal text-[#2b2b2b] dark:text-gray-300">
               Matchroom Multi Sport Ltd, Mascalls, Mascalls Lane, Brentwood,
               Essex, England CM14 5LJ
             </p>
 
-            <p className="mt-2 text-[12px] font-light text-[#2b2b2b]">
+            <p className="mt-2 text-[12px] font-light text-[#2b2b2b] dark:text-gray-400">
               © 2024 Matchroom Multi Sport Ltd. Bảo lưu mọi quyền.
             </p>
           </div>
 
           <div className="flex items-center gap-5">
-            <h2 className="text-[40px] font-black italic text-[#2b2b2b]">
+            <h2 className="text-[40px] font-black italic text-[#2b2b2b] dark:text-white">
               CAPS.tv
             </h2>
 

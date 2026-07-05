@@ -6,14 +6,20 @@ import {
 import News from "./components/News";
 import Schedule from "./components/Schedule";
 import Ranked from "./components/Ranked";
+import { useThemeStore } from "../../store/themeStore";
 
 const Home = () => {
+  const theme = useThemeStore((s) => s.theme);
+  const isDark = theme === "dark";
+
   return (
-    <div className="w-full">
+    <div className="w-full bg-white dark:bg-[#0b0d12] transition-colors duration-300">
       <div
         className="w-full"
         style={{
-          backgroundImage: `url('${BACKGROUND_IMAGE_URL_HOME}')`,
+          backgroundImage: isDark
+            ? "none"
+            : `url('${BACKGROUND_IMAGE_URL_HOME}')`,
         }}
       >
         <Banner />
@@ -25,7 +31,9 @@ const Home = () => {
       <div
         className="w-full"
         style={{
-          backgroundImage: `url('${BACKGROUND_IMAGE_URL_DARK}')`,
+          backgroundImage: isDark
+            ? "none"
+            : `url('${BACKGROUND_IMAGE_URL_HOME}')`,
         }}
       >
         <Ranked />
