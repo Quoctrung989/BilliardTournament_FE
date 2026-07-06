@@ -376,20 +376,6 @@ const splitName = (full = "") => {
   return { first: parts.join(" "), last };
 };
 
-/* Avatar chữ cái khi cơ thủ chưa có ảnh — mỗi người một màu ổn định theo tên */
-const AVATAR_COLORS = ["#0d1b2e", "#1e3a5f", "#7f1616", "#0f5132", "#5b3d8c", "#8a5a00", "#155e63", "#7c2d12"];
-const initialsOf = (name = "") => {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "?";
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-};
-const avatarColor = (name = "") => {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return AVATAR_COLORS[h % AVATAR_COLORS.length];
-};
-
 /* ── Player detail modal (WNT style) ── */
 const PlayerModal = ({ player, onClose }) => {
   const { first, last } = splitName(player.displayName);
@@ -531,7 +517,7 @@ const PlayersTab = ({ participants }) => {
               {participants.length === 0 ? "Danh sách cơ thủ chưa được công bố" : "Không tìm thấy cơ thủ"}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-[#f0f2f5] dark:border-white/10 mx-2 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 mx-2 mb-4">
               {filtered.map((p) => {
                 const { first, last } = splitName(p.displayName);
 
@@ -540,29 +526,18 @@ const PlayersTab = ({ participants }) => {
                     key={p.id}
                     type="button"
                     onClick={() => navigate(`/event/players/${p.id}`)}
-                    className="flex items-center gap-3.5 px-4 py-5 cursor-pointer bg-transparent border-none text-left transition-colors border-r border-b border-[#f0f2f5] dark:border-white/10 hover:bg-[#f8f9fb] dark:hover:bg-white/5"
+                    className="flex items-center gap-3.5 px-4 py-5 cursor-pointer bg-transparent border-none text-left transition-colors rounded-2xl hover:bg-[#f8f9fb] dark:hover:bg-white/5"
                   >
-                    {/* Avatar — ảnh thật hoặc avatar chữ cái */}
-                    {(p.avatarUrl || p.avtarUrl) ? (
-                      <img
-                        src={p.avatarUrl || p.avtarUrl}
-                        alt={p.displayName}
-                        onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }}
-                        style={{
-                          width: "56px", height: "72px", objectFit: "cover",
-                          objectPosition: "top center", flexShrink: 0, borderRadius: "8px",
-                        }}
-                      />
-                    ) : (
-                      <div style={{
-                        width: "56px", height: "72px", flexShrink: 0, borderRadius: "8px",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        background: avatarColor(p.displayName), color: "#fff",
-                        fontWeight: 800, fontSize: "1.15rem", letterSpacing: "0.02em",
-                      }}>
-                        {initialsOf(p.displayName)}
-                      </div>
-                    )}
+                    {/* Avatar — ảnh thật hoặc ảnh mặc định (silhouette) khi chưa cập nhật */}
+                    <img
+                      src={p.avatarUrl || p.avtarUrl || DEFAULT_AVATAR}
+                      alt={p.displayName}
+                      onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }}
+                      style={{
+                        width: "56px", height: "72px", objectFit: "cover",
+                        objectPosition: "top center", flexShrink: 0, borderRadius: "8px",
+                      }}
+                    />
 
                     {/* Name + country */}
                     <div style={{ minWidth: 0, flex: 1 }}>
