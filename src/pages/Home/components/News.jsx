@@ -3,37 +3,32 @@ const newsData = [
     id: 1,
     title:
       "DON’T MISS YOUR CHANCE TO WITNESS THE UK OPEN LIVE — SECURE YOUR SEAT NOW!",
-    image:
-      "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
+    image: "/images/tournaments/vn-player-1.jpg",
     large: true,
   },
   {
     id: 2,
     title:
       "TALKSPORT TO BROADCAST UK OPEN POOL CHAMPIONSHIP ALONGSIDE CAPSTONE TV AND GLOBAL ...",
-    image:
-      "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
+    image: "/images/tournaments/pool-2.jpg",
   },
   {
     id: 3,
     title:
       "WORLD NINEBALL TOUR INTRODUCES FIRST SEEDED JUNIOR FIELD ON TOUR AT CAPSTONE NXT G...",
-    image:
-      "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
+    image: "/images/tournaments/action-1.jpg",
   },
   {
     id: 4,
     title:
       "YAPP DEFENDS CROWN, GORST RETURNS AND CHAMPIONS COLLIDE IN BLOCKBUSTER 2026 U...",
-    image:
-      "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
+    image: "/images/tournaments/pool-4.jpg",
   },
   {
     id: 5,
     title:
       "Bruin Capital Backs Matchroom Sport in Landmark Deal to Accelerate Global Exp...",
-    image:
-      "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
+    image: "/images/tournaments/pool-6.jpg",
   },
 ];
 

@@ -7,8 +7,18 @@ import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../utils/pagination";
 
-const FALLBACK_IMAGE =
-  "https://worldnineballtour.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp";
+const BANNER_POOL = [
+  "/images/tournaments/vn-player-1.jpg",
+  "/images/tournaments/action-1.jpg",
+  "/images/tournaments/action-2.jpg",
+  "/images/tournaments/pool-6.jpg",
+  "/images/tournaments/pool-4.jpg",
+  "/images/tournaments/pool-2.jpg",
+];
+
+/* Ảnh mặc định cố định theo id → mỗi giải một ảnh khác nhau */
+const bannerFor = (id) =>
+  BANNER_POOL[Math.abs(Number(id) || 0) % BANNER_POOL.length];
 
 const TIME_FILTERS = [
   { value: "", label: "Tất cả" },
@@ -65,10 +75,10 @@ const TournamentCard = ({ tournament, index }) => {
       {/* Image card */}
       <div className="relative overflow-hidden rounded-t-2xl" style={{ aspectRatio: "4/5" }}>
         <img
-          src={tournament.thumbnailUrl || FALLBACK_IMAGE}
+          src={tournament.thumbnailUrl || bannerFor(tournament.id)}
           alt={tournament.name}
           className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
-          onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
+          onError={(e) => { e.currentTarget.src = bannerFor(tournament.id); }}
         />
 
         {/* Gradient overlays */}
@@ -191,7 +201,7 @@ const EventPage = () => {
       {/* ── Hero banner ── */}
       <div className="w-full h-[280px] bg-[#0c1527] relative overflow-hidden">
         <img
-          src="https://worldnineballtour.com/wp-content/uploads/us-open-2026_desktop-players.png"
+          src="/images/tournaments/pool-6.jpg"
           alt=""
           className="h-full w-full object-cover object-top opacity-60"
         />

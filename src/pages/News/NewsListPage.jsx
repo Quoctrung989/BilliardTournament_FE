@@ -7,7 +7,7 @@ import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../utils/pagination";
 
-const FALLBACK = "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp";
+const FALLBACK = "/images/tournaments/vn-player-1.jpg";
 
 const fmtDate = (iso) => {
   if (!iso) return "";
