@@ -25,6 +25,7 @@ export const createTournamentManagementApi = (scope) => {
       unwrap(axiosClient.post(`${base}/tournaments/${id}/config/validate`, {})),
     patchStatus: (id, body) =>
       unwrap(axiosClient.patch(`${base}/tournaments/${id}/status`, body)),
+    getAuditLogs: (id) => unwrap(axiosClient.get(`${base}/tournaments/${id}/audit-logs`)),
     listRegistrationFormTemplates: () =>
       unwrap(axiosClient.get(`${base}/registration-form-templates`)),
     getTournamentRegistrationForm: (id) =>

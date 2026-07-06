@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { AlertTriangle, Bot, ChevronDown, ChevronUp, History, UserCog } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import ConfirmModal from "../../../components/shared/ui/ConfirmModal";
@@ -48,6 +49,9 @@ const TournamentDetailPage = ({ api, basePath }) => {
   const [detail, setDetail] = useState(null);
   const [statusChanging, setStatusChanging] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [auditLogs, setAuditLogs] = useState(null);
+  const [auditLoading, setAuditLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,6 +71,24 @@ const TournamentDetailPage = ({ api, basePath }) => {
 
   const handleStatusChange = async (newStatus, confirmMsg) => {
     setConfirmState({ newStatus, confirmMsg });
+  };
+
+  const loadAuditLogs = useCallback(async () => {
+    setAuditLoading(true);
+    try {
+      const data = await api.getAuditLogs(tournamentId);
+      setAuditLogs(data);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setAuditLoading(false);
+    }
+  }, [api, tournamentId]);
+
+  const toggleAudit = () => {
+    const next = !auditOpen;
+    setAuditOpen(next);
+    if (next && auditLogs === null) loadAuditLogs();
   };
 
   const confirmStatusChange = async () => {
@@ -312,6 +334,15 @@ const TournamentDetailPage = ({ api, basePath }) => {
           </>
         )}
 
+        {detail.status === "FINAL_BRACKET_READY" && (
+          <AdminButton
+            variant="primary"
+            onClick={() => navigate(`${basePath}/${id}/draw`)}
+          >
+            Quản lý bracket chung kết
+          </AdminButton>
+        )}
+
         {detail.status === "IN_PROGRESS" && (
           <>
             <AdminButton
@@ -330,7 +361,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
           </>
         )}
 
-        {detail.isRegister && ["OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED", "DRAW_PREVIEW", "DRAW_DONE", "IN_PROGRESS"].includes(detail.status) && (
+        {detail.isRegister && ["OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED", "DRAW_PREVIEW", "DRAW_DONE", "FINAL_BRACKET_READY", "IN_PROGRESS"].includes(detail.status) && (
           <AdminButton
             variant="secondary"
             onClick={() => navigate(`${basePath}/${id}/registrations`)}
@@ -359,6 +390,71 @@ const TournamentDetailPage = ({ api, basePath }) => {
           </AdminButton>
         )}
       </div>
+
+      {/* Audit trail */}
+      <AdminCard>
+        <button
+          type="button"
+          onClick={toggleAudit}
+          className="flex items-center justify-between w-full text-left"
+        >
+          <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+            <History size={16} /> Lịch sử trạng thái
+          </span>
+          {auditOpen ? (
+            <ChevronUp size={16} className="text-slate-400" />
+          ) : (
+            <ChevronDown size={16} className="text-slate-400" />
+          )}
+        </button>
+
+        {auditOpen && (
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            {auditLoading ? (
+              <p className="text-sm text-slate-400">Đang tải...</p>
+            ) : !auditLogs || auditLogs.length === 0 ? (
+              <p className="text-sm text-slate-400">Chưa có lịch sử thay đổi.</p>
+            ) : (
+              <ul className="space-y-4">
+                {auditLogs.map((log) => {
+                  const isAuto = log.changeType === "AUTO";
+                  const isWarning = log.changeType === "WARNING";
+                  const Icon = isWarning ? AlertTriangle : isAuto ? Bot : UserCog;
+                  const iconStyle = isWarning
+                    ? "bg-amber-50 text-amber-600"
+                    : isAuto
+                      ? "bg-cyan-50 text-cyan-600"
+                      : "bg-indigo-50 text-indigo-600";
+                  return (
+                    <li key={log.id} className="flex gap-3">
+                      <div className={`mt-0.5 shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${iconStyle}`}>
+                        <Icon size={14} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-800">
+                          {isWarning ? (
+                            <span className="font-medium text-amber-700">Cảnh báo</span>
+                          ) : (
+                            <>
+                              <span className="font-medium">{log.fromStatusLabel}</span>
+                              <span className="text-slate-400 mx-1">→</span>
+                              <span className="font-medium">{log.toStatusLabel}</span>
+                            </>
+                          )}
+                        </p>
+                        {log.note && <p className="text-xs text-slate-500 mt-0.5">{log.note}</p>}
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {log.changedByName} · {fmtDate(log.createdAt)}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        )}
+      </AdminCard>
 
       <ConfirmModal
         open={!!confirmState}
