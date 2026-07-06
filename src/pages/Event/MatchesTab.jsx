@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, List, GitBranch, ChevronDown, Trophy, BarChart2, Wifi } from "lucide-react";
+import { Search, List, GitBranch, ChevronDown, Trophy, BarChart2, Wifi, ZoomIn, ZoomOut, Move, Maximize2 } from "lucide-react";
 import { getPublicStages } from "../../api/matchApi";
 import { useMatchWebSocket } from "../../hooks/useMatchWebSocket";
 import "./eventTheme.css";
@@ -158,14 +158,14 @@ const BracketCard = ({ match, compact, flashIds }) => {
 
   if (!match) return (
     <div className="rounded-xl border border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center"
-         style={{ width:W, height:74, background:"var(--evt-box-bg)" }}>
+         style={{ width:W, height:C_H, background:"var(--evt-box-bg)" }}>
       <span className="text-slate-400 dark:text-white/20 text-[11px] font-light tracking-wide">Chờ xác định</span>
     </div>
   );
 
   return (
     <div className={`rounded-xl overflow-hidden border transition-colors ${isLive?"border-red-500/50":"border-slate-200 dark:border-white/[0.09]"} ${isFlashing?"ws-flash":""}`}
-         style={{ width:W, height:74, background: isLive?"rgba(239,52,42,0.09)":"var(--evt-box-bg)", boxShadow: isLive?"0 0 0 1px rgba(239,52,42,0.15)":"none" }}>
+         style={{ width:W, height:C_H, background: isLive?"rgba(239,52,42,0.09)":"var(--evt-box-bg)", boxShadow: isLive?"0 0 0 1px rgba(239,52,42,0.15)":"none" }}>
       <div className="flex items-center justify-between px-3 pt-1.5 pb-1 border-b border-slate-200 dark:border-white/[0.06]">
         <span className="text-[9px] text-sky-600 dark:text-sky-300/75 font-semibold italic tracking-wide">{match.table}</span>
         {isLive
@@ -380,7 +380,7 @@ const StandingView = ({ groups }) => {
 /* ═══════════════════════════════════════════════════════════════════
    DYNAMIC BRACKET VIEW — works with any number of rounds
 ═══════════════════════════════════════════════════════════════════ */
-const C_H=74, C_W=218, P_GAP=16, P_SP=30, R_GAP=60;
+const C_H=88, C_W=218, P_GAP=16, P_SP=30, R_GAP=60;
 
 function buildBracketGeometry(rounds, matchesByRound) {
   // Find first round match count to determine bracket size
@@ -417,6 +417,9 @@ function buildBracketGeometry(rounds, matchesByRound) {
   return { posTop, posXL, svgH, svgW, paths };
 }
 
+const ZOOM_MIN = 0.4, ZOOM_MAX = 1.5, ZOOM_STEP = 0.1;
+const clampZoom = (z) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, +z.toFixed(3)));
+
 const BracketView = ({ matches, rounds, flashIds }) => {
   const matchesByRound = useMemo(() => {
     const map = {};
@@ -431,28 +434,98 @@ const BracketView = ({ matches, rounds, flashIds }) => {
     [rounds, matchesByRound]
   );
 
+  const scrollRef = useRef(null);
+  const innerRef  = useRef(null);
+  const drag      = useRef({ active:false, moved:false });
+  const [zoom, setZoom]         = useState(1);
+  const [dragging, setDragging] = useState(false);
+  const [natural, setNatural]   = useState({ w:0, h:0 });
+
+  /* Đo kích thước thật (chưa scale) để canh vùng cuộn khi zoom */
+  useLayoutEffect(() => {
+    if (innerRef.current)
+      setNatural({ w: innerRef.current.offsetWidth, h: innerRef.current.offsetHeight });
+  }, [svgW, svgH, rounds.length, matches.length]);
+
+  const zoomIn   = () => setZoom(z => clampZoom(z + ZOOM_STEP));
+  const zoomOut  = () => setZoom(z => clampZoom(z - ZOOM_STEP));
+  const fitWidth = () => {
+    const el = scrollRef.current;
+    if (!el || !natural.w) return;
+    setZoom(clampZoom((el.clientWidth - 8) / natural.w));
+  };
+
+  /* ── Kéo-thả bằng chuột để di chuyển sơ đồ ── */
+  const onMouseDown = (e) => {
+    if (e.button !== 0) return;
+    const el = scrollRef.current; if (!el) return;
+    drag.current = { active:true, moved:false, x:e.clientX, y:e.clientY, sl:el.scrollLeft, st:el.scrollTop };
+    setDragging(true);
+  };
+  const onMouseMove = (e) => {
+    if (!drag.current.active) return;
+    const el = scrollRef.current; if (!el) return;
+    const dx = e.clientX - drag.current.x, dy = e.clientY - drag.current.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) drag.current.moved = true;
+    el.scrollLeft = drag.current.sl - dx;
+    el.scrollTop  = drag.current.st - dy;
+  };
+  const endDrag = () => { if (drag.current.active) { drag.current.active = false; setDragging(false); } };
+  /* Chặn điều hướng khi vừa pan (tránh bấm nhầm vào tên cầu thủ) */
+  const onClickCapture = (e) => {
+    if (drag.current.moved) { e.preventDefault(); e.stopPropagation(); drag.current.moved = false; }
+  };
+
+  const btnCls = "w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed";
+
   return (
-    <div className="rounded-3xl overflow-auto border border-slate-200 dark:border-white/[0.06] shadow-sm"
+    <div className="rounded-3xl overflow-hidden border border-slate-200 dark:border-white/[0.06] shadow-sm"
          style={{background:"var(--evt-card-bg)"}}>
-      <div className="flex border-b border-slate-200 dark:border-white/[0.08]" style={{width:svgW+40,paddingLeft:20,paddingRight:20}}>
-        {rounds.map((r,i)=>(
-          <div key={r.id} className="flex-shrink-0 text-center py-3" style={{width:C_W,marginLeft:i>0?R_GAP:0}}>
-            <p className="text-slate-800 dark:text-white text-[11px] font-bold uppercase tracking-[0.08em]">{r.label}</p>
-            <p className="text-sky-600 dark:text-sky-300/40 text-[9px] font-medium mt-0.5">Race to {r.raceTO}</p>
-          </div>
-        ))}
+      {/* Thanh công cụ: zoom + gợi ý kéo-thả */}
+      <div className="flex items-center gap-1.5 px-3 py-2 border-b border-slate-200 dark:border-white/[0.06]">
+        <span className="mr-auto hidden sm:flex items-center gap-1 text-[10px] text-slate-400 dark:text-white/30 font-light">
+          <Move size={11}/> Kéo để di chuyển sơ đồ
+        </span>
+        <button type="button" onClick={fitWidth} className="flex items-center gap-1 px-2.5 h-7 rounded-lg text-[11px] font-medium text-slate-500 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+          <Maximize2 size={12}/> Vừa khung
+        </button>
+        <button type="button" onClick={zoomOut} disabled={zoom<=ZOOM_MIN} className={btnCls} title="Thu nhỏ"><ZoomOut size={14}/></button>
+        <span className="w-10 text-center text-[11px] font-semibold tabular-nums text-slate-600 dark:text-white/70">{Math.round(zoom*100)}%</span>
+        <button type="button" onClick={zoomIn} disabled={zoom>=ZOOM_MAX} className={btnCls} title="Phóng to"><ZoomIn size={14}/></button>
       </div>
-      <div className="relative" style={{width:svgW+40,height:svgH,margin:"18px 20px"}}>
-        <svg className="absolute inset-0 pointer-events-none" width={svgW} height={svgH} style={{overflow:"visible"}}>
-          {paths.map((d,i)=><path key={i} d={d} fill="none" stroke="var(--evt-bracket-line)" strokeWidth={1.5}/>)}
-        </svg>
-        {rounds.map((r,ri)=>
-          (matchesByRound[r.id]||[]).map((m,mi)=>(
-            <div key={m.id} className="absolute" style={{left:posXL(ri),top:posTop(ri,mi)}}>
-              <BracketCard match={m} compact={false} flashIds={flashIds}/>
+
+      {/* Vùng cuộn + kéo-thả */}
+      <div ref={scrollRef}
+           onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={endDrag} onMouseLeave={endDrag}
+           onClickCapture={onClickCapture}
+           className="overflow-auto"
+           style={{ maxHeight:"70vh", cursor: dragging?"grabbing":"grab", userSelect: dragging?"none":"auto" }}>
+        <div style={{ width: natural.w?natural.w*zoom:undefined, height: natural.h?natural.h*zoom:undefined }}>
+          <div ref={innerRef} style={{ width:svgW+40, transform:`scale(${zoom})`, transformOrigin:"top left" }}>
+            <div className="flex border-b border-slate-200 dark:border-white/[0.08]" style={{paddingLeft:20,paddingRight:20}}>
+              {rounds.map((r,i)=>(
+                <div key={r.id} className="flex-shrink-0 text-center py-3" style={{width:C_W,marginLeft:i>0?R_GAP:0}}>
+                  <p className="text-slate-800 dark:text-white text-[11px] font-bold uppercase tracking-[0.08em]">{r.label}</p>
+                  <p className="text-sky-600 dark:text-sky-300/40 text-[9px] font-medium mt-0.5">Race to {r.raceTO}</p>
+                </div>
+              ))}
             </div>
-          ))
-        )}
+            <div style={{padding:"18px 20px"}}>
+              <div className="relative" style={{width:svgW,height:svgH}}>
+                <svg className="absolute inset-0 pointer-events-none" width={svgW} height={svgH} style={{overflow:"visible"}}>
+                  {paths.map((d,i)=><path key={i} d={d} fill="none" stroke="var(--evt-bracket-line)" strokeWidth={1.5}/>)}
+                </svg>
+                {rounds.map((r,ri)=>
+                  (matchesByRound[r.id]||[]).map((m,mi)=>(
+                    <div key={m.id} className="absolute" style={{left:posXL(ri),top:posTop(ri,mi)}}>
+                      <BracketCard match={m} compact={false} flashIds={flashIds}/>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
