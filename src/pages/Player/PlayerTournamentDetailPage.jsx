@@ -12,13 +12,17 @@ import {
 import { getApiErrorMessage } from "../../utils/apiError";
 
 const BANNER_POOL = [
-  "https://worldnineballtour.com/wp-content/uploads/florida-open-2026_desktop-background.jpg",
-  "https://worldnineballtour.com/wp-content/uploads/us-open-2026_desktop-background.jpg",
-  "https://worldnineballtour.com/wp-content/uploads/FLORIDA-OPEN-2026_1920x1080.webp",
-  "https://worldnineballtour.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
-  "https://worldnineballtour.com/wp-content/uploads/20250530_ukopen_tgw_8110723-scaled.jpg",
-  "https://worldnineballtour.com/wp-content/uploads/Matchroom-WNT-Banner-scaled.webp",
+  "/images/tournaments/vn-player-1.jpg",
+  "/images/tournaments/action-1.jpg",
+  "/images/tournaments/action-2.jpg",
+  "/images/tournaments/pool-6.jpg",
+  "/images/tournaments/pool-4.jpg",
+  "/images/tournaments/pool-2.jpg",
 ];
+
+/* Chọn banner cố định theo id để mỗi giải có một ảnh khác nhau (không random) */
+const bannerFor = (id) =>
+  BANNER_POOL[Math.abs(Number(id) || 0) % BANNER_POOL.length];
 
 const fmtDateRange = (start, end) => {
   if (!start && !end) return "—";
@@ -85,9 +89,7 @@ const PlayerTournamentDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
   const [myRegistration, setMyRegistration] = useState(undefined);
-  const [fallbackBanner] = useState(
-    () => BANNER_POOL[Math.floor(Math.random() * BANNER_POOL.length)]
-  );
+  const fallbackBanner = bannerFor(id);
 
   const load = useCallback(async () => {
     setLoading(true);

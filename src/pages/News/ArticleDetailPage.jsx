@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { getPostBySlug } from "../../api/newsApi";
 import { getApiErrorMessage } from "../../utils/apiError";
 
-const FALLBACK = "https://matchroompool.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp";
+const FALLBACK = "/images/tournaments/vn-player-1.jpg";
 
 const fmtDate = (iso) => {
   if (!iso) return "";

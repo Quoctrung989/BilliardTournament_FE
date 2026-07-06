@@ -28,6 +28,20 @@ body {
   animation: tournament-stream-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes ws-flash {
+  0%         { background-color: transparent; }
+  12%        { background-color: rgba(255, 255, 255, 0.18); }
+  24%        { background-color: transparent; }
+  38%        { background-color: rgba(255, 255, 255, 0.14); }
+  52%        { background-color: transparent; }
+  64%        { background-color: rgba(255, 255, 255, 0.08); }
+  100%       { background-color: transparent; }
+}
+
+.ws-flash {
+  animation: ws-flash 1.4s ease-in-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tournament-card-stream {
     animation: none;

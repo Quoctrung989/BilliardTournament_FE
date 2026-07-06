@@ -6,9 +6,20 @@ import { listPublicTournaments } from "../../api/publicTournamentApi";
 import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../utils/pagination";
+import "./eventTheme.css";
 
-const FALLBACK_IMAGE =
-  "https://worldnineballtour.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp";
+const BANNER_POOL = [
+  "/images/tournaments/vn-player-1.jpg",
+  "/images/tournaments/action-1.jpg",
+  "/images/tournaments/action-2.jpg",
+  "/images/tournaments/pool-6.jpg",
+  "/images/tournaments/pool-4.jpg",
+  "/images/tournaments/pool-2.jpg",
+];
+
+/* Ảnh mặc định cố định theo id → mỗi giải một ảnh khác nhau */
+const bannerFor = (id) =>
+  BANNER_POOL[Math.abs(Number(id) || 0) % BANNER_POOL.length];
 
 const TIME_FILTERS = [
   { value: "", label: "Tất cả" },
@@ -65,10 +76,10 @@ const TournamentCard = ({ tournament, index }) => {
       {/* Image card */}
       <div className="relative overflow-hidden rounded-t-2xl" style={{ aspectRatio: "4/5" }}>
         <img
-          src={tournament.thumbnailUrl || FALLBACK_IMAGE}
+          src={tournament.thumbnailUrl || bannerFor(tournament.id)}
           alt={tournament.name}
           className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
-          onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
+          onError={(e) => { e.currentTarget.src = bannerFor(tournament.id); }}
         />
 
         {/* Gradient overlays */}
@@ -117,8 +128,8 @@ const TournamentCard = ({ tournament, index }) => {
 
       {/* Below card: date + action button — grey background */}
       <div className="flex items-center justify-between px-3 py-2 rounded-b-2xl"
-        style={{ background: "#e8eaed" }}>
-        <span style={{ fontSize: "0.78rem", color: "#444", fontWeight: 500 }}>
+        style={{ background: "var(--evt-card-footer)" }}>
+        <span style={{ fontSize: "0.78rem", color: "var(--evt-text-2)", fontWeight: 500 }}>
           {dateStr}
         </span>
 
@@ -186,12 +197,12 @@ const EventPage = () => {
   };
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white dark:bg-[#0a1220]">
 
       {/* ── Hero banner ── */}
       <div className="w-full h-[280px] bg-[#0c1527] relative overflow-hidden">
         <img
-          src="https://worldnineballtour.com/wp-content/uploads/us-open-2026_desktop-players.png"
+          src="/images/tournaments/pool-6.jpg"
           alt=""
           className="h-full w-full object-cover object-top opacity-60"
         />
@@ -209,7 +220,7 @@ const EventPage = () => {
       </div>
 
       {/* ── Filter bar ── */}
-      <div className="bg-[#f7f7f7] border-b border-gray-200 sticky top-[64px] z-30">
+      <div className="bg-[#f7f7f7] dark:bg-[#0d1b2e] border-b border-gray-200 dark:border-white/10 sticky top-[64px] z-30">
         <div className="max-w-[1600px] mx-auto px-8 py-3">
           <div className="flex flex-col lg:flex-row lg:items-center gap-3">
             <div className="flex gap-2 flex-wrap">
@@ -219,8 +230,8 @@ const EventPage = () => {
                   onClick={() => handleStatusChange(f.value)}
                   className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
                     statusFilter === f.value
-                      ? "bg-[#0c1527] text-white"
-                      : "text-[#333] border border-gray-300 hover:border-[#0c1527]"
+                      ? "bg-[#0c1527] text-white dark:bg-white dark:text-[#0d1b2e]"
+                      : "text-[#333] border border-gray-300 hover:border-[#0c1527] dark:text-white/70 dark:border-white/20 dark:hover:border-white/60"
                   }`}
                 >
                   {f.label}
@@ -229,13 +240,13 @@ const EventPage = () => {
             </div>
 
             <form onSubmit={handleSearchSubmit} className="relative lg:ml-auto w-full lg:w-64">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Tìm giải đấu..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full border border-gray-300 bg-white text-sm rounded-full pl-8 pr-4 py-1.5 placeholder:text-gray-400 focus:outline-none focus:border-[#0c1527]"
+                className="w-full border border-gray-300 bg-white text-sm rounded-full pl-8 pr-4 py-1.5 placeholder:text-gray-400 focus:outline-none focus:border-[#0c1527] dark:border-white/15 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/50"
               />
             </form>
           </div>
@@ -247,21 +258,21 @@ const EventPage = () => {
 
         {/* Count label */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-semibold text-slate-700">
+          <h2 className="text-base font-semibold text-slate-700 dark:text-white/85">
             {TIME_FILTERS.find((f) => f.value === statusFilter)?.label || "Tất cả giải đấu"}
           </h2>
           {!loading && (
-            <span className="text-sm text-slate-400 font-medium">
+            <span className="text-sm text-slate-400 dark:text-white/50 font-medium">
               {totalElements} giải tìm thấy
             </span>
           )}
         </div>
 
         {loading ? (
-          <div className="text-center py-24 text-slate-400">Đang tải...</div>
+          <div className="text-center py-24 text-slate-400 dark:text-white/50">Đang tải...</div>
         ) : items.length === 0 ? (
           <div className="text-center py-24">
-            <p className="text-slate-500 text-lg font-semibold">Không có giải đấu nào phù hợp.</p>
+            <p className="text-slate-500 dark:text-white/70 text-lg font-semibold">Không có giải đấu nào phù hợp.</p>
             <button
               onClick={() => { handleStatusChange(""); setSearchInput(""); setSearchApplied(""); }}
               className="mt-4 text-[#ef342a] text-sm font-semibold hover:underline"

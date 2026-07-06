@@ -1,0 +1,40 @@
+/* Theme tokens cho trang chi tiết giải đấu.
+   Giá trị mặc định = màu sáng hiện tại (không đổi gì ở chế độ Sáng).
+   Class `.dark` do themeStore gắn vào <html> sẽ tự flip sang bản tối. */
+:root {
+  --evt-page-bg: #e8e8e8;
+  --evt-card-bg: #ffffff;
+  --evt-card-border: #e2e8f0;
+  --evt-subtle: #f1f5f9;
+  --evt-box-bg: #f8fafc;
+  --evt-accent: #0c1527;
+  --evt-heading: #010851;
+  --evt-text: #1e293b;
+  --evt-text-2: #475569;
+  --evt-text-3: #64748b;
+  --evt-text-4: #94a3b8;
+  --evt-name: #0d1b2e;
+  --evt-row-hover: #f8f9fb;
+  --evt-filter-bg: #f7f7f7;
+  --evt-card-footer: #e8eaed;
+  --evt-bracket-line: rgba(15, 23, 42, 0.18);
+}
+
+:root.dark {
+  --evt-page-bg: #0a1220;
+  --evt-card-bg: linear-gradient(160deg, #0d1b2e 0%, #0f2237 100%);
+  --evt-card-border: rgba(255, 255, 255, 0.08);
+  --evt-subtle: rgba(255, 255, 255, 0.08);
+  --evt-box-bg: rgba(255, 255, 255, 0.05);
+  --evt-accent: #e8c65a;
+  --evt-heading: #ffffff;
+  --evt-text: #f1f5f9;
+  --evt-text-2: rgba(255, 255, 255, 0.75);
+  --evt-text-3: rgba(255, 255, 255, 0.6);
+  --evt-text-4: rgba(255, 255, 255, 0.45);
+  --evt-name: #ffffff;
+  --evt-row-hover: rgba(255, 255, 255, 0.05);
+  --evt-filter-bg: #0d1b2e;
+  --evt-card-footer: #14202f;
+  --evt-bracket-line: rgba(255, 255, 255, 0.16);
+}

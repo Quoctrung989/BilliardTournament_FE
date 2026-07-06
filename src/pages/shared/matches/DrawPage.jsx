@@ -160,6 +160,9 @@ const DrawPage = ({ api, basePath }) => {
   }, [isPreview]);
 
   /* ══ WebSocket ══════════════════════════════════════════ */
+  const [flashIds, setFlashIds] = useState(() => new Set());
+  const flashTimers = useRef({});
+
   const handleMatchUpdate = useCallback((upd) => {
     setStages(prev => prev.map(stage => {
       if (!stage.matches) return stage;
@@ -175,6 +178,13 @@ const DrawPage = ({ api, basePath }) => {
       };
       return { ...stage, matches: nm };
     }));
+
+    const id = Number(upd.id);
+    setFlashIds(prev => { const s = new Set(prev); s.add(id); return s; });
+    clearTimeout(flashTimers.current[id]);
+    flashTimers.current[id] = setTimeout(() => {
+      setFlashIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+    }, 1500);
   }, []);
   useMatchWebSocket(tournamentId, handleMatchUpdate);
 
@@ -637,6 +647,7 @@ const DrawPage = ({ api, basePath }) => {
             onScore={(m) => { setScoreModal(m); setScoreForm({ p1: String(m.player1Score??0), p2: String(m.player2Score??0) }); }}
             onComplete={setCompleteModal}
             onEvents={loadEvents}
+            flashIds={flashIds}
           />
         ))
       )}
@@ -945,7 +956,7 @@ const DrawPage = ({ api, basePath }) => {
 const StageSection = ({
   stage, editMode, swapFirst, dragSrc, dropTarget, swapping, isPreview,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
-  onOpenSearch, onStart, onScore, onComplete, onEvents,
+  onOpenSearch, onStart, onScore, onComplete, onEvents, flashIds,
 }) => {
   const rounds = {};
   (stage.matches || []).forEach(m => {
@@ -1024,6 +1035,7 @@ const StageSection = ({
                   onScore={onScore}
                   onComplete={onComplete}
                   onEvents={onEvents}
+                  flashIds={flashIds}
                 />
               ))}
             </div>
@@ -1040,16 +1052,17 @@ const StageSection = ({
 const MatchRow = ({
   match, stageType, editMode, isPreview, swapFirst, dragSrc, dropTarget, swapping,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
-  onOpenSearch, onStart, onScore, onComplete, onEvents,
+  onOpenSearch, onStart, onScore, onComplete, onEvents, flashIds,
 }) => {
-  const canEdit = editMode && match.roundNo === 1 && !["LOSERS","GRAND_FINAL"].includes(stageType);
-  const sCfg    = STATUS_CFG[match.status] || STATUS_CFG.PENDING;
-  const isBye   = match.status === "BYE";
+  const canEdit    = editMode && match.roundNo === 1 && !["LOSERS","GRAND_FINAL"].includes(stageType);
+  const sCfg       = STATUS_CFG[match.status] || STATUS_CFG.PENDING;
+  const isBye      = match.status === "BYE";
+  const isFlashing = flashIds?.has(Number(match.id));
 
   return (
     <div className={`rounded-xl my-1 transition-all ${isBye ? "opacity-60" : ""} ${
       canEdit ? "hover:bg-slate-50/80" : ""
-    }`}>
+    } ${isFlashing ? "ws-flash" : ""}`}>
       <div className="flex items-center gap-3 px-3 py-2.5">
 
         {/* Match code */}

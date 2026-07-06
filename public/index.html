@@ -33,6 +33,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <script>
+      // Áp dụng theme trước khi React mount để tránh nháy sáng (flash)
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var theme =
+            stored ||
+            (window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light");
+          if (theme === "dark") document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <!--

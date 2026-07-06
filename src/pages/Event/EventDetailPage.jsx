@@ -13,15 +13,20 @@ import { getMyRegistrations } from "../../api/playerRegistrationApi";
 import { listPublicParticipants } from "../../api/participantApi";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { useAuthStore } from "../../store/authStore";
+import "./eventTheme.css";
 
 const BANNER_POOL = [
-  "https://worldnineballtour.com/wp-content/uploads/florida-open-2026_desktop-background.jpg",
-  "https://worldnineballtour.com/wp-content/uploads/us-open-2026_desktop-background.jpg",
-  "https://worldnineballtour.com/wp-content/uploads/FLORIDA-OPEN-2026_1920x1080.webp",
-  "https://worldnineballtour.com/wp-content/uploads/UK-OPEN-2026_1920x1080-1.webp",
-  "https://worldnineballtour.com/wp-content/uploads/20250530_ukopen_tgw_8110723-scaled.jpg",
-  "https://worldnineballtour.com/wp-content/uploads/Matchroom-WNT-Banner-scaled.webp",
+  "/images/tournaments/vn-player-1.jpg",
+  "/images/tournaments/action-1.jpg",
+  "/images/tournaments/action-2.jpg",
+  "/images/tournaments/pool-6.jpg",
+  "/images/tournaments/pool-4.jpg",
+  "/images/tournaments/pool-2.jpg",
 ];
+
+/* Chọn banner cố định theo id để mỗi giải có một ảnh khác nhau (không random) */
+const bannerFor = (id) =>
+  BANNER_POOL[Math.abs(Number(id) || 0) % BANNER_POOL.length];
 
 const fmtDate = (iso) => {
   if (!iso) return "—";
@@ -48,11 +53,11 @@ const participantLabel = (type) =>
 
 /* ── Shared sub-components ── */
 const InfoCol = ({ icon: Icon, label, value, border = true }) => (
-  <div className={`flex flex-col gap-1 py-4 px-5 ${border ? "border-l border-slate-200 first:border-l-0" : ""}`}>
+  <div className={`flex flex-col gap-1 py-4 px-5 ${border ? "border-l border-slate-200 dark:border-white/10 first:border-l-0" : ""}`}>
     <div className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold uppercase tracking-wide">
       <Icon size={12} /> {label}
     </div>
-    <p className="text-slate-800 font-semibold text-sm">{value}</p>
+    <p className="text-slate-800 dark:text-white font-semibold text-sm">{value}</p>
   </div>
 );
 
@@ -63,16 +68,16 @@ const SlotBar = ({ approved, max }) => {
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-xs">
-        <span className="text-slate-500">Đã đăng ký</span>
-        <span className={`font-semibold ${full ? "text-red-600" : remaining <= 3 ? "text-amber-600" : "text-emerald-600"}`}>
+        <span className="text-slate-500 dark:text-white/70">Đã đăng ký</span>
+        <span className={`font-semibold ${full ? "text-red-600 dark:text-red-400" : remaining <= 3 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
           {full ? "Đã đủ người" : `Còn ${remaining} slot`}
         </span>
       </div>
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all ${full ? "bg-red-500" : remaining <= 3 ? "bg-amber-400" : "bg-emerald-400"}`}
           style={{ width: `${pct}%` }} />
       </div>
-      <p className="text-xs text-slate-400">{approved} / {max} người</p>
+      <p className="text-xs text-slate-400 dark:text-white/50">{approved} / {max} người</p>
     </div>
   );
 };
@@ -251,10 +256,10 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
       </div>
 
       {/* Schedule card */}
-      <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+      <div style={{ background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-          <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
-          <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+          <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
+          <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
             Thời gian
           </p>
         </div>
@@ -265,12 +270,12 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
             { label: "Kết thúc", value: fmtDateTime(t.endAt), icon: Calendar },
           ].map(({ label, value, icon: Icon }) => (
             <div key={label} style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
-              <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon size={14} style={{ color: "#010851" }} />
+              <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "var(--evt-subtle)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon size={14} style={{ color: "var(--evt-heading)" }} />
               </div>
               <div>
-                <p style={{ fontSize: "0.7rem", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 0.15rem" }}>{label}</p>
-                <p style={{ fontSize: "0.875rem", fontWeight: 600, color: "#1e293b", margin: 0 }}>{value}</p>
+                <p style={{ fontSize: "0.7rem", color: "var(--evt-text-4)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 0.15rem" }}>{label}</p>
+                <p style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--evt-text)", margin: 0 }}>{value}</p>
               </div>
             </div>
           ))}
@@ -278,12 +283,12 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
       </div>
 
       {/* Participants + Fee card */}
-      <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+      <div style={{ background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
         {!isEndedOrClosed && (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-              <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
-              <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+              <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
+              <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
                 Người tham dự
               </p>
             </div>
@@ -295,17 +300,17 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
             { label: "Phí tham dự", value: fmtCurrency(t.entryFee), icon: CreditCard },
             { label: "Giải thưởng", value: fmtCurrency(t.prizePool), icon: Trophy },
           ].map(({ label, value, icon: Icon }) => (
-            <div key={label} style={{ padding: "0.75rem", borderRadius: "0.625rem", background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.3rem", color: "#94a3b8" }}>
+            <div key={label} style={{ padding: "0.75rem", borderRadius: "0.625rem", background: "var(--evt-box-bg)", border: "1px solid var(--evt-card-border)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.3rem", color: "var(--evt-text-4)" }}>
                 <Icon size={11} />
                 <span style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
               </div>
-              <p style={{ fontWeight: 700, fontSize: "0.875rem", color: "#010851", margin: 0 }}>{value}</p>
+              <p style={{ fontWeight: 700, fontSize: "0.875rem", color: "var(--evt-heading)", margin: 0 }}>{value}</p>
             </div>
           ))}
         </div>
         {t.prizeDescription && (
-          <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", color: "#64748b", lineHeight: 1.5, paddingTop: "0.75rem", borderTop: "1px solid #f1f5f9" }}>
+          <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", color: "var(--evt-text-3)", lineHeight: 1.5, paddingTop: "0.75rem", borderTop: "1px solid var(--evt-subtle)" }}>
             {t.prizeDescription}
           </p>
         )}
@@ -313,10 +318,10 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
 
       {/* Format / Config card */}
       {(t.configSummary || t.formatName) && (
-        <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+        <div style={{ background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-            <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
-            <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+            <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
+            <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
               Thể thức thi đấu
             </p>
           </div>
@@ -336,9 +341,9 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
               },
               t.configSummary?.thirdPlaceMatch != null && { label: "Tranh hạng 3", value: t.configSummary.thirdPlaceMatch ? "Có" : "Không" },
             ].filter(Boolean).map(({ label, value }) => (
-              <div key={label} style={{ padding: "0.75rem", borderRadius: "0.625rem", background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-                <p style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "#94a3b8", margin: "0 0 0.25rem" }}>{label}</p>
-                <p style={{ fontWeight: 700, fontSize: "0.875rem", color: "#010851", margin: 0 }}>{value}</p>
+              <div key={label} style={{ padding: "0.75rem", borderRadius: "0.625rem", background: "var(--evt-box-bg)", border: "1px solid var(--evt-card-border)" }}>
+                <p style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--evt-text-4)", margin: "0 0 0.25rem" }}>{label}</p>
+                <p style={{ fontWeight: 700, fontSize: "0.875rem", color: "var(--evt-heading)", margin: 0 }}>{value}</p>
               </div>
             ))}
           </div>
@@ -347,14 +352,14 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
 
       {/* Description card */}
       {t.description && (
-        <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+        <div style={{ background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
-            <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
-            <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+            <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
+            <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
               Giới thiệu
             </p>
           </div>
-          <p style={{ fontSize: "0.875rem", color: "#475569", lineHeight: 1.7, margin: 0 }}>{t.description}</p>
+          <p style={{ fontSize: "0.875rem", color: "var(--evt-text-2)", lineHeight: 1.7, margin: 0 }}>{t.description}</p>
         </div>
       )}
     </div>
@@ -369,6 +374,20 @@ const splitName = (full = "") => {
   if (parts.length <= 1) return { first: "", last: full };
   const last = parts.pop();
   return { first: parts.join(" "), last };
+};
+
+/* Avatar chữ cái khi cơ thủ chưa có ảnh — mỗi người một màu ổn định theo tên */
+const AVATAR_COLORS = ["#0d1b2e", "#1e3a5f", "#7f1616", "#0f5132", "#5b3d8c", "#8a5a00", "#155e63", "#7c2d12"];
+const initialsOf = (name = "") => {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+const avatarColor = (name = "") => {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
 };
 
 /* ── Player detail modal (WNT style) ── */
@@ -475,14 +494,14 @@ const PlayersTab = ({ participants }) => {
             fontSize: "0.8rem", letterSpacing: "0.14em", textTransform: "uppercase",
             whiteSpace: "nowrap",
           }}>
-            Player List
+            Danh sách cơ thủ tham gia
           </span>
         </div>
 
         {/* Card */}
         <div style={{
-          background: "#fff", borderRadius: "1rem", overflow: "hidden",
-          border: "1px solid #e8ecf0",
+          background: "var(--evt-card-bg)", borderRadius: "1rem", overflow: "hidden",
+          border: "1px solid var(--evt-card-border)",
           boxShadow: "0 6px 28px rgba(10,22,40,0.07)",
         }}>
           {/* Search bar */}
@@ -494,25 +513,25 @@ const PlayersTab = ({ participants }) => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
-                  width: "100%", background: "#f8f9fb", border: "1px solid #e8ecf0",
+                  width: "100%", background: "var(--evt-box-bg)", border: "1px solid var(--evt-card-border)",
                   borderRadius: "999px", padding: "0.45rem 0.9rem 0.45rem 2rem",
-                  fontSize: "0.8rem", outline: "none", boxSizing: "border-box", color: "#0d1b2e",
+                  fontSize: "0.8rem", outline: "none", boxSizing: "border-box", color: "var(--evt-text)",
                 }}
               />
               <Search
                 size={13}
-                style={{ position: "absolute", left: "0.7rem", top: "50%", transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none" }}
+                style={{ position: "absolute", left: "0.7rem", top: "50%", transform: "translateY(-50%)", color: "var(--evt-text-4)", pointerEvents: "none" }}
               />
             </div>
           </div>
 
           {/* Player grid */}
           {filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3.5rem 1.5rem 4rem", color: "#94a3b8", fontSize: "0.875rem" }}>
+            <div style={{ textAlign: "center", padding: "3.5rem 1.5rem 4rem", color: "var(--evt-text-4)", fontSize: "0.875rem" }}>
               {participants.length === 0 ? "Danh sách cơ thủ chưa được công bố" : "Không tìm thấy cơ thủ"}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-[#f0f2f5] mx-2 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-[#f0f2f5] dark:border-white/10 mx-2 mb-4">
               {filtered.map((p) => {
                 const { first, last } = splitName(p.displayName);
 
@@ -521,31 +540,42 @@ const PlayersTab = ({ participants }) => {
                     key={p.id}
                     type="button"
                     onClick={() => navigate(`/event/players/${p.id}`)}
-                    className="flex items-center gap-3.5 px-4 py-5 cursor-pointer bg-transparent border-none text-left transition-colors border-r border-b border-[#f0f2f5] hover:bg-[#f8f9fb]"
+                    className="flex items-center gap-3.5 px-4 py-5 cursor-pointer bg-transparent border-none text-left transition-colors border-r border-b border-[#f0f2f5] dark:border-white/10 hover:bg-[#f8f9fb] dark:hover:bg-white/5"
                   >
-                    {/* Avatar — portrait cutout */}
-                    <img
-                      src={p.avatarUrl || p.avtarUrl || DEFAULT_AVATAR}
-                      alt={p.displayName}
-                      onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }}
-                      style={{
-                        width: "56px", height: "72px", objectFit: "cover",
-                        objectPosition: "top center", flexShrink: 0,
-                      }}
-                    />
+                    {/* Avatar — ảnh thật hoặc avatar chữ cái */}
+                    {(p.avatarUrl || p.avtarUrl) ? (
+                      <img
+                        src={p.avatarUrl || p.avtarUrl}
+                        alt={p.displayName}
+                        onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }}
+                        style={{
+                          width: "56px", height: "72px", objectFit: "cover",
+                          objectPosition: "top center", flexShrink: 0, borderRadius: "8px",
+                        }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: "56px", height: "72px", flexShrink: 0, borderRadius: "8px",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        background: avatarColor(p.displayName), color: "#fff",
+                        fontWeight: 800, fontSize: "1.15rem", letterSpacing: "0.02em",
+                      }}>
+                        {initialsOf(p.displayName)}
+                      </div>
+                    )}
 
                     {/* Name + country */}
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <p style={{ margin: 0, fontSize: "0.9rem", color: "#0d1b2e", lineHeight: 1.3 }}>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--evt-name)", lineHeight: 1.3 }}>
                         {first && (
                           <span style={{ fontWeight: 400, fontStyle: "normal" }}>{first} </span>
                         )}
-                        <span style={{ fontWeight: 800, fontStyle: "italic", textTransform: "uppercase" }}>
+                        <span style={{ fontWeight: 800, fontStyle: "normal", textTransform: "uppercase" }}>
                           {last}
                         </span>
                       </p>
                       <p style={{
-                        margin: "0.35rem 0 0", fontSize: "0.65rem", color: "#94a3b8",
+                        margin: "0.35rem 0 0", fontSize: "0.65rem", color: "var(--evt-text-4)",
                         fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em",
                         display: "flex", alignItems: "center", gap: "0.35rem",
                       }}>
@@ -554,7 +584,7 @@ const PlayersTab = ({ participants }) => {
                       </p>
                       {p.seedNo && (
                         <p style={{
-                          margin: "0.2rem 0 0", fontSize: "0.6rem", color: "#b0bac8",
+                          margin: "0.2rem 0 0", fontSize: "0.6rem", color: "var(--evt-text-4)",
                           fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em",
                         }}>
                           Hạt #{p.seedNo}
@@ -570,7 +600,7 @@ const PlayersTab = ({ participants }) => {
           {filtered.length > 0 && (
             <div style={{
               padding: "0.5rem 1.5rem 1rem", textAlign: "right",
-              fontSize: "0.7rem", color: "#b0bac8",
+              fontSize: "0.7rem", color: "var(--evt-text-4)",
             }}>
               {filtered.length} / {participants.length} cơ thủ
             </div>
@@ -593,17 +623,26 @@ const ComingSoon = ({ label }) => (
 const EventDetailPage = () => {
   const { id }         = useParams();
   const navigate       = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "info");
   const [tournament, setTournament] = useState(null);
   const [loading, setLoading]       = useState(true);
   const [myRegistration, setMyRegistration] = useState(null);
   const [participants, setParticipants]      = useState([]);
-  const [fallbackBanner] = useState(
-    () => BANNER_POOL[Math.floor(Math.random() * BANNER_POOL.length)]
-  );
+  const fallbackBanner = bannerFor(id);
   const { isAuthenticated, user } = useAuthStore();
   const isPlayer = isAuthenticated && user?.role === "PLAYER";
+
+  /* Đổi tab + lưu vào URL (?tab=) để khi mở info cơ thủ rồi Quay lại vẫn về đúng tab */
+  const changeTab = useCallback((id) => {
+    setActiveTab(id);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (id === "info") next.delete("tab");
+      else next.set("tab", id);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -629,6 +668,13 @@ const EventDetailPage = () => {
 
   useEffect(() => { if (id) load(); }, [id, load]);
 
+  /* Cuộn về đầu trang khi vào trang / đổi tab / tải xong.
+     Tắt scrollRestoration để F5 không bị trình duyệt kéo về vị trí cuộn cũ (cuối trang). */
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+  }, [id, activeTab, loading]);
+
   if (loading) {
     return (
       <div style={{ background: "#0c1527", minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -653,7 +699,7 @@ const EventDetailPage = () => {
   };
 
   return (
-    <div style={{ background: "#e8e8e8", minHeight: "100vh", paddingBottom: "7rem" }}>
+    <div style={{ background: "var(--evt-page-bg)", minHeight: "100vh", paddingBottom: "7rem" }}>
 
       {/* ── Hero banner (only on info / live) ── */}
       {showInfoCard ? (
@@ -681,7 +727,7 @@ const EventDetailPage = () => {
 
           {/* Live indicator */}
           {isLive && (
-            <button type="button" onClick={() => setActiveTab("live")}
+            <button type="button" onClick={() => changeTab("live")}
               style={{
                 position: "absolute", top: "1.25rem", right: "1.5rem",
                 display: "flex", alignItems: "center", gap: "0.4rem",
@@ -715,7 +761,7 @@ const EventDetailPage = () => {
       <div style={{ position: "relative", zIndex: 10, maxWidth: "min(1100px, calc(100% - 3rem))", margin: showInfoCard ? "-60px auto 0" : "1rem auto 0" }}>
         {showInfoCard && (
           <div style={{
-            background: "#fff", borderRadius: "1.25rem",
+            background: "var(--evt-card-bg)", border: "1px solid var(--evt-card-border)", borderRadius: "1.25rem",
             boxShadow: "0 10px 40px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08)",
             position: "relative", overflow: "visible",
           }}>
@@ -738,7 +784,7 @@ const EventDetailPage = () => {
             <div style={{ textAlign: "center", padding: "2.5rem 2rem 1.5rem" }}>
               <h1 style={{
                 fontWeight: 900, fontSize: "clamp(1.25rem, 3vw, 1.875rem)",
-                color: "#010851", fontStyle: "italic",
+                color: "var(--evt-heading)", fontStyle: "italic",
                 textTransform: "uppercase", letterSpacing: "-0.01em",
                 lineHeight: 1.25, margin: 0,
               }}>
@@ -747,7 +793,7 @@ const EventDetailPage = () => {
             </div>
 
             {/* 4-column info bar */}
-            <div style={{ borderTop: "1px solid #e2e8f0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+            <div style={{ borderTop: "1px solid var(--evt-card-border)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
               <InfoCol icon={Calendar} label="Ngày diễn ra"
                 value={`${fmtDate(tournament.startAt)} – ${fmtDate(tournament.endAt)}`} />
               <InfoCol icon={Gamepad2} label="Loại bi"
@@ -787,7 +833,7 @@ const EventDetailPage = () => {
             const isDisabled = tab.id === "matches" && matchesLocked;
             return (
               <button key={tab.id} type="button"
-                onClick={() => !isDisabled && setActiveTab(tab.id)}
+                onClick={() => !isDisabled && changeTab(tab.id)}
                 disabled={isDisabled}
                 title={isDisabled ? "Lịch thi đấu chưa được xếp" : undefined}
                 className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl transition-all duration-200 ${
