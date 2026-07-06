@@ -10,6 +10,7 @@ import {
   RankingEmptyMessage,
   TournamentStatus,
 } from "../../constants/rankingEnums";
+import "./eventTheme.css";
 
 /* ─── Helpers ───────────────────────────────────────────────────────── */
 
@@ -17,6 +18,20 @@ const splitName = (fullName = "") => {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
   if (parts.length <= 1) return { first: "", last: parts[0] || "" };
   return { first: parts.slice(0, -1).join(" "), last: parts.at(-1) };
+};
+
+/* Avatar chữ cái khi cơ thủ chưa có ảnh — mỗi người một màu ổn định theo tên */
+const AVATAR_COLORS = ["var(--evt-name)", "#1e3a5f", "#7f1616", "#0f5132", "#5b3d8c", "#8a5a00", "#155e63", "#7c2d12"];
+const initialsOf = (name = "") => {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts.at(-1).charAt(0)).toUpperCase();
+};
+const avatarColor = (name = "") => {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
 };
 
 /* ─── WNT-style name ──────────────────────────────────────────────────── */
@@ -29,14 +44,14 @@ const PlayerName = ({ name, variant = "row" }) => {
     <p style={{
       margin: 0,
       fontSize: isHero ? "1.75rem" : "0.9rem",
-      color: isHero ? "#e8c65a" : "#0d1b2e",
+      color: isHero ? "#e8c65a" : "var(--evt-name)",
       lineHeight: 1.25,
       letterSpacing: isHero ? "-0.02em" : "normal",
     }}>
       {first && (
         <span style={{ fontWeight: 400, fontStyle: "normal" }}>{first} </span>
       )}
-      <span style={{ fontWeight: 800, fontStyle: "italic", textTransform: "uppercase" }}>
+      <span style={{ fontWeight: 800, fontStyle: "normal", textTransform: "uppercase" }}>
         {last}
       </span>
     </p>
@@ -52,7 +67,7 @@ const RankLabelDisplay = ({ label, variant = "row" }) => {
       fontWeight: 800,
       fontStyle: "italic",
       fontSize: isHero ? "2rem" : "1.1rem",
-      color: isHero ? "#c9a227" : "rgba(13,27,46,0.6)",
+      color: isHero ? "#c9a227" : "var(--evt-text-3)",
       lineHeight: 1,
       minWidth: isHero ? undefined : "3.5rem",
       textAlign: isHero ? undefined : "center",
@@ -71,7 +86,7 @@ const CountryLine = ({ tone = "row" }) => {
     <p style={{
       margin: "0.35rem 0 0",
       fontSize: isHero ? "0.7rem" : "0.65rem",
-      color: isHero ? "rgba(201,162,39,0.7)" : "#94a3b8",
+      color: isHero ? "rgba(201,162,39,0.7)" : "var(--evt-text-4)",
       fontWeight: 600,
       textTransform: "uppercase",
       letterSpacing: "0.1em",
@@ -109,15 +124,26 @@ const ChampionHero = ({ player, isProvisional, onNavigate }) => {
           position: "relative", width: "120px", flexShrink: 0,
           display: "flex", alignItems: "flex-end", justifyContent: "center",
         }}>
-          <img
-            src={player.avatarUrl || DEFAULT_PLAYER_AVATAR}
-            alt={player.displayName}
-            onError={(e) => { e.currentTarget.src = DEFAULT_PLAYER_AVATAR; }}
-            style={{
-              height: "145px", width: "100%", objectFit: "cover", objectPosition: "top",
-              WebkitMaskImage: "linear-gradient(to bottom, #000 85%, transparent 100%)",
-            }}
-          />
+          {player.avatarUrl ? (
+            <img
+              src={player.avatarUrl}
+              alt={player.displayName}
+              onError={(e) => { e.currentTarget.src = DEFAULT_PLAYER_AVATAR; }}
+              style={{
+                height: "145px", width: "100%", objectFit: "cover", objectPosition: "top",
+                WebkitMaskImage: "linear-gradient(to bottom, #000 85%, transparent 100%)",
+              }}
+            />
+          ) : (
+            <div style={{
+              width: "100%", height: "145px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "linear-gradient(160deg, rgba(201,162,39,0.28), rgba(201,162,39,0.04))",
+              color: "#e8c65a", fontWeight: 800, fontSize: "2.5rem", letterSpacing: "0.02em",
+            }}>
+              {initialsOf(player.displayName)}
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -166,32 +192,43 @@ const RankRow = ({ player, isLast, onNavigate }) => (
     style={{
       display: "flex", alignItems: "center", gap: "1rem",
       padding: "0.875rem 1.75rem",
-      borderBottom: isLast ? "none" : "1px solid #f0f2f5",
+      borderBottom: isLast ? "none" : "1px solid var(--evt-card-border)",
       transition: "background 0.15s",
       cursor: "pointer",
     }}
     onClick={() => onNavigate(player.participantId)}
-    onMouseEnter={(e) => { e.currentTarget.style.background = "#f8f9fb"; }}
+    onMouseEnter={(e) => { e.currentTarget.style.background = "var(--evt-row-hover)"; }}
     onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
   >
     <RankLabelDisplay label={player.rankLabel} />
-    <img
-      src={player.avatarUrl || DEFAULT_PLAYER_AVATAR}
-      alt={player.displayName}
-      onError={(e) => { e.currentTarget.src = DEFAULT_PLAYER_AVATAR; }}
-      style={{
-        width: "48px", height: "48px", borderRadius: "50%",
-        objectFit: "cover", objectPosition: "top",
-        background: "#f1f5f9", border: "1px solid #e2e8f0", flexShrink: 0,
-      }}
-    />
+    {player.avatarUrl ? (
+      <img
+        src={player.avatarUrl}
+        alt={player.displayName}
+        onError={(e) => { e.currentTarget.src = DEFAULT_PLAYER_AVATAR; }}
+        style={{
+          width: "48px", height: "48px", borderRadius: "50%",
+          objectFit: "cover", objectPosition: "top",
+          background: "var(--evt-subtle)", border: "1px solid var(--evt-card-border)", flexShrink: 0,
+        }}
+      />
+    ) : (
+      <div style={{
+        width: "48px", height: "48px", borderRadius: "50%", flexShrink: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: avatarColor(player.displayName), color: "#fff",
+        fontWeight: 700, fontSize: "0.9rem",
+      }}>
+        {initialsOf(player.displayName)}
+      </div>
+    )}
     <div style={{ flex: 1, minWidth: 0 }}>
       <PlayerName name={player.displayName} />
       <CountryLine />
     </div>
     {player.note && (
       <span style={{
-        color: "#94a3b8", fontSize: "0.75rem", fontWeight: 500,
+        color: "var(--evt-text-4)", fontSize: "0.75rem", fontWeight: 500,
         fontStyle: "italic", flexShrink: 0,
       }}>
         {player.note}
@@ -250,10 +287,10 @@ const RankingTab = ({ tournament }) => {
   if (loading) {
     return (
       <div style={{
-        background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0",
+        background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)",
         display: "flex", alignItems: "center", justifyContent: "center", padding: "6rem 2rem",
       }}>
-        <p style={{ color: "#94a3b8", fontSize: "0.875rem" }}>Đang tải xếp hạng...</p>
+        <p style={{ color: "var(--evt-text-4)", fontSize: "0.875rem" }}>Đang tải xếp hạng...</p>
       </div>
     );
   }
@@ -261,11 +298,11 @@ const RankingTab = ({ tournament }) => {
   if (error) {
     return (
       <div style={{
-        background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0",
+        background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         padding: "5rem 2rem", gap: "0.5rem",
       }}>
-        <p style={{ color: "#64748b", fontSize: "0.875rem" }}>{error}</p>
+        <p style={{ color: "var(--evt-text-3)", fontSize: "0.875rem" }}>{error}</p>
       </div>
     );
   }
@@ -273,15 +310,15 @@ const RankingTab = ({ tournament }) => {
   if (entries.length === 0) {
     return (
       <div style={{
-        background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0",
+        background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         padding: "5rem 2rem", gap: "0.75rem",
       }}>
-        <Trophy size={36} style={{ color: "#e2e8f0" }} />
-        <p style={{ color: "#94a3b8", fontSize: "0.875rem", fontWeight: 500 }}>
+        <Trophy size={36} style={{ color: "var(--evt-card-border)" }} />
+        <p style={{ color: "var(--evt-text-4)", fontSize: "0.875rem", fontWeight: 500 }}>
           {RankingEmptyMessage.NO_PLAYERS}
         </p>
-        <p style={{ color: "#cbd5e1", fontSize: "0.75rem" }}>
+        <p style={{ color: "var(--evt-text-4)", fontSize: "0.75rem" }}>
           {tournament?.status === TournamentStatus.COMPLETED
             ? RankingEmptyMessage.NO_DATA_COMPLETED
             : RankingEmptyMessage.NO_DATA_IN_PROGRESS}
@@ -308,7 +345,7 @@ const RankingTab = ({ tournament }) => {
         <div style={{ position: "relative", flex: 1, minWidth: "200px", maxWidth: "260px", marginLeft: "auto" }}>
           <Search size={13} style={{
             position: "absolute", left: "0.7rem", top: "50%",
-            transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none",
+            transform: "translateY(-50%)", color: "var(--evt-text-4)", pointerEvents: "none",
           }} />
           <input
             type="text"
@@ -316,14 +353,14 @@ const RankingTab = ({ tournament }) => {
             value={nameSearch}
             onChange={(e) => setNameSearch(e.target.value)}
             style={{
-              width: "100%", background: "#f8f9fb", border: "1px solid #e8ecf0",
+              width: "100%", background: "var(--evt-row-hover)", border: "1px solid var(--evt-card-border)",
               borderRadius: "999px", padding: "0.45rem 0.9rem 0.45rem 2rem",
-              fontSize: "0.8rem", outline: "none", boxSizing: "border-box", color: "#0d1b2e",
+              fontSize: "0.8rem", outline: "none", boxSizing: "border-box", color: "var(--evt-name)",
             }}
           />
         </div>
 
-        <span style={{ fontSize: "0.7rem", color: "#b0bac8" }}>{filtered.length} cơ thủ</span>
+        <span style={{ fontSize: "0.7rem", color: "var(--evt-text-4)" }}>{filtered.length} cơ thủ</span>
       </div>
 
       {/* Champion hero */}
@@ -334,7 +371,7 @@ const RankingTab = ({ tournament }) => {
       {/* Rest list */}
       {rest.length > 0 && (
         <div style={{
-          background: "#fff", borderRadius: "1rem", border: "1px solid #e8ecf0",
+          background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)",
           overflow: "hidden", boxShadow: "0 6px 28px rgba(10,22,40,0.07)",
         }}>
           {rest.map((player, idx) => (
@@ -350,9 +387,9 @@ const RankingTab = ({ tournament }) => {
 
       {filtered.length === 0 && (
         <div style={{
-          background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0",
+          background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)",
           textAlign: "center", padding: "3rem 1.5rem",
-          color: "#94a3b8", fontSize: "0.875rem",
+          color: "var(--evt-text-4)", fontSize: "0.875rem",
         }}>
           {RankingEmptyMessage.SEARCH_NOT_FOUND}
         </div>

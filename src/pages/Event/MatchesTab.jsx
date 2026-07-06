@@ -1,7 +1,9 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, List, GitBranch, ChevronDown, Trophy, BarChart2, Wifi } from "lucide-react";
 import { getPublicStages } from "../../api/matchApi";
 import { useMatchWebSocket } from "../../hooks/useMatchWebSocket";
+import "./eventTheme.css";
 
 /* ═══════════════════════════════════════════════════════════════════
    FORMAT DETECTION
@@ -73,8 +75,8 @@ const apiMatchToComp = (m) => {
     seq: m.positionNo,
     table: m.matchCode || `#${m.id}`,
     time: m.scheduledAt || null,
-    p1: { name: m.player1?.displayName || "TBD", flag: "", score: m.player1Score ?? null },
-    p2: { name: m.player2?.displayName || "TBD", flag: "", score: m.player2Score ?? null },
+    p1: { id: m.player1?.id ?? null, name: m.player1?.displayName || "TBD", flag: "", score: m.player1Score ?? null },
+    p2: { id: m.player2?.id ?? null, name: m.player2?.displayName || "TBD", flag: "", score: m.player2Score ?? null },
     status,
     winSide,
     stageType: m.stageType,
@@ -147,28 +149,30 @@ const computeStandings = (matches) => {
    SHARED DISPLAY COMPONENTS
 ═══════════════════════════════════════════════════════════════════ */
 const BracketCard = ({ match, compact, flashIds }) => {
+  const navigate   = useNavigate();
   const isLive     = match?.status === "live";
   const isUpcoming = match?.status === "upcoming";
+  const isDone     = match?.status === "done";
   const isFlashing = match && flashIds?.has(match.id);
-  const W = compact ? 180 : 210;
+  const W = compact ? 190 : 218;
 
   if (!match) return (
-    <div className="rounded-xl border border-dashed border-white/10 flex items-center justify-center"
-         style={{ width:W, height:74, background:"rgba(255,255,255,0.025)" }}>
-      <span className="text-white/20 text-[11px] font-light tracking-wide">Chờ xác định</span>
+    <div className="rounded-xl border border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center"
+         style={{ width:W, height:74, background:"var(--evt-box-bg)" }}>
+      <span className="text-slate-400 dark:text-white/20 text-[11px] font-light tracking-wide">Chờ xác định</span>
     </div>
   );
 
   return (
-    <div className={`rounded-xl overflow-hidden border ${isLive?"border-red-500/40":"border-white/10"} ${isFlashing?"ws-flash":""}`}
-         style={{ width:W, height:70, background: isLive?"rgba(239,52,42,0.08)":"rgba(255,255,255,0.06)" }}>
-      <div className="flex items-center justify-between px-2.5 pt-1.5 pb-0.5">
-        <span className="text-[9px] text-white/30 font-medium">{match.table}</span>
+    <div className={`rounded-xl overflow-hidden border transition-colors ${isLive?"border-red-500/50":"border-slate-200 dark:border-white/[0.09]"} ${isFlashing?"ws-flash":""}`}
+         style={{ width:W, height:74, background: isLive?"rgba(239,52,42,0.09)":"var(--evt-box-bg)", boxShadow: isLive?"0 0 0 1px rgba(239,52,42,0.15)":"none" }}>
+      <div className="flex items-center justify-between px-3 pt-1.5 pb-1 border-b border-slate-200 dark:border-white/[0.06]">
+        <span className="text-[9px] text-sky-600 dark:text-sky-300/75 font-semibold italic tracking-wide">{match.table}</span>
         {isLive
           ? <span className="flex items-center gap-1 text-[9px] text-red-400 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"/>LIVE</span>
           : isDone
-            ? <span className="text-[9px] text-emerald-400/60 font-medium">Kết thúc</span>
-            : <span className="text-[9px] text-white/30">{fmtTime(match.time)}</span>}
+            ? <span className="text-[9px] text-emerald-600 dark:text-emerald-400/60 font-medium">Kết thúc</span>
+            : <span className="text-[9px] text-slate-400 dark:text-white/30">{fmtTime(match.time)}</span>}
       </div>
       {[{p:match.p1,side:1},{p:match.p2,side:2}].map(({p,side})=>{
         const isWinner = match.winSide === side;
@@ -177,18 +181,20 @@ const BracketCard = ({ match, compact, flashIds }) => {
           <div key={side}
                className={`relative flex items-center justify-between pl-3 pr-2.5 py-[4px] mx-1 my-[1px] rounded-md ${isWinner?"bg-yellow-400/[0.13]":""}`}>
             {isWinner && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-[3px] rounded-full bg-[#fbbf24]"/>}
-            <span className={`text-[11.5px] leading-tight truncate ${
-                    isWinner ? "text-[#fbbf24] font-bold"
-                    : isLoser ? "text-white/35 font-light"
-                    : isUpcoming ? "text-white/55 font-light"
-                    : "text-white/70 font-normal"}`}
+            <span
+                  onClick={p?.id ? (e) => { e.stopPropagation(); navigate(`/event/players/${p.id}`); } : undefined}
+                  className={`text-[11.5px] leading-tight truncate ${p?.id?"cursor-pointer hover:underline":""} ${
+                    isWinner ? "text-amber-600 dark:text-[#fbbf24] font-bold"
+                    : isLoser ? "text-slate-400 dark:text-white/35 font-light"
+                    : isUpcoming ? "text-slate-500 dark:text-white/55 font-light"
+                    : "text-slate-700 dark:text-white/70 font-normal"}`}
                   style={{maxWidth: compact?110:138}}>
               {p?.name||"TBD"}
             </span>
             <span className={`text-[15px] font-black tabular-nums shrink-0 ${
                     isWinner ? "text-[#ef342a]"
-                    : isLoser ? "text-white/25"
-                    : "text-white/40"}`}>
+                    : isLoser ? "text-slate-300 dark:text-white/25"
+                    : "text-slate-400 dark:text-white/40"}`}>
               {p?.score??(isUpcoming?"":"—")}
             </span>
           </div>
@@ -199,6 +205,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
 };
 
 const MatchRow = ({ m, matchNum, flashIds }) => {
+  const navigate   = useNavigate();
   const num        = matchNum ?? m.seq;
   const isLive     = m.status === "live";
   const isDone     = m.status === "done";
@@ -207,38 +214,42 @@ const MatchRow = ({ m, matchNum, flashIds }) => {
   const isFlashing = flashIds?.has(m.id);
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 border-b border-white/[0.05] last:border-0 transition-colors ${isLive?"":"hover:bg-white/[0.03]"} ${isFlashing?"ws-flash":""}`}
+    <div className={`flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-white/[0.05] last:border-0 transition-colors ${isLive?"":"hover:bg-slate-50 dark:hover:bg-white/[0.03]"} ${isFlashing?"ws-flash":""}`}
          style={isLive?{background:"rgba(239,52,42,0.07)"}:{}}>
       <div className="shrink-0 w-10 text-center">
-        <span className="text-[11px] italic font-bold text-sky-400/60">{m.table}</span>
+        <span className="text-[11px] italic font-bold text-sky-600 dark:text-sky-300/90">{m.table}</span>
       </div>
       <div className="flex-1 flex items-center min-w-0">
         <div className="flex-1 flex items-center justify-end gap-1.5 min-w-0">
-          <span className={`text-[13px] leading-tight truncate text-right max-w-[100px] sm:max-w-[140px] ${p1Win?"font-bold text-[#fbbf24]":isDone?"text-white font-light":"text-white/65"}`}>
+          <span
+            onClick={m.p1?.id ? () => navigate(`/event/players/${m.p1.id}`) : undefined}
+            className={`text-[13px] leading-tight truncate text-right max-w-[100px] sm:max-w-[140px] ${m.p1?.id?"cursor-pointer hover:underline":""} ${p1Win?"font-bold text-amber-600 dark:text-[#fbbf24]":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
             {m.p1?.name}
           </span>
-          <span className={`text-xl font-black tabular-nums shrink-0 w-7 text-right ${p1Win?"text-[#ef342a]":m.p1?.score!=null?"text-white":"text-transparent"}`}>
+          <span className={`text-xl font-black tabular-nums shrink-0 w-7 text-right ${p1Win?"text-[#ef342a]":isDone?"text-slate-400 dark:text-white/40":m.p1?.score!=null?"text-slate-800 dark:text-white":"text-transparent"}`}>
             {m.p1?.score??""}
           </span>
         </div>
-        <span className="shrink-0 text-[10px] text-white/20 font-medium px-3">vs</span>
+        <span className="shrink-0 text-[10px] text-slate-300 dark:text-white/20 font-medium px-3">vs</span>
         <div className="flex-1 flex items-center gap-1.5 min-w-0">
-          <span className={`text-xl font-black tabular-nums shrink-0 w-7 ${p2Win?"text-[#ef342a]":m.p2?.score!=null?"text-white":"text-transparent"}`}>
+          <span className={`text-xl font-black tabular-nums shrink-0 w-7 ${p2Win?"text-[#ef342a]":isDone?"text-slate-400 dark:text-white/40":m.p2?.score!=null?"text-slate-800 dark:text-white":"text-transparent"}`}>
             {m.p2?.score??""}
           </span>
-          <span className={`text-[13px] leading-tight truncate max-w-[100px] sm:max-w-[140px] ${p2Win?"font-bold text-[#fbbf24]":isDone?"text-white font-light":"text-white/65"}`}>
+          <span
+            onClick={m.p2?.id ? () => navigate(`/event/players/${m.p2.id}`) : undefined}
+            className={`text-[13px] leading-tight truncate max-w-[100px] sm:max-w-[140px] ${m.p2?.id?"cursor-pointer hover:underline":""} ${p2Win?"font-bold text-amber-600 dark:text-[#fbbf24]":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
             {m.p2?.name}
           </span>
         </div>
       </div>
-      <div className="shrink-0 flex flex-col items-end gap-0.5 pl-3 border-l border-white/[0.07] min-w-[95px]">
+      <div className="shrink-0 flex flex-col items-end gap-0.5 pl-3 border-l border-slate-200 dark:border-white/[0.07] min-w-[95px]">
         {isLive
           ? <span className="flex items-center gap-1 text-[10px] text-red-400 font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"/>LIVE
             </span>
-          : <span className="text-[10px] text-sky-400/70 font-light">{fmtTime(m.time)}</span>
+          : <span className="text-[10px] text-sky-600 dark:text-sky-300/80 font-normal">{fmtTime(m.time)}</span>
         }
-        <span className="text-[9px] text-sky-400/50 font-light tracking-wide">
+        <span className="text-[9px] text-sky-600 dark:text-sky-300/70 font-normal tracking-wide">
           #{num} / W#{num+15} / L#{num+25}
         </span>
       </div>
@@ -271,7 +282,7 @@ const ListView = ({ matches, rounds, flashIds }) => {
         const badge = round.bracket ? BRACKET_BADGE[round.bracket] : null;
         return (
           <div key={round.id} className="rounded-3xl overflow-hidden shadow-sm"
-               style={{background:"linear-gradient(160deg,#0d1b2e 0%,#0f2237 100%)",border:"1px solid rgba(255,255,255,0.06)"}}>
+               style={{background:"var(--evt-card-bg)",border:"1px solid var(--evt-card-border)"}}>
             <div className="flex items-center justify-between px-5 py-2.5"
                  style={{background:"linear-gradient(135deg,#9b1c1c 0%,#7f1616 100%)"}}>
               <div className="flex items-center gap-2">
@@ -291,9 +302,11 @@ const ListView = ({ matches, rounds, flashIds }) => {
 /* ═══════════════════════════════════════════════════════════════════
    STANDING VIEW — bảng điểm vòng tròn (tính từ dữ liệu BE)
 ═══════════════════════════════════════════════════════════════════ */
-const StandingTable = ({ title, rows, qualifyCount }) => (
+const StandingTable = ({ title, rows, qualifyCount }) => {
+  const navigate = useNavigate();
+  return (
   <div className="rounded-3xl overflow-hidden shadow-sm"
-       style={{background:"linear-gradient(160deg,#0d1b2e 0%,#0f2237 100%)",border:"1px solid rgba(255,255,255,0.06)"}}>
+       style={{background:"var(--evt-card-bg)",border:"1px solid var(--evt-card-border)"}}>
     {title && (
       <div className="flex items-center justify-between px-5 py-2.5"
            style={{background:"linear-gradient(135deg,#9b1c1c 0%,#7f1616 100%)"}}>
@@ -302,7 +315,7 @@ const StandingTable = ({ title, rows, qualifyCount }) => (
       </div>
     )}
     {/* Header */}
-    <div className="flex items-center gap-2 px-4 py-2 border-b border-white/[0.08] text-[9px] font-bold uppercase tracking-wider text-white/35">
+    <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-200 dark:border-white/[0.08] text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-white/35">
       <span className="w-7 text-center shrink-0">#</span>
       <span className="flex-1 min-w-0">Cơ thủ</span>
       <span className="w-8 text-center shrink-0" title="Số trận">Trận</span>
@@ -312,43 +325,46 @@ const StandingTable = ({ title, rows, qualifyCount }) => (
     </div>
     {/* Rows */}
     {rows.length === 0 ? (
-      <p className="px-4 py-8 text-center text-white/30 text-xs font-light">Chưa có kết quả</p>
+      <p className="px-4 py-8 text-center text-slate-400 dark:text-white/30 text-xs font-light">Chưa có kết quả</p>
     ) : rows.map((r) => {
       const qualified = qualifyCount != null && r.rank <= qualifyCount;
       return (
         <div key={r.id}
-             className={`flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.04] last:border-0 transition-colors hover:bg-white/[0.03] ${qualified?"bg-emerald-400/[0.05]":""}`}>
+             className={`flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 dark:border-white/[0.04] last:border-0 transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.03] ${qualified?"bg-emerald-50 dark:bg-emerald-400/[0.05]":""}`}>
           <span className="w-7 shrink-0 flex justify-center">
             <span className={`text-[11px] font-bold w-6 h-6 rounded-lg flex items-center justify-center ${
-              r.rank === 1 ? "bg-yellow-400/20 text-yellow-300 border border-yellow-400/30"
-              : qualified ? "bg-emerald-400/15 text-emerald-300 border border-emerald-400/25"
-              : "bg-white/[0.06] text-white/50 border border-white/10"}`}>
+              r.rank === 1 ? "bg-amber-100 text-amber-700 border border-amber-300 dark:bg-yellow-400/20 dark:text-yellow-300 dark:border-yellow-400/30"
+              : qualified ? "bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-400/15 dark:text-emerald-300 dark:border-emerald-400/25"
+              : "bg-slate-100 text-slate-500 border border-slate-200 dark:bg-white/[0.06] dark:text-white/50 dark:border-white/10"}`}>
               {r.rank}
             </span>
           </span>
           <span className="flex-1 min-w-0 flex items-center gap-2">
-            <span className={`text-[13px] truncate ${r.rank===1?"text-[#fbbf24] font-bold":"text-white font-medium"}`}>{r.name}</span>
-            {qualified && <span className="text-[8px] font-bold text-emerald-400/80 bg-emerald-400/10 px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wide">Vào vòng trong</span>}
+            <span
+              onClick={r.id ? () => navigate(`/event/players/${r.id}`) : undefined}
+              className={`text-[13px] truncate ${r.id?"cursor-pointer hover:underline":""} ${r.rank===1?"text-amber-600 dark:text-[#fbbf24] font-bold":"text-slate-800 dark:text-white font-medium"}`}>{r.name}</span>
+            {qualified && <span className="text-[8px] font-bold text-emerald-700 bg-emerald-100 dark:text-emerald-400/80 dark:bg-emerald-400/10 px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wide">Vào vòng trong</span>}
           </span>
-          <span className="w-8 text-center shrink-0 text-[12px] text-white/45 tabular-nums">{r.played}</span>
-          <span className="w-8 text-center shrink-0 text-[13px] font-bold text-white tabular-nums">{r.wins}</span>
-          <span className={`w-10 text-center shrink-0 text-[12px] font-semibold tabular-nums ${r.frameDiff>0?"text-emerald-400":r.frameDiff<0?"text-red-400":"text-white/40"}`}>
+          <span className="w-8 text-center shrink-0 text-[12px] text-slate-400 dark:text-white/45 tabular-nums">{r.played}</span>
+          <span className="w-8 text-center shrink-0 text-[13px] font-bold text-slate-800 dark:text-white tabular-nums">{r.wins}</span>
+          <span className={`w-10 text-center shrink-0 text-[12px] font-semibold tabular-nums ${r.frameDiff>0?"text-emerald-600 dark:text-emerald-400":r.frameDiff<0?"text-red-600 dark:text-red-400":"text-slate-400 dark:text-white/40"}`}>
             {r.frameDiff>0?"+":""}{r.frameDiff}
           </span>
-          <span className="w-10 text-center shrink-0 text-[12px] text-white/45 tabular-nums">{r.framesWon}</span>
+          <span className="w-10 text-center shrink-0 text-[12px] text-slate-400 dark:text-white/45 tabular-nums">{r.framesWon}</span>
         </div>
       );
     })}
   </div>
-);
+  );
+};
 
 const StandingView = ({ groups }) => {
   if (!groups.length || groups.every(g => g.rows.length === 0)) {
     return (
       <div className="rounded-3xl shadow-sm flex flex-col items-center justify-center py-16 gap-2"
-           style={{background:"linear-gradient(160deg,#0d1b2e 0%,#0f2237 100%)",border:"1px solid rgba(255,255,255,0.06)"}}>
-        <BarChart2 size={30} className="text-white/15"/>
-        <p className="text-white/40 text-sm font-light">Chưa có bảng điểm — các trận vòng bảng chưa hoàn thành</p>
+           style={{background:"var(--evt-card-bg)",border:"1px solid var(--evt-card-border)"}}>
+        <BarChart2 size={30} className="text-slate-300 dark:text-white/15"/>
+        <p className="text-slate-500 dark:text-white/40 text-sm font-light">Chưa có bảng điểm — các trận vòng bảng chưa hoàn thành</p>
       </div>
     );
   }
@@ -416,19 +432,19 @@ const BracketView = ({ matches, rounds, flashIds }) => {
   );
 
   return (
-    <div className="rounded-3xl overflow-auto border border-white/[0.06] shadow-sm"
-         style={{background:"linear-gradient(160deg,#0d1b2e 0%,#0f2237 100%)"}}>
-      <div className="flex border-b border-white/[0.08]" style={{width:svgW+40,paddingLeft:20,paddingRight:20}}>
+    <div className="rounded-3xl overflow-auto border border-slate-200 dark:border-white/[0.06] shadow-sm"
+         style={{background:"var(--evt-card-bg)"}}>
+      <div className="flex border-b border-slate-200 dark:border-white/[0.08]" style={{width:svgW+40,paddingLeft:20,paddingRight:20}}>
         {rounds.map((r,i)=>(
           <div key={r.id} className="flex-shrink-0 text-center py-3" style={{width:C_W,marginLeft:i>0?R_GAP:0}}>
-            <p className="text-white text-[11px] font-bold uppercase tracking-[0.08em]">{r.label}</p>
-            <p className="text-sky-300/40 text-[9px] font-medium mt-0.5">Race to {r.raceTO}</p>
+            <p className="text-slate-800 dark:text-white text-[11px] font-bold uppercase tracking-[0.08em]">{r.label}</p>
+            <p className="text-sky-600 dark:text-sky-300/40 text-[9px] font-medium mt-0.5">Race to {r.raceTO}</p>
           </div>
         ))}
       </div>
       <div className="relative" style={{width:svgW+40,height:svgH,margin:"18px 20px"}}>
         <svg className="absolute inset-0 pointer-events-none" width={svgW} height={svgH} style={{overflow:"visible"}}>
-          {paths.map((d,i)=><path key={i} d={d} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth={1.5}/>)}
+          {paths.map((d,i)=><path key={i} d={d} fill="none" stroke="var(--evt-bracket-line)" strokeWidth={1.5}/>)}
         </svg>
         {rounds.map((r,ri)=>
           (matchesByRound[r.id]||[]).map((m,mi)=>(
@@ -460,33 +476,33 @@ const DoubleEliminationBracketView = ({ stages, flashIds }) => {
   return (
     <div className="space-y-3">
       {wbMatches.length > 0 && (
-        <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-sm"
-             style={{background:"linear-gradient(160deg,#0d1b2e 0%,#0f2237 100%)"}}>
-          <div className="flex items-center gap-2 px-5 py-2.5 border-b border-white/[0.08]">
+        <div className="rounded-3xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm"
+             style={{background:"var(--evt-card-bg)"}}>
+          <div className="flex items-center gap-2 px-5 py-2.5 border-b border-slate-200 dark:border-white/[0.08]">
             <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"/>
-            <span className="text-white text-xs font-semibold tracking-wide">NHÁNH THẮNG (WINNER BRACKET)</span>
-            <span className="ml-auto text-[10px] text-white/30">Thua → Nhánh Thua</span>
+            <span className="text-slate-800 dark:text-white text-xs font-semibold tracking-wide">NHÁNH THẮNG (WINNER BRACKET)</span>
+            <span className="ml-auto text-[10px] text-slate-400 dark:text-white/30">Thua → Nhánh Thua</span>
           </div>
           <BracketView matches={wbMatches} rounds={wbRounds} flashIds={flashIds}/>
         </div>
       )}
       {lbMatches.length > 0 && (
-        <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-sm"
-             style={{background:"linear-gradient(160deg,#1c0e0e 0%,#2a1515 100%)"}}>
-          <div className="flex items-center gap-2 px-5 py-2.5 border-b border-white/[0.08]">
+        <div className="rounded-3xl overflow-hidden border border-gray-100 dark:border-white/10 shadow-sm"
+             style={{background:"var(--evt-card-bg)"}}>
+          <div className="flex items-center gap-2 px-5 py-2.5 border-b border-slate-200 dark:border-white/[0.08]">
             <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0"/>
-            <span className="text-white text-xs font-semibold tracking-wide">NHÁNH THUA (LOSER BRACKET)</span>
-            <span className="ml-auto text-[10px] text-white/30">Thắng → Chung kết</span>
+            <span className="text-slate-800 dark:text-white text-xs font-semibold tracking-wide">NHÁNH THUA (LOSER BRACKET)</span>
+            <span className="ml-auto text-[10px] text-slate-400 dark:text-white/30">Thắng → Chung kết</span>
           </div>
           <BracketView matches={lbMatches} rounds={lbRounds} flashIds={flashIds}/>
         </div>
       )}
       {gfMatch && (
         <div className="rounded-3xl overflow-hidden border border-yellow-500/20 shadow-sm"
-             style={{background:"linear-gradient(160deg,#1a1408 0%,#221c0a 100%)"}}>
-          <div className="flex items-center gap-2 px-5 py-2.5 border-b border-white/[0.08]">
+             style={{background:"var(--evt-card-bg)"}}>
+          <div className="flex items-center gap-2 px-5 py-2.5 border-b border-slate-200 dark:border-white/[0.08]">
             <Trophy size={12} className="text-yellow-400 shrink-0"/>
-            <span className="text-white text-xs font-semibold tracking-wide">CHUNG KẾT LỚN (GRAND FINAL)</span>
+            <span className="text-slate-800 dark:text-white text-xs font-semibold tracking-wide">CHUNG KẾT LỚN (GRAND FINAL)</span>
             <span className="ml-auto text-[10px] text-yellow-400/50">Race to {gfMatch.raceTo}</span>
           </div>
           <div className="p-5 flex justify-center">
@@ -517,16 +533,16 @@ const FormatBadge = ({ format }) => {
 };
 
 const EmptyState = ({ onClear }) => (
-  <div className="bg-white rounded-3xl border border-gray-100 shadow-sm text-center py-16">
-    <p className="text-gray-400 text-sm font-light">Không tìm thấy trận đấu phù hợp.</p>
+  <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm text-center py-16">
+    <p className="text-gray-400 dark:text-white/50 text-sm font-light">Không tìm thấy trận đấu phù hợp.</p>
     {onClear && <button onClick={onClear} className="mt-2 text-[#ef342a] text-xs hover:underline">Xóa bộ lọc</button>}
   </div>
 );
 
 const NoBracket = () => (
-  <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center py-28 gap-2">
-    <p className="text-gray-200 text-4xl font-semibold">Lịch thi đấu</p>
-    <p className="text-gray-400 text-sm font-light">Bracket chưa được sinh hoặc chưa có trận nào</p>
+  <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm flex flex-col items-center justify-center py-28 gap-2">
+    <p className="text-gray-200 dark:text-white/15 text-4xl font-semibold">Lịch thi đấu</p>
+    <p className="text-gray-400 dark:text-white/50 text-sm font-light">Bracket chưa được sinh hoặc chưa có trận nào</p>
   </div>
 );
 
@@ -689,8 +705,8 @@ const MatchesTab = ({ tournament }) => {
             <button key={id} onClick={()=>setView(id)}
                     className={`flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-200 ${
                       validView===id
-                        ?"bg-[#0d1b2e] text-white shadow-sm"
-                        :"bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
+                        ?"bg-[#0d1b2e] text-white shadow-sm dark:bg-white dark:text-[#0d1b2e]"
+                        :"bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-white/70 dark:border-white/15 dark:hover:bg-white/10"
                     }`}>
               <Icon size={14}/>{label}
             </button>
@@ -700,26 +716,26 @@ const MatchesTab = ({ tournament }) => {
 
       {/* Filters */}
       {showFilters && (
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm px-5 py-4">
+        <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm px-5 py-4">
           <div className="flex flex-wrap gap-2.5">
             <div className="relative flex-1 min-w-[160px]">
-              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
+              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none"/>
               <input type="text" placeholder="Tìm tên cơ thủ..." value={nameSearch}
                      onChange={e=>setNameSearch(e.target.value)}
-                     className="w-full bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-8 pr-4 py-2 placeholder:text-gray-400 focus:outline-none focus:border-[#0d1b2e]/15 focus:bg-white transition-all"/>
+                     className="w-full bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-8 pr-4 py-2 placeholder:text-gray-400 focus:outline-none focus:border-[#0d1b2e]/15 focus:bg-white transition-all dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 dark:border-white/10 dark:focus:bg-white/10 dark:focus:border-white/25"/>
             </div>
             {format !== "group_stage" && rounds.length > 0 && (
               <div className="relative min-w-[140px]">
-                <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
+                <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none"/>
                 <select value={roundFilter} onChange={e=>setRoundFilter(e.target.value)}
-                        className="w-full appearance-none bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-4 pr-8 py-2 focus:outline-none focus:border-[#0d1b2e]/15 transition-all cursor-pointer">
+                        className="w-full appearance-none bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-4 pr-8 py-2 focus:outline-none focus:border-[#0d1b2e]/15 transition-all cursor-pointer dark:bg-white/5 dark:text-white dark:border-white/10 dark:[&>option]:text-slate-800">
                   <option value="">Tất cả vòng</option>
                   {rounds.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}
                 </select>
               </div>
             )}
             <div className="flex items-center px-1">
-              <span className="text-[11px] text-gray-400 font-light">{filteredMatches.length} trận</span>
+              <span className="text-[11px] text-gray-400 dark:text-white/50 font-light">{filteredMatches.length} trận</span>
             </div>
           </div>
         </div>
