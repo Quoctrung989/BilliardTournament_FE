@@ -2,26 +2,26 @@ const newsData = [
   {
     id: 1,
     title:
-      "DON’T MISS YOUR CHANCE TO WITNESS THE UK OPEN LIVE — SECURE YOUR SEAT NOW!",
+      "ĐỪNG BỎ LỠ CƠ HỘI XEM TRỰC TIẾP UK OPEN — ĐẶT VÉ NGAY HÔM NAY!",
     image: "/images/tournaments/vn-player-1.jpg",
     large: true,
   },
   {
     id: 2,
     title:
-      "TALKSPORT TO BROADCAST UK OPEN POOL CHAMPIONSHIP ALONGSIDE CAPSTONE TV AND GLOBAL ...",
+      "TALKSPORT PHÁT SÓNG GIẢI UK OPEN POOL CHAMPIONSHIP CÙNG CAPSTONE TV VÀ TOÀN CẦU ...",
     image: "/images/tournaments/action-1.jpg",
   },
   {
     id: 3,
     title:
-      "WORLD NINEBALL TOUR INTRODUCES FIRST SEEDED JUNIOR FIELD ON TOUR AT CAPSTONE NXT G...",
+      "WORLD NINEBALL TOUR RA MẮT NHÓM HẠT GIỐNG TRẺ ĐẦU TIÊN TẠI CAPSTONE NXT G...",
     image: "/images/tournaments/pool-4.jpg",
   },
   {
     id: 4,
     title:
-      "YAPP DEFENDS CROWN, GORST RETURNS AND CHAMPIONS COLLIDE IN BLOCKBUSTER 2026 U...",
+      "YAPP BẢO VỆ NGÔI VƯƠNG, GORST TRỞ LẠI VÀ CÁC NHÀ VÔ ĐỊCH SO TÀI TẠI GIẢI BOM TẤN 2026 U...",
     image: "/images/tournaments/action-2.jpg",
   },
 ];
@@ -30,9 +30,9 @@ const Schedule = () => {
   return (
     <div className="w-full flex flex-col gap-6 p-6 max-w-[1600px] mx-auto">
       <div className="bg-[var(--wnt25-color-light)] dark:bg-[#161a22] p-4 rounded-md flex justify-between items-center">
-        <h2 className="text-lg font-bold dark:text-gray-100">Schedule</h2>
+        <h2 className="text-lg font-bold dark:text-gray-100">Lịch thi đấu</h2>
         <button className="flex h-10 w-wrapper items-center justify-center rounded-md border border-gray-300 dark:border-white/20 text-sm dark:text-gray-200 transition hover:bg-gray-100 dark:hover:bg-white/10 italic">
-          Full Schedule
+          Toàn bộ lịch
         </button>
       </div>
       <div className="mx-auto grid grid-cols-1 gap-6 p-4 lg:grid-cols-[1fr_1fr] items-stretch">
@@ -48,7 +48,7 @@ const Schedule = () => {
               <div className="flex w-full justify-between">
                 <div className="flex justify-between gap-2 items-center">
                   <span className="text-[14px] font-bold px-2 py-1 border-[1px] rounded-lg border-[var(--wnt25-color-red)] text-[var(--wnt25-color-red)] text-xs">
-                    May 26 - 31 2026
+                    26 - 31 Tháng 5, 2026
                   </span>
                   <span className="text-[22px] font-bold  text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-sm">
                     CAPSTONE
@@ -56,16 +56,16 @@ const Schedule = () => {
                 </div>
 
                 <span className="font-italic text-[12px] text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-sm font-bold ">
-                  Major
+                  Giải lớn
                 </span>
               </div>
               <div className="flex flex-col gap-2">
                 <h3 className="text-lg font-bold ">
                   UK Open Pool Championship
                 </h3>
-                <span className="text-sm font-bold">Brentwood, Essex, UK</span>
+                <span className="text-sm font-bold">Brentwood, Essex, Anh</span>
                 <p className="text-sm font-italic font-bold opacity-[80%]">
-                  Prize Fund: $225,000
+                  Tổng giải thưởng: $225.000
                 </p>
               </div>
             </div>
@@ -91,7 +91,7 @@ const Schedule = () => {
                 <div className="flex w-full justify-between items-center">
                   <div className="flex justify-between gap-2 items-center">
                     <span className="text-[14px] p-1 font-bold border-[1px] rounded-lg border-[var(--wnt25-color-red)] text-[var(--wnt25-color-red)] text-xs">
-                      May 26 - 31 2026
+                      26 - 31 Tháng 5, 2026
                     </span>
                     <span className="text-[14px] font-bold  text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-sm">
                       CAPSTONE
@@ -99,7 +99,7 @@ const Schedule = () => {
                   </div>
 
                   <span className="font-italic text-[12px] text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-xs font-bold opacity-[90%]">
-                    Ranking
+                    Xếp hạng
                   </span>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -107,10 +107,10 @@ const Schedule = () => {
                     UK Open Pool Championship
                   </h3>
                   <span className="text-sm font-bold">
-                    Brentwood, Essex, UK
+                    Brentwood, Essex, Anh
                   </span>
                   <p className="text-sm font-italic font-bold opacity-[80%]">
-                    Prize Fund: $225,000
+                    Tổng giải thưởng: $225.000
                   </p>
                 </div>
               </div>
