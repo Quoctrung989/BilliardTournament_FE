@@ -5,6 +5,7 @@ export const OWNER_NAV = [
     items: [
       { label: "Dashboard", path: "/owner/dashboard", icon: "layout-dashboard" },
       { label: "Giải đấu", path: "/owner/tournaments", icon: "trophy" },
+      { label: "Chi nhánh", path: "/owner/branches", icon: "map-pin" },
     ],
   },
   {

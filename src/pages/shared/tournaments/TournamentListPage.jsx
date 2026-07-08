@@ -220,19 +220,21 @@ const TournamentListPage = ({ api, basePath }) => {
           ) : (
             <table className="admin-table">
               <colgroup>
-                <col style={{ width: "23%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "8%" }} />
+                <col style={{ width: "20%" }} />
                 <col style={{ width: "13%" }} />
-                <col style={{ width: "9%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "7%" }} />
+                <col style={{ width: "12%" }} />
                 <col style={{ width: "8%" }} />
-                <col style={{ width: "15%" }} />
-                <col style={{ width: "10%" }} />
+                <col style={{ width: "7%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "7%" }} />
               </colgroup>
               <thead>
                 <tr>
                   <th>Tên giải</th>
                   <th>Loại bi / Thể thức</th>
+                  <th>Chi nhánh</th>
                   <th className="align-center">Hình thức</th>
                   <th className="align-center">Trạng thái</th>
                   <th className="align-center">Cấu hình</th>
@@ -257,6 +259,11 @@ const TournamentListPage = ({ api, basePath }) => {
                           {row.formatName || row.format}
                         </span>
                       )}
+                    </td>
+                    <td>
+                      <span className="text-sm text-slate-700 truncate block" title={row.venueName}>
+                        {row.venueName || "—"}
+                      </span>
                     </td>
                     <td className="align-center">
                       <span className="text-sm text-slate-600">

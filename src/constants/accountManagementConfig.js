@@ -1,6 +1,7 @@
 import * as adminAccountApi from "../api/adminAccountApi";
 import * as ownerEmployeeApi from "../api/ownerEmployeeApi";
 import * as managerEmployeeApi from "../api/managerEmployeeApi";
+import { ownerBranchApi } from "../api/branchApi";
 import { ADMIN_ROLE_FILTER, OWNER_ROLE_FILTER } from "./accountConfig";
 
 export const ADMIN_ACCOUNT_CONFIG = {
@@ -24,6 +25,8 @@ export const OWNER_EMPLOYEE_CONFIG = {
   createStaff: ownerEmployeeApi.createStaff,
   deactivateAccount: ownerEmployeeApi.deactivateEmployee,
   getEmployeeDetail: ownerEmployeeApi.getEmployee,
+  listBranches: ownerBranchApi.listBranches,
+  updateEmployee: ownerEmployeeApi.updateEmployee,
   roleFilterOptions: OWNER_ROLE_FILTER,
   createActions: ["manager", "staff"],
   pageTitle: "Quản lý nhân viên",

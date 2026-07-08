@@ -1,4 +1,4 @@
-import { Braces, Layers, User } from "lucide-react";
+import { Braces, Layers, MapPin, User } from "lucide-react";
 import { ACCOUNT_ROLE_LABELS, ACCOUNT_STATUS_LABELS } from "../../../constants/accountConfig";
 
 const STATUS_ACCENT = {
@@ -144,6 +144,27 @@ const AccountDetail = ({ item, loading }) => {
           )}
         </div>
       </div>
+
+      {/* Phân quyền chi nhánh */}
+      {(role === "MANAGER" || (role === "STAFF" && item.branchName)) && (
+        <div className="catalog-detail-section">
+          <div className="catalog-detail-section-head">
+            <MapPin size={16} />
+            <span>Phân quyền chi nhánh</span>
+          </div>
+          {role === "MANAGER" ? (
+            item.manageAllBranches ? (
+              <p className="catalog-detail-desc">Quản lý toàn chuỗi (tất cả chi nhánh).</p>
+            ) : (
+              <p className="catalog-detail-desc">
+                Quản lý theo chi nhánh cụ thể — {(item.branchIds || []).length} chi nhánh được gán.
+              </p>
+            )
+          ) : (
+            <p className="catalog-detail-desc">Làm việc tại chi nhánh: <strong>{item.branchName}</strong></p>
+          )}
+        </div>
+      )}
 
       {/* Bio */}
       {item.bio && (

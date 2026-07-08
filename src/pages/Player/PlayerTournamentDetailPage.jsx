@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   ArrowLeft, Calendar, Trophy, Gamepad2, CreditCard,
-  Clock, CheckCircle2, XCircle, Award, ChevronRight,
+  Clock, CheckCircle2, XCircle, Award, ChevronRight, MapPin,
 } from "lucide-react";
 import {
   getPlayerTournamentDetail,
@@ -228,6 +228,8 @@ const PlayerTournamentDetailPage = () => {
               value={`${detail.formatName || detail.format || "—"} · ${participantLabel(detail.participantType)}`} />
             <InfoCol icon={Trophy} label="Tổng giải thưởng"
               value={fmtCurrency(detail.prizePool)} />
+            <InfoCol icon={MapPin} label="Chi nhánh"
+              value={detail.venue?.name || detail.venueName || "—"} />
           </div>
         </div>
 
@@ -373,6 +375,46 @@ const PlayerTournamentDetailPage = () => {
             DETAILS GRID (white cards below)
         ══════════════════════════════════════════ */}
         <div style={{ marginTop: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+
+          {/* Địa điểm tổ chức */}
+          {detail.venue && (
+            <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+                <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
+                <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+                  Địa điểm tổ chức
+                </p>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+                <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <MapPin size={14} style={{ color: "#010851" }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: "0.9375rem", fontWeight: 700, color: "#1e293b", margin: "0 0 0.25rem" }}>
+                    {detail.venue.name}
+                  </p>
+                  <p style={{ fontSize: "0.8125rem", color: "#64748b", margin: 0 }}>{detail.venue.address}</p>
+                  {detail.venue.phone && (
+                    <p style={{ fontSize: "0.8125rem", color: "#64748b", margin: "0.25rem 0 0" }}>
+                      SĐT: {detail.venue.phone}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {detail.venue.images?.length > 0 && (
+                <div style={{ marginTop: "1rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                  {detail.venue.images.map((img) => (
+                    <img
+                      key={img.id}
+                      src={img.url}
+                      alt=""
+                      style={{ height: "5rem", width: "5rem", borderRadius: "0.625rem", objectFit: "cover", border: "1px solid #e2e8f0" }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Schedule */}
           <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Search, X } from "lucide-react";
 import { toast } from "react-toastify";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import ImageUploader from "../../../components/shared/ImageUploader";
+import { ownerBranchApi, managerBranchApi } from "../../../api/branchApi";
 import TournamentConfigFieldForm from "../../../components/tournaments/TournamentConfigFieldForm";
 import TournamentRaceToOverrides from "../../../components/tournaments/TournamentRaceToOverrides";
 import TournamentWizardStepper from "../../../components/tournaments/TournamentWizardStepper";
@@ -20,6 +22,7 @@ const defaultBasic = {
   bannerUrl: "",
   gameType: "",
   format: "",
+  branchId: "",
   participantType: "SINGLE",
   maxParticipants: 16,
   entryFee: "",
@@ -100,6 +103,80 @@ const buildRaceToOverrides = (rules) =>
     .filter((r) => r.isOverridden || r.raceTo !== r.defaultRaceTo)
     .map((r) => ({ roundKey: r.roundKey, raceTo: r.raceTo }));
 
+/** Ô tìm kiếm + chọn 1 chi nhánh tổ chức giải — cùng kiểu giao diện với phần phân quyền
+ * chi nhánh của Manager/Staff (ô tìm kiếm + danh sách cuộn), nhưng chỉ chọn được 1. */
+const BranchSearchSelect = ({ value, onChange, branches, disabled }) => {
+  const [search, setSearch] = useState("");
+
+  const keyword = search.trim().toLowerCase();
+  const filtered = keyword
+    ? branches.filter((b) => b.name.toLowerCase().includes(keyword))
+    : branches;
+  const selected = branches.find((b) => String(b.id) === String(value));
+
+  return (
+    <div className="space-y-2">
+      {selected && (
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium pl-2.5 pr-1.5 py-1 ring-1 ring-indigo-200">
+            {selected.name}
+            {!disabled && (
+              <button
+                type="button"
+                onClick={() => onChange("")}
+                className="text-indigo-500 hover:text-indigo-700"
+                aria-label={`Bỏ chọn ${selected.name}`}
+              >
+                <X size={12} />
+              </button>
+            )}
+          </span>
+        </div>
+      )}
+
+      <div className="relative">
+        <Search
+          size={14}
+          className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+        />
+        <input
+          className="admin-input w-full pl-8 text-sm"
+          placeholder="Tìm chi nhánh theo tên..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          disabled={disabled}
+        />
+      </div>
+
+      <div className="flex flex-col gap-0.5 p-2 rounded-lg border border-slate-100 bg-slate-50/80 max-h-40 overflow-y-auto">
+        {branches.length === 0 ? (
+          <p className="text-xs text-slate-500 px-1">Chưa có chi nhánh nào khả dụng.</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-xs text-slate-500 px-1">Không tìm thấy chi nhánh phù hợp.</p>
+        ) : (
+          filtered.map((b) => (
+            <label
+              key={b.id}
+              className={`flex items-center gap-2 text-sm text-slate-700 px-1.5 py-1 rounded ${
+                disabled ? "cursor-not-allowed opacity-60" : "hover:bg-white cursor-pointer"
+              }`}
+            >
+              <input
+                type="radio"
+                name="tournament-branch"
+                checked={String(value) === String(b.id)}
+                onChange={() => onChange(String(b.id))}
+                disabled={disabled}
+              />
+              {b.name}
+            </label>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
 const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const { id: routeId } = useParams();
   const location = useLocation();
@@ -118,8 +195,11 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const [gameTypes, setGameTypes] = useState([]);
   const [formats, setFormats] = useState([]);
   const [registrationTemplates, setRegistrationTemplates] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [basic, setBasic] = useState(defaultBasic);
   const [tournamentStatus, setTournamentStatus] = useState("DRAFT");
+
+  const branchScope = basePath.startsWith("/owner") ? "owner" : "manager";
 
   const [dateErrors, setDateErrors] = useState({ registrationDeadline: "", startAt: "", endAt: "" });
 
@@ -144,6 +224,16 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     }
   }, [api]);
 
+  const loadBranches = useCallback(async () => {
+    try {
+      const branchApi = branchScope === "owner" ? ownerBranchApi : managerBranchApi;
+      const result = await branchApi.listBranches({ page: 0, size: 100 });
+      setBranches(result?.content || []);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    }
+  }, [branchScope]);
+
   const loadTournament = useCallback(async () => {
     if (!tournamentId) return;
     setLoading(true);
@@ -156,6 +246,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
         bannerUrl: detail.bannerUrl || "",
         gameType: detail.gameType || "",
         format: detail.format || "",
+        branchId: detail.branchId ? String(detail.branchId) : "",
         participantType: detail.participantType || "SINGLE",
         maxParticipants: detail.maxParticipants ?? 16,
         entryFee: detail.entryFee ?? "",
@@ -219,6 +310,12 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   }, [searchParams, tournamentId]);
 
   useEffect(() => { loadOptions(); }, [loadOptions]);
+  useEffect(() => { loadBranches(); }, [loadBranches]);
+  useEffect(() => {
+    if (branches.length === 1 && !basic.branchId) {
+      setBasic((b) => ({ ...b, branchId: String(branches[0].id) }));
+    }
+  }, [branches, basic.branchId]);
   useEffect(() => { if (!isNew) loadTournament(); }, [isNew, loadTournament]);
   useEffect(() => { if (step === 2 && tournamentId) loadConfigForm(); }, [step, tournamentId, loadConfigForm]);
   useEffect(() => { if (step === 3 && tournamentId) loadReview(); }, [step, tournamentId, loadReview]);
@@ -230,6 +327,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     bannerUrl: basic.bannerUrl?.trim() || "",
     gameType: basic.gameType,
     format: basic.format,
+    branchId: Number(basic.branchId) || null,
     participantType: basic.participantType,
     maxParticipants: Number(basic.maxParticipants),
     entryFee: basic.entryFee === "" ? 0 : Number(basic.entryFee),
@@ -265,6 +363,10 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const handleSaveStep1 = async () => {
     if (!basic.name.trim() || !basic.gameType || !basic.format) {
       toast.warn("Vui lòng điền tên, loại bi và thể thức");
+      return;
+    }
+    if (!basic.branchId) {
+      toast.warn("Vui lòng chọn chi nhánh tổ chức");
       return;
     }
     if (basic.isRegister && !basic.registrationFormTemplateId) {
@@ -431,6 +533,29 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               </select>
               {!isNew && tournamentStatus !== "DRAFT" && (
                 <p className="text-xs text-slate-400 mt-1">Không thể đổi thể thức sau khi rời trạng thái Nháp.</p>
+              )}
+            </div>
+
+            <div>
+              <label className="admin-label">Chi nhánh tổ chức *</label>
+              {branches.length <= 1 ? (
+                <input
+                  className="admin-input w-full bg-slate-50"
+                  value={branches[0]?.name || "Chưa có chi nhánh khả dụng"}
+                  readOnly
+                />
+              ) : (
+                <BranchSearchSelect
+                  value={basic.branchId}
+                  onChange={(branchId) => setBasic((b) => ({ ...b, branchId }))}
+                  branches={branches}
+                  disabled={!isNew && tournamentStatus !== "DRAFT"}
+                />
+              )}
+              {branches.length === 0 && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Chưa có chi nhánh nào khả dụng — tạo chi nhánh trước khi tạo giải.
+                </p>
               )}
             </div>
 

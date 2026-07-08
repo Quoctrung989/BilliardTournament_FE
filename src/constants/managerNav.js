@@ -5,6 +5,7 @@ export const MANAGER_NAV = [
     items: [
       { label: "Dashboard", path: "/manager/dashboard", icon: "layout-dashboard" },
       { label: "Giải đấu", path: "/manager/tournaments", icon: "trophy" },
+      { label: "Chi nhánh", path: "/manager/branches", icon: "map-pin" },
     ],
   },
   {

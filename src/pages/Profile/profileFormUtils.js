@@ -23,6 +23,10 @@ export const validateProfileForm = (form, { mode = "edit", isPlayer = true } = {
     errors.phone = "Số điện thoại VN hợp lệ: 10 số, bắt đầu 03/05/07/08/09";
   }
 
+  if (form.dateOfBirth && form.dateOfBirth > new Date().toISOString().slice(0, 10)) {
+    errors.dateOfBirth = "Ngày sinh không được là ngày trong tương lai";
+  }
+
   if (Object.keys(errors).length > 0) {
     return { errors };
   }

@@ -169,6 +169,9 @@ const PlayerTournamentListPage = () => {
                     <> · {t.participantType === "SINGLE" ? "Đơn" : t.participantType === "DOUBLE" ? "Đôi" : "Đội"}</>
                   )}
                 </p>
+                {t.venueName && (
+                  <p>Chi nhánh: <span className="font-medium text-slate-700">{t.venueName}</span></p>
+                )}
                 <p>
                   Phí tham dự: <span className="font-medium text-slate-800">{fmtCurrency(t.entryFee)}</span>
                 </p>
