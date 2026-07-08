@@ -23,7 +23,10 @@ import ConfigFieldCatalogPage from "../pages/Admin/tournament-config/ConfigField
 import RegistrationFieldCatalogPage from "../pages/Admin/registration-form/RegistrationFieldCatalogPage";
 import RegistrationFormTemplateListPage from "../pages/Admin/registration-form/RegistrationFormTemplateListPage";
 import RegistrationFormTemplateWizardPage from "../pages/Admin/registration-form/RegistrationFormTemplateWizardPage";
-import StaffDashboard from "../pages/Staff/Dashboard";
+import StaffMatchListPage from "../pages/Staff/Matches/StaffMatchListPage";
+import StaffScoringPage from "../pages/Staff/Matches/StaffScoringPage";
+import ManagerLiveDashboardPage from "../pages/Manager/LiveDashboard/ManagerLiveDashboardPage";
+import StaffRoute from "../components/guards/StaffRoute";
 import TournamentListPage from "../pages/shared/tournaments/TournamentListPage";
 import TournamentWizardPage from "../pages/shared/tournaments/TournamentWizardPage";
 import TournamentDetailPage from "../pages/shared/tournaments/TournamentDetailPage";
@@ -108,6 +111,9 @@ const ManagerTournamentDetail = () => (
     api={managerTournamentApi}
     basePath="/manager/tournaments"
   />
+);
+const ManagerTournamentLive = () => (
+  <ManagerLiveDashboardPage />
 );
 
 const OwnerTournamentRegistrations = () => (
@@ -216,6 +222,12 @@ const PaymentReturn = () => (
   </CommonLayout>
 );
 
+const StaffScoringRoute = () => (
+  <StaffRoute>
+    <StaffScoringPage />
+  </StaffRoute>
+);
+
 export const ROUTES = [
   {
     path: "/admin/dashboard",
@@ -226,8 +238,18 @@ export const ROUTES = [
     ),
   },
   {
-    path: "/staff/dashboard",
-    component: withStaffPage(StaffDashboard, "Nhân viên — Tổng quan"),
+    path: "/staff/matches",
+    component: withStaffPage(StaffMatchListPage, "Trận của tôi", {
+      fullWidth: true,
+      hideBreadcrumb: true,
+      hideSearch: true,
+      hideTitles: true,
+      contentClassName: "!pt-6 !px-5 sm:!px-8",
+    }),
+  },
+  {
+    path: "/staff/matches/:matchId",
+    component: StaffScoringRoute,
   },
   {
     path: "/admin/tournament-config/formats",
@@ -451,6 +473,15 @@ export const ROUTES = [
       ManagerTournamentDetail,
       "Chi tiết giải",
       "Thông tin và trạng thái giải",
+    ),
+  },
+  {
+    path: "/manager/tournaments/:id/live",
+    component: withManagerPage(
+      ManagerTournamentLive,
+      "Dashboard trực tiếp",
+      "Theo dõi tỉ số realtime theo dải bàn",
+      { fullWidth: true }
     ),
   },
   {

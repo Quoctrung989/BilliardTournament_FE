@@ -99,7 +99,7 @@ export const getHomeRouteForRole = (role) => {
   if (r === ROLES.ADMIN) return "/admin/dashboard";
   if (r === ROLES.OWNER) return "/owner/tournaments";
   if (r === ROLES.MANAGER) return "/manager/tournaments";
-  if (r === ROLES.STAFF) return "/staff/dashboard";
+  if (r === ROLES.STAFF) return "/staff/matches";
   if (r === ROLES.PLAYER) return "/event";
   return "/event";
 };

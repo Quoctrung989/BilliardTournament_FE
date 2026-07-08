@@ -18,7 +18,7 @@ const DASHBOARD_PATH_BY_ROLE = {
   [ROLES.ADMIN]: "/admin/dashboard",
   [ROLES.OWNER]: "/owner/dashboard",
   [ROLES.MANAGER]: "/manager/dashboard",
-  [ROLES.STAFF]: "/staff/dashboard",
+  [ROLES.STAFF]: "/staff/matches",
 };
 
 const NAV_ITEMS = [
