@@ -76,10 +76,10 @@ const Ranked = () => {
     <div className="flex flex-col gap-10 w-full py-8 px-16 max-w-[1600px] mx-auto">
       <div className=" w-full bg-[var(--wnt25-color-dark)] p-4 rounded-md flex justify-between items-center text-[var(--wnt25-color-light)]">
         <h2 className="text-lg font-bold tracking-tight">
-          CAPSTONE Nineball's Top 9 Ranked
+          Top 9 tay cơ Nineball hàng đầu CAPSTONE
         </h2>
         <button className="flex h-10 w-wrapper items-center justify-center rounded-md border border-gray-300 text-sm transition hover:bg-gray-100 italic">
-          All Ranked Players
+          Tất cả tay cơ xếp hạng
         </button>
       </div>
 

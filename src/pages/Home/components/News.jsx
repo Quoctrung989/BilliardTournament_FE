@@ -2,32 +2,32 @@ const newsData = [
   {
     id: 1,
     title:
-      "DON’T MISS YOUR CHANCE TO WITNESS THE UK OPEN LIVE — SECURE YOUR SEAT NOW!",
+      "ĐỪNG BỎ LỠ CƠ HỘI XEM TRỰC TIẾP UK OPEN — ĐẶT VÉ NGAY HÔM NAY!",
     image: "/images/tournaments/vn-player-1.jpg",
     large: true,
   },
   {
     id: 2,
     title:
-      "TALKSPORT TO BROADCAST UK OPEN POOL CHAMPIONSHIP ALONGSIDE CAPSTONE TV AND GLOBAL ...",
+      "TALKSPORT PHÁT SÓNG GIẢI UK OPEN POOL CHAMPIONSHIP CÙNG CAPSTONE TV VÀ TOÀN CẦU ...",
     image: "/images/tournaments/pool-2.jpg",
   },
   {
     id: 3,
     title:
-      "WORLD NINEBALL TOUR INTRODUCES FIRST SEEDED JUNIOR FIELD ON TOUR AT CAPSTONE NXT G...",
+      "WORLD NINEBALL TOUR RA MẮT NHÓM HẠT GIỐNG TRẺ ĐẦU TIÊN TẠI CAPSTONE NXT G...",
     image: "/images/tournaments/action-1.jpg",
   },
   {
     id: 4,
     title:
-      "YAPP DEFENDS CROWN, GORST RETURNS AND CHAMPIONS COLLIDE IN BLOCKBUSTER 2026 U...",
+      "YAPP BẢO VỆ NGÔI VƯƠNG, GORST TRỞ LẠI VÀ CÁC NHÀ VÔ ĐỊCH SO TÀI TẠI GIẢI BOM TẤN 2026 U...",
     image: "/images/tournaments/pool-4.jpg",
   },
   {
     id: 5,
     title:
-      "Bruin Capital Backs Matchroom Sport in Landmark Deal to Accelerate Global Exp...",
+      "Bruin Capital Hậu Thuẫn Matchroom Sport Trong Thương Vụ Lịch Sử Nhằm Mở Rộng Toàn Cầu ...",
     image: "/images/tournaments/pool-6.jpg",
   },
 ];
@@ -58,9 +58,9 @@ const News = () => {
 
         <div className="flex flex-col gap-6 lg:col-span-1">
           <div className="bg-[var(--wnt25-color-light)] dark:bg-[#161a22] p-4 rounded-md flex justify-between items-center">
-            <h2 className="text-lg font-bold dark:text-gray-100">CAPSTONE Latest</h2>
+            <h2 className="text-lg font-bold dark:text-gray-100">Tin mới nhất từ CAPSTONE</h2>
             <button className="flex w-wrapper items-center justify-center rounded-md border border-gray-300 dark:border-white/20 text-sm dark:text-gray-200 transition hover:bg-gray-100 dark:hover:bg-white/10 italic">
-              All News
+              Tất cả tin tức
             </button>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
