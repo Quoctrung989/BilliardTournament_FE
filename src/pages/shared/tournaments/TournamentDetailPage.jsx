@@ -401,6 +401,14 @@ const TournamentDetailPage = ({ api, basePath }) => {
             Người tham gia
           </AdminButton>
         )}
+        {detail.status !== "DRAFT" && (
+          <AdminButton
+            variant="secondary"
+            onClick={() => navigate(`${basePath}/${id}/notifications`)}
+          >
+            Thông báo
+          </AdminButton>
+        )}
 
         {(isDraft || isOpenReg || isRegClosed) && (
           <AdminButton

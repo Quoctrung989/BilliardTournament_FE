@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronLeft,
   LayoutDashboard,
+  Mail,
   MapPin,
   PanelLeftClose,
   PanelLeftOpen,
@@ -23,6 +24,7 @@ const iconMap = {
   settings: Settings,
   "user-cog": UserCog,
   "map-pin": MapPin,
+  mail: Mail,
 };
 
 const NavLink = ({ active, onClick, icon: Icon, label, indent, collapsed }) => {

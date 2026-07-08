@@ -65,6 +65,19 @@ export const ADMIN_NAV = [
       },
     ],
   },
+  {
+    id: "email",
+    label: "Email",
+    collapsible: true,
+    matchPrefix: "/admin/email",
+    icon: "mail",
+    labelNav: "Quản lý email",
+    children: [
+      { label: "Mẫu email", path: "/admin/email/templates" },
+      { label: "Quy tắc tự động", path: "/admin/email/automation" },
+      { label: "Nhật ký gửi", path: "/admin/email/logs" },
+    ],
+  },
 //   {
 //     id: "staff",
 //     label: "Nhân viên",
