@@ -26,3 +26,7 @@ export const getEmployee = (id) =>
 /** PUT /owner/employees/{id}/deactivate */
 export const deactivateEmployee = (id) =>
   unwrap(axiosClient.put(`/owner/employees/${id}/deactivate`));
+
+/** PUT /owner/employees/{id} */
+export const updateEmployee = (id, body) =>
+  unwrap(axiosClient.put(`/owner/employees/${id}`, body));

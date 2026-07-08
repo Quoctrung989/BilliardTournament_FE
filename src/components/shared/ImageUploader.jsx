@@ -13,6 +13,8 @@ const ACCEPTED = "image/jpeg,image/png,image/webp,image/gif";
  *   folder      — MinIO folder (mặc định "avatars")
  *   aspectClass — class Tailwind cho khung ảnh (mặc định "h-36 w-36 rounded-xl")
  *   label       — nhãn hiển thị phía trên
+ *   resetAfterUpload — true khi dùng làm nút "thêm ảnh" tái sử dụng nhiều lần (gallery),
+ *                      để ô upload trở lại trạng thái trống thay vì giữ ảnh vừa thêm
  */
 const ImageUploader = ({
   previewUrl = "",
@@ -20,6 +22,7 @@ const ImageUploader = ({
   folder = "avatars",
   aspectClass = "h-36 w-36 rounded-xl",
   label = "Ảnh",
+  resetAfterUpload = false,
 }) => {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -44,6 +47,7 @@ const ImageUploader = ({
     try {
       const result = await uploadImage(file, folder);
       onUpload?.(result);
+      if (resetAfterUpload) setLocalPreview("");
     } catch {
       setError("Upload thất bại. Vui lòng thử lại.");
       setLocalPreview("");

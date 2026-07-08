@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronLeft,
   LayoutDashboard,
+  MapPin,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
@@ -21,6 +22,7 @@ const iconMap = {
   trophy: Trophy,
   settings: Settings,
   "user-cog": UserCog,
+  "map-pin": MapPin,
 };
 
 const NavLink = ({ active, onClick, icon: Icon, label, indent, collapsed }) => {

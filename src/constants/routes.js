@@ -1,6 +1,8 @@
 import CommonLayout from "../components/layouts/CommonLayout";
 import EventPage from "../pages/Event";
 import EventDetailPage from "../pages/Event/EventDetailPage";
+import BranchListPage from "../pages/Branch";
+import BranchDetailPage from "../pages/Branch/BranchDetailPage";
 import Dashboard from "../pages/Admin/Dashboard";
 import Home from "../pages/Home";
 import LoginPage from "../pages/Auth/LoginPage";
@@ -10,6 +12,8 @@ import Profile from "../pages/Profile";
 import AdminAccountListPage from "../pages/Admin/accounts/AccountListPage";
 import OwnerEmployeeListPage from "../pages/Owner/employees/EmployeeListPage";
 import ManagerStaffListPage from "../pages/Manager/employees/StaffListPage";
+import OwnerBranchListPage from "../pages/Owner/branches/BranchListPage";
+import ManagerBranchListPage from "../pages/Manager/branches/BranchListPage";
 import StaffProfile from "../pages/Manager/StaffProfile";
 import StaffManagement from "../pages/Admin/StaffManagement";
 import FormatListPage from "../pages/Admin/tournament-config/FormatListPage";
@@ -306,6 +310,14 @@ export const ROUTES = [
     ),
   },
   {
+    path: "/owner/branches",
+    component: withOwnerPage(
+      OwnerBranchListPage,
+      "Chi nhánh",
+      "Tạo và quản lý các chi nhánh trong chuỗi"
+    ),
+  },
+  {
     path: "/owner/tournaments",
     component: withOwnerPage(
       OwnerTournamentHub,
@@ -373,6 +385,14 @@ export const ROUTES = [
       ManagerStaffListPage,
       "Quản lý nhân viên",
       "Tạo và quản lý Staff"
+    ),
+  },
+  {
+    path: "/manager/branches",
+    component: withManagerPage(
+      ManagerBranchListPage,
+      "Chi nhánh",
+      "Các chi nhánh bạn được phân quyền quản lý"
     ),
   },
   {
@@ -466,6 +486,8 @@ export const ROUTES = [
   { path: "/event", component: EventPage, layout: CommonLayout },
   { path: "/event/players/:participantId", component: PlayerProfilePage, layout: CommonLayout },
   { path: "/event/:id", component: EventDetailPage, layout: CommonLayout },
+  { path: "/branches", component: BranchListPage, layout: CommonLayout },
+  { path: "/branches/:id", component: BranchDetailPage, layout: CommonLayout },
   { path: "/", component: Home, layout: CommonLayout },
   { path: "/login", component: LoginPage, layout: null },
   { path: "/register", component: RegisterPage, layout: null },

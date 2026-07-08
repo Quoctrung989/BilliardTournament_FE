@@ -91,6 +91,8 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
 
       case "dateOfBirth":
         if (!value) newErrors.dateOfBirth = "Ngày sinh là bắt buộc";
+        else if (value > new Date().toISOString().slice(0, 10))
+          newErrors.dateOfBirth = "Ngày sinh không được là ngày trong tương lai";
         else delete newErrors.dateOfBirth;
         break;
 
@@ -307,6 +309,7 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
             <input
               type="date"
               placeholder="Ngày sinh"
+              max={new Date().toISOString().slice(0, 10)}
               className="w-full px-3 py-2 border rounded-md"
               value={dateOfBirth}
               onChange={(e) => setDateOfBirth(e.target.value)}

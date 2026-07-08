@@ -151,6 +151,7 @@ const computeStandings = (matches) => {
 const BracketCard = ({ match, compact, flashIds }) => {
   const navigate   = useNavigate();
   const isLive     = match?.status === "live";
+  const isDone     = match?.status === "done";
   const isUpcoming = match?.status === "upcoming";
   const isDone     = match?.status === "done";
   const isFlashing = match && flashIds?.has(match.id);

@@ -159,6 +159,30 @@ const TournamentDetailPage = ({ api, basePath }) => {
           )}
         </dl>
 
+        {/* Địa điểm tổ chức */}
+        {detail.venue && (
+          <div className="pt-4 border-t border-slate-100 mb-5">
+            <p className="text-xs uppercase text-slate-400 mb-2">Địa điểm tổ chức</p>
+            <dl className="grid gap-4 sm:grid-cols-2 text-sm">
+              <InfoItem label="Chi nhánh">{detail.venue.name}</InfoItem>
+              <InfoItem label="Số điện thoại">{detail.venue.phone}</InfoItem>
+              <InfoItem label="Địa chỉ" span2>{detail.venue.address}</InfoItem>
+            </dl>
+            {detail.venue.images?.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {detail.venue.images.map((img) => (
+                  <img
+                    key={img.id}
+                    src={img.url}
+                    alt=""
+                    className="h-20 w-20 rounded-lg object-cover border border-slate-200"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Slot progress */}
         {detail.maxParticipants != null && (
           <div className="pt-4 border-t border-slate-100">

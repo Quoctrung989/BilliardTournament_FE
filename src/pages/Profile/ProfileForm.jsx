@@ -26,6 +26,7 @@ const ProfileForm = ({
   onSubmit,
 }) => {
   const isCreate = mode === "create";
+  const todayStr = new Date().toISOString().slice(0, 10);
   const inputCls = (hasError) =>
     `profile-input${hasError ? " profile-input--error" : ""}`;
 
@@ -66,10 +67,11 @@ const ProfileForm = ({
           </Field>
 
           {isCreate ? (
-            <Field label="Ngày sinh">
+            <Field label="Ngày sinh" error={errors.dateOfBirth}>
               <input
                 type="date"
-                className={inputCls(false)}
+                max={todayStr}
+                className={inputCls(errors.dateOfBirth)}
                 value={form.dateOfBirth}
                 onChange={(e) => onChange({ dateOfBirth: e.target.value })}
                 disabled={saving}
@@ -88,10 +90,11 @@ const ProfileForm = ({
           )}
 
           {!isCreate && (
-            <Field label="Ngày sinh">
+            <Field label="Ngày sinh" error={errors.dateOfBirth}>
               <input
                 type="date"
-                className={inputCls(false)}
+                max={todayStr}
+                className={inputCls(errors.dateOfBirth)}
                 value={form.dateOfBirth}
                 onChange={(e) => onChange({ dateOfBirth: e.target.value })}
                 disabled={saving}
