@@ -153,7 +153,6 @@ const BracketCard = ({ match, compact, flashIds }) => {
   const isLive     = match?.status === "live";
   const isDone     = match?.status === "done";
   const isUpcoming = match?.status === "upcoming";
-  const isDone     = match?.status === "done";
   const isFlashing = match && flashIds?.has(match.id);
   const W = compact ? 190 : 218;
 
