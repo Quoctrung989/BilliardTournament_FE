@@ -43,6 +43,10 @@ import ArticleDetailPage from "../pages/News/ArticleDetailPage";
 import PlayerProfilePage from "../pages/Event/PlayerProfilePage";
 import NewsCMSPage from "../pages/shared/news/NewsCMSPage";
 import ArticleEditorPage from "../pages/shared/news/ArticleEditorPage";
+import EmailTemplateListPage from "../pages/Admin/email/EmailTemplateListPage";
+import EmailAutomationRulesPage from "../pages/Admin/email/EmailAutomationRulesPage";
+import EmailLogListPage from "../pages/Admin/email/EmailLogListPage";
+import TournamentNotificationsPage from "../pages/shared/tournaments/TournamentNotificationsPage";
 import PlayerRoute from "../components/guards/PlayerRoute";
 import {
   ownerTournamentApi,
@@ -56,6 +60,7 @@ import {
   ownerNewsCmsApi,
   managerNewsCmsApi,
 } from "../api/newsApi";
+import { ownerEmailApi, managerEmailApi } from "../api/emailApi";
 import { getOwnerStats, getManagerStats } from "../api/dashboardApi";
 import { ownerMatchApi, managerMatchApi } from "../api/matchApi";
 import { withAdminPage } from "../components/admin/withAdminPage";
@@ -139,6 +144,9 @@ const OwnerDrawPage = () => (
 const ManagerDrawPage = () => (
   <DrawPage api={managerMatchApi} basePath="/manager/tournaments" />
 );
+
+const OwnerTournamentNotifications = () => <TournamentNotificationsPage api={ownerEmailApi} />;
+const ManagerTournamentNotifications = () => <TournamentNotificationsPage api={managerEmailApi} />;
 
 const OwnerNewsCMS = () => (
   <NewsCMSPage api={ownerNewsCmsApi} editorPath="/owner/news" />
@@ -298,6 +306,18 @@ export const ROUTES = [
     ),
   },
   {
+    path: "/admin/email/templates",
+    component: withAdminPage(EmailTemplateListPage, "Mẫu email", "Tạo và quản lý mẫu email dùng chung"),
+  },
+  {
+    path: "/admin/email/automation",
+    component: withAdminPage(EmailAutomationRulesPage, "Quy tắc tự động", "Cấu hình email tự động theo sự kiện"),
+  },
+  {
+    path: "/admin/email/logs",
+    component: withAdminPage(EmailLogListPage, "Nhật ký email", "Lịch sử gửi email toàn hệ thống", { fullWidth: true }),
+  },
+  {
     path: "/owner/dashboard",
     component: withOwnerPage(OwnerDashboard, "Tổng quan", "Thống kê giải đấu và doanh thu"),
   },
@@ -366,6 +386,10 @@ export const ROUTES = [
   {
     path: "/owner/tournaments/:id/draw",
     component: withOwnerPage(OwnerDrawPage, "Bốc thăm & Lịch đấu", "Sinh bracket và quản lý trận đấu", { fullWidth: true }),
+  },
+  {
+    path: "/owner/tournaments/:id/notifications",
+    component: withOwnerPage(OwnerTournamentNotifications, "Thông báo", "Gửi email và cấu hình tự động cho giải đấu", { fullWidth: true }),
   },
   {
     path: "/owner/news",
@@ -444,6 +468,10 @@ export const ROUTES = [
   {
     path: "/manager/tournaments/:id/draw",
     component: withManagerPage(ManagerDrawPage, "Bốc thăm & Lịch đấu", "Sinh bracket và quản lý trận đấu", { fullWidth: true }),
+  },
+  {
+    path: "/manager/tournaments/:id/notifications",
+    component: withManagerPage(ManagerTournamentNotifications, "Thông báo", "Gửi email và cấu hình tự động cho giải đấu", { fullWidth: true }),
   },
   {
     path: "/manager/news",
