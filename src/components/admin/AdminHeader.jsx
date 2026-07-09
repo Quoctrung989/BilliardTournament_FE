@@ -9,7 +9,7 @@ const DASHBOARD_PATH_BY_ROLE = {
   [ROLES.ADMIN]: "/admin/dashboard",
   [ROLES.OWNER]: "/owner/dashboard",
   [ROLES.MANAGER]: "/manager/dashboard",
-  [ROLES.STAFF]: "/staff/dashboard",
+  [ROLES.STAFF]: "/staff/matches",
 };
 
 const breadcrumbMap = {
@@ -19,7 +19,13 @@ const breadcrumbMap = {
   "/admin/tournament-config/config-field-catalog": "Catalog trường",
 };
 
-const AdminHeader = ({ title, subtitle }) => {
+const AdminHeader = ({
+  title,
+  subtitle,
+  hideBreadcrumb = false,
+  hideSearch = false,
+  hideTitles = false,
+}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
@@ -30,7 +36,7 @@ const AdminHeader = ({ title, subtitle }) => {
     breadcrumbMap[location.pathname] ||
     (location.pathname.includes("/formats/") ? "Cấu hình thể thức" : "Quản trị");
 
-  const hasSubtitle = Boolean(subtitle);
+  const hasSubtitle = Boolean(subtitle) && !hideTitles;
 
   useEffect(() => {
     const close = (e) => {
@@ -57,30 +63,34 @@ const AdminHeader = ({ title, subtitle }) => {
       }`}
     >
       <div className="admin-header-titles">
-        <p className="admin-header-eyebrow">
-          <span className="text-slate-400 font-medium">BTMS Admin</span>
-          <span className="mx-1.5 text-slate-300" aria-hidden>
-            /
-          </span>
-          <span>{breadcrumb}</span>
-        </p>
-        {title && <h1 className="admin-page-title">{title}</h1>}
-        {subtitle && <p className="admin-page-subtitle">{subtitle}</p>}
+        {!hideBreadcrumb && (
+          <p className="admin-header-eyebrow">
+            <span className="text-slate-400 font-medium">BTMS Admin</span>
+            <span className="mx-1.5 text-slate-300" aria-hidden>
+              /
+            </span>
+            <span>{breadcrumb}</span>
+          </p>
+        )}
+        {!hideTitles && title && <h1 className="admin-page-title">{title}</h1>}
+        {!hideTitles && subtitle && <p className="admin-page-subtitle">{subtitle}</p>}
       </div>
 
-      <div className="hidden lg:flex items-center flex-1 max-w-sm mx-2">
-        <div className="relative w-full">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-            size={18}
-          />
-          <input
-            type="search"
-            placeholder="Tìm kiếm nhanh..."
-            className="admin-input pl-10 py-2 h-10 bg-slate-50 border-slate-200"
-          />
+      {!hideSearch && (
+        <div className="hidden lg:flex items-center flex-1 max-w-sm mx-2">
+          <div className="relative w-full">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              size={18}
+            />
+            <input
+              type="search"
+              placeholder="Tìm kiếm nhanh..."
+              className="admin-input pl-10 py-2 h-10 bg-slate-50 border-slate-200"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex items-center gap-2 flex-shrink-0">
         <button

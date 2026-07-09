@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AlertTriangle, Bot, ChevronDown, ChevronUp, History, UserCog } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -44,6 +44,7 @@ const InfoItem = ({ label, children, span2 = false }) => (
 const TournamentDetailPage = ({ api, basePath }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const tournamentId = Number(id);
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
@@ -68,6 +69,17 @@ const TournamentDetailPage = ({ api, basePath }) => {
   useEffect(() => {
     if (tournamentId) load();
   }, [tournamentId, load]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (
+      basePath === "/manager/tournaments" &&
+      params.get("tab") === "live" &&
+      tournamentId
+    ) {
+      navigate(`${basePath}/${tournamentId}/live`, { replace: true });
+    }
+  }, [basePath, location.search, navigate, tournamentId]);
 
   const handleStatusChange = async (newStatus, confirmMsg) => {
     setConfirmState({ newStatus, confirmMsg });
@@ -383,6 +395,15 @@ const TournamentDetailPage = ({ api, basePath }) => {
               🏆 Kết thúc giải đấu
             </AdminButton>
           </>
+        )}
+
+        {basePath === "/manager/tournaments" && (
+          <AdminButton
+            variant="secondary"
+            onClick={() => navigate(`${basePath}/${id}/live`)}
+          >
+            Trực tiếp
+          </AdminButton>
         )}
 
         {detail.isRegister && ["OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED", "DRAW_PREVIEW", "DRAW_DONE", "FINAL_BRACKET_READY", "IN_PROGRESS"].includes(detail.status) && (
