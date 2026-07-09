@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import { listPublicTournaments } from "../../api/publicTournamentApi";
 import AdminPagination from "../../components/admin/ui/AdminPagination";
@@ -153,6 +153,7 @@ const TournamentCard = ({ tournament, index }) => {
 
 /* ── Page ── */
 const EventPage = () => {
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [searchApplied, setSearchApplied] = useState("");
@@ -207,7 +208,7 @@ const EventPage = () => {
           className="h-full w-full object-cover object-top opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0c1527]/90 to-transparent" />
-        <div className="absolute inset-0 flex items-end pb-10 px-10">
+        <div className="absolute inset-0 flex items-end justify-between gap-4 pb-10 px-10">
           <div>
             <p className="text-[#ef342a] text-xs font-bold uppercase tracking-widest mb-1">
               World Nineball Tour
@@ -216,6 +217,14 @@ const EventPage = () => {
               Giải Đấu Bi-a
             </h1>
           </div>
+          <button
+            type="button"
+            onClick={() => navigate("/staffs")}
+            className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#ef342a] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition-all duration-200 hover:bg-white hover:text-[#0c1527]"
+          >
+            <Users size={16} />
+            Đội ngũ điều hành
+          </button>
         </div>
       </div>
 

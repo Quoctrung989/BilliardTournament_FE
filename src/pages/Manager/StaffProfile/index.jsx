@@ -2,6 +2,7 @@ import { HomeIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axiosClient from "../../../api/axiosClient";
+import "./StaffProfile.scss";
 
 const StaffProfile = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const StaffProfile = () => {
   }, [slug]);
 
   return (
-    <div className="profilePage">
+    <div className="staffProfilePage">
       <div className="cardProfile">
         <div className="card-inner">
           <div className="front">
