@@ -9,6 +9,7 @@ import {
   persistAuth,
   readStoredAuth,
 } from "../utils/auth";
+import { useThemeStore } from "./themeStore";
 
 let hydratePromise = null;
 
@@ -44,6 +45,8 @@ export const useAuthStore = create((set, get) => ({
 
   setSession: ({ token, user, tokenType, expiresIn }) => {
     persistAuth({ token, user });
+    // Mỗi lần đăng nhập luôn khởi tạo về light mode mặc định
+    useThemeStore.getState().resetTheme();
     set({
       token,
       user,
@@ -63,6 +66,8 @@ export const useAuthStore = create((set, get) => ({
 
   logout: () => {
     clearStoredAuth();
+    // Reset giao diện về light mode mặc định sau khi đăng xuất
+    useThemeStore.getState().resetTheme();
     set({
       user: null,
       token: null,

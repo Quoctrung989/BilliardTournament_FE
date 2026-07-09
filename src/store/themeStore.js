@@ -7,9 +7,8 @@ const getInitialTheme = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "dark" || stored === "light") return stored;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    // Mặc định luôn là light mode, không phụ thuộc chế độ sáng/tối của hệ thống
+    return "light";
   } catch (e) {
     return "light";
   }
@@ -36,5 +35,11 @@ export const useThemeStore = create((set, get) => ({
     const next = get().theme === "dark" ? "light" : "dark";
     applyTheme(next);
     set({ theme: next });
+  },
+
+  // Đưa theme về mặc định light (dùng khi đăng xuất/đăng nhập lại)
+  resetTheme: () => {
+    applyTheme("light");
+    set({ theme: "light" });
   },
 }));
