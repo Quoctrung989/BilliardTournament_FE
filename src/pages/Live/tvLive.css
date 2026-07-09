@@ -1,0 +1,111 @@
+@keyframes tv-score-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes tv-cell-flash {
+  0% {
+    box-shadow: inset 0 0 0 0 rgba(52, 211, 153, 0);
+    background-color: #0d1119;
+  }
+  35% {
+    box-shadow: inset 0 0 36px 0 rgba(52, 211, 153, 0.12);
+    background-color: #111827;
+  }
+  100% {
+    box-shadow: inset 0 0 0 0 rgba(52, 211, 153, 0);
+    background-color: #0d1119;
+  }
+}
+
+@keyframes tv-page-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tv-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes tv-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes tv-panel-shimmer {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+
+.tv-score-pop {
+  animation: tv-score-pop 300ms ease-out;
+}
+
+.tv-cell-flash {
+  animation: tv-cell-flash 300ms ease-out;
+}
+
+.tv-page-fade-in {
+  animation: tv-page-fade-in 400ms ease-out;
+}
+
+.tv-live-dot {
+  animation: tv-live-pulse 1.4s ease-in-out infinite;
+}
+
+.tv-progress-bar {
+  transform-origin: left center;
+  animation: tv-progress var(--tv-progress-ms, 15000ms) linear forwards;
+}
+
+.tv-grid {
+  transition:
+    grid-template-columns 400ms ease,
+    grid-template-rows 400ms ease,
+    gap 400ms ease;
+}
+
+.tv-panel-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.tv-panel-sheen::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 40%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  animation: tv-panel-shimmer 7s linear infinite;
+  pointer-events: none;
+}

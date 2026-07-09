@@ -31,7 +31,10 @@ axiosClient.interceptors.response.use(
     const requestUrl = error?.config?.url || "";
     const isAuthMe = requestUrl.includes("/auth/me");
     const publicAuthPaths = ["/login", "/register", "/forgot-password"];
-    const onPublicAuthPage = publicAuthPaths.includes(window.location.pathname);
+    const onPublicPage =
+      publicAuthPaths.includes(window.location.pathname) ||
+      window.location.pathname.startsWith("/live/");
+    const onPublicAuthPage = onPublicPage;
 
     if (status === 401) {
       useAuthStore.getState().logout();

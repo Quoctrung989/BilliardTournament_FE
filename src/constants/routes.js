@@ -26,6 +26,7 @@ import RegistrationFormTemplateWizardPage from "../pages/Admin/registration-form
 import StaffMatchListPage from "../pages/Staff/Matches/StaffMatchListPage";
 import StaffScoringPage from "../pages/Staff/Matches/StaffScoringPage";
 import ManagerLiveDashboardPage from "../pages/Manager/LiveDashboard/ManagerLiveDashboardPage";
+import TournamentLiveTvPage from "../pages/Live/TournamentLiveTvPage";
 import StaffRoute from "../components/guards/StaffRoute";
 import TournamentListPage from "../pages/shared/tournaments/TournamentListPage";
 import TournamentWizardPage from "../pages/shared/tournaments/TournamentWizardPage";
@@ -539,6 +540,10 @@ export const ROUTES = [
   {
     path: "/payment/success",
     component: PaymentReturn,
+  },
+  {
+    path: "/live/tournament/:id",
+    component: TournamentLiveTvPage,
   },
   { path: "/news", component: NewsListPage, layout: CommonLayout },
   { path: "/news/:slug", component: ArticleDetailPage, layout: CommonLayout },

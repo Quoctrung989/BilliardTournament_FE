@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { RefreshCw } from "lucide-react";
+import { Clock, Crown, Monitor, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
 import { managerMatchApi } from "../../../api/matchApi";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -9,7 +9,13 @@ import SocketConnectionBadge from "../../../components/shared/SocketConnectionBa
 import SocketReconnectBanner from "../../../components/shared/SocketReconnectBanner";
 import { useTournamentSocket } from "../../../hooks/useTournamentSocket";
 import { getFriendlyApiErrorMessage } from "../../../utils/apiError";
-import { getPlayerName } from "../../../utils/refereeMatch";
+import {
+  formatMatchScheduleLabel,
+  getPlayerName,
+  isMatchFinished,
+  isMatchLive,
+  isMatchPending,
+} from "../../../utils/refereeMatch";
 
 const STATUS_ORDER = {
   IN_PROGRESS: 0,
@@ -28,24 +34,12 @@ const TABLE_RANGES = [
   { key: "custom", label: "Tự chọn dải" },
 ];
 
-const toStatusMeta = (status) => {
-  if (status === "IN_PROGRESS") {
-    return {
-      label: "LIVE",
-      className: "bg-emerald-500/20 text-emerald-300 ring-emerald-500/40",
-    };
-  }
-  if (status === "PENDING") {
-    return {
-      label: "READY",
-      className: "bg-slate-500/30 text-slate-200 ring-slate-400/30",
-    };
-  }
-  return {
-    label: "FINISHED",
-    className: "bg-slate-800 text-slate-400 ring-slate-700",
-  };
-};
+/** @typedef {'live' | 'all'} StatusTab */
+
+const STATUS_TABS = [
+  { key: "live", label: "Đang diễn ra" },
+  { key: "all", label: "Tất cả" },
+];
 
 const parseIntOrNull = (value) => {
   if (value === "" || value == null) return null;
@@ -65,6 +59,158 @@ const getTableBounds = (rangeKey, customFrom, customTo) => {
   return { from: range.from, to: range.to };
 };
 
+const sortByLiveReadyFinished = (matches) =>
+  [...matches].sort((a, b) => {
+    const sa = STATUS_ORDER[a.status] ?? 9;
+    const sb = STATUS_ORDER[b.status] ?? 9;
+    if (sa !== sb) return sa - sb;
+    const ta = a.tableNo ?? 9999;
+    const tb = b.tableNo ?? 9999;
+    if (ta !== tb) return ta - tb;
+    return (a.id ?? 0) - (b.id ?? 0);
+  });
+
+const LiveBadge = () => (
+  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 text-white px-2.5 py-1 text-xs font-bold shadow-sm shadow-emerald-200">
+    <span className="relative flex h-2 w-2">
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-70" />
+      <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+    </span>
+    Đang đấu
+  </span>
+);
+
+const ReadyBadge = () => (
+  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200 px-2.5 py-1 text-xs font-semibold">
+    Sẵn sàng
+  </span>
+);
+
+const FinishedBadge = () => (
+  <span className="inline-flex items-center rounded-full bg-slate-200/80 text-slate-500 ring-1 ring-inset ring-slate-300/70 px-2.5 py-1 text-xs font-semibold">
+    Đã xong
+  </span>
+);
+
+const MatchCard = ({ match, isFlashing }) => {
+  const live = isMatchLive(match.status);
+  const ready = isMatchPending(match.status);
+  const finished = isMatchFinished(match.status);
+
+  const p1 = getPlayerName(match.player1, "Cơ thủ 1");
+  const p2 = getPlayerName(match.player2, "Cơ thủ 2");
+  const s1 = match.player1Score ?? 0;
+  const s2 = match.player2Score ?? 0;
+  const winnerId = match.winner?.id ?? null;
+  const p1Won = finished && winnerId != null && winnerId === match.player1?.id;
+  const p2Won = finished && winnerId != null && winnerId === match.player2?.id;
+
+  const scheduleLabel = ready
+    ? formatMatchScheduleLabel(match.scheduledAt)
+    : null;
+
+  let cardClass =
+    "rounded-xl border p-4 shadow-sm transition-all duration-300";
+  if (live) {
+    cardClass +=
+      " border-emerald-200 bg-gradient-to-br from-emerald-50/90 via-white to-white shadow-emerald-100/70 ring-1 ring-emerald-100";
+  } else if (finished) {
+    cardClass += " border-slate-200/80 bg-slate-50/80 opacity-75";
+  } else {
+    cardClass += " border-slate-200 bg-white";
+  }
+  if (isFlashing) cardClass += " ws-flash";
+
+  return (
+    <article className={cardClass}>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        {live ? <LiveBadge /> : ready ? <ReadyBadge /> : <FinishedBadge />}
+        <span
+          className={`text-xs font-medium tabular-nums ${
+            live ? "text-emerald-700" : finished ? "text-slate-400" : "text-slate-500"
+          }`}
+        >
+          {match.tableNo != null ? `Bàn ${match.tableNo}` : "Chưa gán bàn"}
+        </span>
+      </div>
+
+      <div className="space-y-2.5">
+        <p
+          className={`text-sm truncate flex items-center gap-1.5 ${
+            p1Won
+              ? "font-bold text-slate-900"
+              : finished
+                ? "font-medium text-slate-500"
+                : "font-medium text-slate-800"
+          }`}
+        >
+          {p1Won && (
+            <Crown size={14} className="shrink-0 text-amber-500" aria-hidden />
+          )}
+          <span className="truncate">{p1}</span>
+        </p>
+
+        {/* Tỉ số: LIVE/FINISHED hiện số; READY không bao giờ hiện 0–0 */}
+        {live && (
+          <p className="text-3xl font-black text-slate-900 tabular-nums leading-none tracking-tight">
+            <span className="text-emerald-700">{s1}</span>
+            <span className="mx-2 text-slate-300 font-bold">–</span>
+            <span className="text-emerald-700">{s2}</span>
+          </p>
+        )}
+
+        {finished && (
+          <p className="text-2xl font-bold text-slate-600 tabular-nums leading-none">
+            {s1}
+            <span className="mx-2 text-slate-300 font-semibold">–</span>
+            {s2}
+          </p>
+        )}
+
+        {ready && (
+          <p className="flex items-center gap-1.5 text-base font-medium text-slate-400 tabular-nums">
+            {match.scheduledAt ? (
+              <>
+                <Clock size={15} className="shrink-0 opacity-70" />
+                <span>{scheduleLabel}</span>
+              </>
+            ) : (
+              <span className="text-2xl font-semibold tracking-wide text-slate-300">
+                —
+              </span>
+            )}
+          </p>
+        )}
+
+        <p
+          className={`text-sm truncate flex items-center gap-1.5 ${
+            p2Won
+              ? "font-bold text-slate-900"
+              : finished
+                ? "font-medium text-slate-500"
+                : "font-medium text-slate-800"
+          }`}
+        >
+          {p2Won && (
+            <Crown size={14} className="shrink-0 text-amber-500" aria-hidden />
+          )}
+          <span className="truncate">{p2}</span>
+        </p>
+
+        {finished && match.winner && (
+          <p className="text-xs font-medium text-amber-700/90 pt-0.5">
+            Thắng: {getPlayerName(match.winner)}
+          </p>
+        )}
+
+        {match.matchCode && (
+          <p className="text-[11px] text-slate-400 truncate">{match.matchCode}</p>
+        )}
+      </div>
+    </article>
+  );
+};
+
 const ManagerLiveDashboardPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -78,6 +224,8 @@ const ManagerLiveDashboardPage = () => {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [page, setPage] = useState(1);
+  /** Mặc định: Đang diễn ra — thứ manager quan tâm nhất lúc mở màn */
+  const [statusTab, setStatusTab] = useState(/** @type {StatusTab} */ ("live"));
 
   const [flashIds, setFlashIds] = useState(() => new Set());
   const flashTimersRef = useRef({});
@@ -134,7 +282,7 @@ const ManagerLiveDashboardPage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [rangeKey, customFrom, customTo]);
+  }, [rangeKey, customFrom, customTo, statusTab]);
 
   const upsertMatch = useCallback(
     (incoming) => {
@@ -193,7 +341,12 @@ const ManagerLiveDashboardPage = () => {
 
   const allMatches = useMemo(() => Object.values(matchMap), [matchMap]);
 
-  const filteredMatches = useMemo(() => {
+  const liveCount = useMemo(
+    () => allMatches.filter((m) => isMatchLive(m.status)).length,
+    [allMatches]
+  );
+
+  const filteredByTable = useMemo(() => {
     const { from, to } = getTableBounds(rangeKey, customFrom, customTo);
     return allMatches.filter((m) => {
       if (from == null && to == null) return true;
@@ -204,25 +357,21 @@ const ManagerLiveDashboardPage = () => {
     });
   }, [allMatches, rangeKey, customFrom, customTo]);
 
-  const sortedMatches = useMemo(() => {
-    return [...filteredMatches].sort((a, b) => {
-      const sa = STATUS_ORDER[a.status] ?? 9;
-      const sb = STATUS_ORDER[b.status] ?? 9;
-      if (sa !== sb) return sa - sb;
-      const ta = a.tableNo ?? 9999;
-      const tb = b.tableNo ?? 9999;
-      if (ta !== tb) return ta - tb;
-      return (a.id ?? 0) - (b.id ?? 0);
-    });
-  }, [filteredMatches]);
+  const tabMatches = useMemo(() => {
+    const pool =
+      statusTab === "live"
+        ? filteredByTable.filter((m) => isMatchLive(m.status))
+        : filteredByTable;
+    return sortByLiveReadyFinished(pool);
+  }, [filteredByTable, statusTab]);
 
   const pageSize = 12;
-  const totalPages = Math.max(1, Math.ceil(sortedMatches.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(tabMatches.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pagedMatches = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return sortedMatches.slice(start, start + pageSize);
-  }, [sortedMatches, currentPage]);
+    return tabMatches.slice(start, start + pageSize);
+  }, [tabMatches, currentPage]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -232,7 +381,9 @@ const ManagerLiveDashboardPage = () => {
     return (
       <AdminCard>
         <div className="space-y-4 py-6">
-          <p className="text-sm text-slate-500 text-center">Đang tải dashboard trực tiếp...</p>
+          <p className="text-sm text-slate-500 text-center">
+            Đang tải dashboard trực tiếp...
+          </p>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-36 rounded-xl bg-slate-100 animate-pulse" />
@@ -266,6 +417,19 @@ const ManagerLiveDashboardPage = () => {
         </button>
         <div className="flex items-center gap-2">
           <SocketConnectionBadge connectionState={connectionState} />
+          <AdminButton
+            variant="ghost"
+            onClick={() =>
+              window.open(
+                `/live/tournament/${tournamentId}`,
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+          >
+            <Monitor size={16} className="mr-1.5 inline" />
+            Chiếu lên TV
+          </AdminButton>
           <AdminButton variant="ghost" onClick={loadSnapshot}>
             <RefreshCw size={16} className="mr-1.5 inline" />
             Tải lại snapshot
@@ -274,6 +438,42 @@ const ManagerLiveDashboardPage = () => {
       </div>
 
       <SocketReconnectBanner connectionState={connectionState} />
+
+      {/* Status tabs — mặc định Đang diễn ra */}
+      <div
+        className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm"
+        role="tablist"
+        aria-label="Lọc theo trạng thái trận"
+      >
+        {STATUS_TABS.map((tab) => {
+          const active = statusTab === tab.key;
+          const count =
+            tab.key === "live" ? liveCount : filteredByTable.length;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setStatusTab(tab.key)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                active
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+            >
+              {tab.label}
+              <span
+                className={`ml-1.5 tabular-nums ${
+                  active ? "text-indigo-100" : "text-slate-400"
+                }`}
+              >
+                · {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       <AdminCard>
         <div className="flex flex-wrap items-end gap-3">
@@ -316,54 +516,41 @@ const ManagerLiveDashboardPage = () => {
             </>
           )}
           <p className="text-sm text-slate-500 ml-auto">
-            {sortedMatches.length} trận - trang {currentPage}/{totalPages}
+            {tabMatches.length} trận
+            {totalPages > 1 ? ` · trang ${currentPage}/${totalPages}` : ""}
           </p>
         </div>
       </AdminCard>
 
-      {!sortedMatches.length ? (
+      {!tabMatches.length ? (
         <AdminCard>
           <p className="py-10 text-center text-slate-500">
-            Không có trận nào trong dải bàn đã chọn.
+            {statusTab === "live"
+              ? "Không có trận đang diễn ra trong dải bàn đã chọn."
+              : "Không có trận nào trong dải bàn đã chọn."}
           </p>
+          {statusTab === "live" && filteredByTable.length > 0 && (
+            <p className="pb-6 text-center">
+              <button
+                type="button"
+                onClick={() => setStatusTab("all")}
+                className="text-sm font-medium text-indigo-600 hover:underline"
+              >
+                Xem tất cả {filteredByTable.length} trận →
+              </button>
+            </p>
+          )}
         </AdminCard>
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {pagedMatches.map((match) => {
-              const status = toStatusMeta(match.status);
-              const isFlashing = flashIds.has(String(match.id));
-              return (
-                <article
-                  key={match.id}
-                  className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors ${
-                    isFlashing ? "ws-flash" : ""
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ring-1 ring-inset ${status.className}`}
-                    >
-                      {status.label}
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      {match.tableNo != null ? `Bàn ${match.tableNo}` : "Chưa gán bàn"}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-slate-700 truncate">
-                      {getPlayerName(match.player1, "Cơ thủ 1")}
-                    </p>
-                    <p className="text-3xl font-black text-slate-900 tabular-nums leading-none">
-                      {match.player1Score ?? 0} - {match.player2Score ?? 0}
-                    </p>
-                    <p className="text-sm font-medium text-slate-700 truncate">
-                      {getPlayerName(match.player2, "Cơ thủ 2")}
-                    </p>
-                  </div>
-                </article>
-              );
-            })}
+            {pagedMatches.map((match) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                isFlashing={flashIds.has(String(match.id))}
+              />
+            ))}
           </div>
 
           {totalPages > 1 && (
