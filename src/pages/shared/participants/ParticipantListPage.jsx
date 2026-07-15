@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { UserPlus, Upload, Download } from "lucide-react";
+import { UserPlus, Upload, Download, Lock } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
 import ConfirmModal from "../../../components/shared/ui/ConfirmModal";
+import { ownerTournamentApi, managerTournamentApi } from "../../../api/tournamentManagementApi";
 import { getApiErrorMessage } from "../../../utils/apiError";
+
+const ROSTER_EDITABLE_STATUSES = ["DRAFT", "OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED"];
 
 const STATUS_STYLES = {
   ACTIVE: "bg-emerald-100 text-emerald-800",
@@ -31,18 +34,26 @@ const ParticipantListPage = ({ api, basePath }) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [form, setForm] = useState({ displayName: "", phone: "", seedNo: "" });
   const [withdrawModal, setWithdrawModal] = useState(null);
+  const [tournamentStatus, setTournamentStatus] = useState(null);
+
+  const tournamentApi = basePath.startsWith("/owner") ? ownerTournamentApi : managerTournamentApi;
+  const rosterEditable = tournamentStatus == null || ROSTER_EDITABLE_STATUSES.includes(tournamentStatus);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.listParticipants(tournamentId);
+      const [data, tournament] = await Promise.all([
+        api.listParticipants(tournamentId),
+        tournamentApi.getTournament(tournamentId).catch(() => null),
+      ]);
       setItems(Array.isArray(data) ? data : []);
+      if (tournament) setTournamentStatus(tournament.status);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
-  }, [api, tournamentId]);
+  }, [api, tournamentApi, tournamentId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -118,6 +129,7 @@ const ParticipantListPage = ({ api, basePath }) => {
   };
 
   const active = items.filter((p) => p.status === "ACTIVE").length;
+  const seeded = items.filter((p) => p.status === "ACTIVE" && p.seedNo != null).length;
 
   return (
     <div className="space-y-5">
@@ -133,7 +145,7 @@ const ParticipantListPage = ({ api, basePath }) => {
               Người tham gia chính thức
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              {active} ACTIVE · {items.length} tổng
+              {active} ACTIVE · {items.length} tổng · {seeded} có hạt giống
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -152,23 +164,32 @@ const ParticipantListPage = ({ api, basePath }) => {
               className="hidden"
               onChange={handleImport}
             />
-            <AdminButton
-              variant="secondary"
-              disabled={actionLoading}
-              onClick={() => fileInputRef.current.click()}
-              className="flex items-center gap-1.5"
-            >
-              <Upload size={15} />
-              Import Excel
-            </AdminButton>
-            <AdminButton
-              variant="primary"
-              onClick={() => setAddModal(true)}
-              className="flex items-center gap-1.5"
-            >
-              <UserPlus size={15} />
-              Thêm thủ công
-            </AdminButton>
+            {rosterEditable ? (
+              <>
+                <AdminButton
+                  variant="secondary"
+                  disabled={actionLoading}
+                  onClick={() => fileInputRef.current.click()}
+                  className="flex items-center gap-1.5"
+                >
+                  <Upload size={15} />
+                  Import Excel
+                </AdminButton>
+                <AdminButton
+                  variant="primary"
+                  onClick={() => setAddModal(true)}
+                  className="flex items-center gap-1.5"
+                >
+                  <UserPlus size={15} />
+                  Thêm thủ công
+                </AdminButton>
+              </>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100">
+                <Lock size={13} />
+                Giải đã lên bracket — không thể thêm người tham gia mới
+              </span>
+            )}
           </div>
         </div>
 
@@ -177,7 +198,9 @@ const ParticipantListPage = ({ api, basePath }) => {
             <div className="admin-empty">Đang tải...</div>
           ) : items.length === 0 ? (
             <div className="admin-empty">
-              Chưa có người tham gia. Dùng "Thêm thủ công" hoặc "Import Excel".
+              {rosterEditable
+                ? "Chưa có người tham gia. Dùng \"Thêm thủ công\" hoặc \"Import Excel\"."
+                : "Chưa có người tham gia."}
             </div>
           ) : (
             <table className="admin-table">

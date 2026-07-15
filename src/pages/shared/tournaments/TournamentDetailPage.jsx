@@ -371,12 +371,24 @@ const TournamentDetailPage = ({ api, basePath }) => {
         )}
 
         {detail.status === "FINAL_BRACKET_READY" && (
-          <AdminButton
-            variant="primary"
-            onClick={() => navigate(`${basePath}/${id}/draw`)}
-          >
-            Quản lý bracket chung kết
-          </AdminButton>
+          <>
+            <AdminButton
+              variant="secondary"
+              onClick={() => navigate(`${basePath}/${id}/draw`)}
+            >
+              Quản lý bracket chung kết
+            </AdminButton>
+            <AdminButton
+              variant="primary"
+              disabled={statusChanging}
+              onClick={() => handleStatusChange(
+                "COMPLETED",
+                "Kết thúc giải đấu? Tất cả trận đấu phải hoàn thành (hoặc walkover/BYE) trước khi kết thúc. Không thể hoàn tác."
+              )}
+            >
+              🏆 Kết thúc giải đấu
+            </AdminButton>
+          </>
         )}
 
         {detail.status === "IN_PROGRESS" && (
@@ -390,7 +402,10 @@ const TournamentDetailPage = ({ api, basePath }) => {
             <AdminButton
               variant="primary"
               disabled={statusChanging}
-              onClick={() => handleStatusChange("COMPLETED", "Kết thúc giải đấu? Không thể hoàn tác.")}
+              onClick={() => handleStatusChange(
+                "COMPLETED",
+                "Kết thúc giải đấu? Tất cả trận đấu phải hoàn thành (hoặc walkover/BYE) trước khi kết thúc. Không thể hoàn tác."
+              )}
             >
               🏆 Kết thúc giải đấu
             </AdminButton>

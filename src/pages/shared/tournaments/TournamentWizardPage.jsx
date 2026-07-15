@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import ImageUploader from "../../../components/shared/ImageUploader";
+import RegistrationFormPreviewPanel from "../../../components/registration-form/RegistrationFormPreviewPanel";
 import { ownerBranchApi, managerBranchApi } from "../../../api/branchApi";
 import TournamentConfigFieldForm from "../../../components/tournaments/TournamentConfigFieldForm";
 import TournamentRaceToOverrides from "../../../components/tournaments/TournamentRaceToOverrides";
@@ -204,10 +205,13 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const [dateErrors, setDateErrors] = useState({ registrationDeadline: "", startAt: "", endAt: "" });
 
   const [seedingMethod, setSeedingMethod] = useState("RANDOM");
+  const [seedCount, setSeedCount] = useState("");
   const [configFields, setConfigFields] = useState([]);
   const [raceToRules, setRaceToRules] = useState([]);
   const [resolvedConfig, setResolvedConfig] = useState(null);
   const [validateResult, setValidateResult] = useState(null);
+  const [templatePreview, setTemplatePreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const loadOptions = useCallback(async () => {
     try {
@@ -274,6 +278,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     try {
       const form = await api.getConfigForm(tournamentId);
       setSeedingMethod(form.seedingMethod || "RANDOM");
+      setSeedCount(form.seedCount != null ? String(form.seedCount) : "");
       setConfigFields(form.fields || []);
       setRaceToRules(form.raceToRules || []);
     } catch (err) {
@@ -295,6 +300,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
       setResolvedConfig(resolved);
       setValidateResult(validation);
       setSeedingMethod(form.seedingMethod || "RANDOM");
+      setSeedCount(form.seedCount != null ? String(form.seedCount) : "");
       setConfigFields(form.fields || []);
       setRaceToRules(form.raceToRules || []);
     } catch (err) {
@@ -319,6 +325,25 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   useEffect(() => { if (!isNew) loadTournament(); }, [isNew, loadTournament]);
   useEffect(() => { if (step === 2 && tournamentId) loadConfigForm(); }, [step, tournamentId, loadConfigForm]);
   useEffect(() => { if (step === 3 && tournamentId) loadReview(); }, [step, tournamentId, loadReview]);
+
+  useEffect(() => {
+    if (!basic.isRegister || !basic.registrationFormTemplateId || !api.getRegistrationFormTemplatePreview) {
+      setTemplatePreview(null);
+      return;
+    }
+    let cancelled = false;
+    setPreviewLoading(true);
+    api.getRegistrationFormTemplatePreview(basic.registrationFormTemplateId)
+      .then((data) => { if (!cancelled) setTemplatePreview(data); })
+      .catch((err) => {
+        if (!cancelled) {
+          setTemplatePreview(null);
+          toast.error(getApiErrorMessage(err));
+        }
+      })
+      .finally(() => { if (!cancelled) setPreviewLoading(false); });
+    return () => { cancelled = true; };
+  }, [api, basic.isRegister, basic.registrationFormTemplateId]);
 
   const buildBasicPayload = () => ({
     name: basic.name.trim(),
@@ -399,10 +424,17 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
   const handleSaveStep2 = async () => {
     if (!tournamentId) return;
+    const usesSeeding = seedingMethod !== "RANDOM";
+    const seedCountNum = seedCount.trim() ? Number(seedCount) : null;
+    if (usesSeeding && (!seedCountNum || seedCountNum < 1)) {
+      toast.warn("Nhập số lượng hạt giống (từ 1 trở lên) khi chọn phương thức xếp hạt giống");
+      return;
+    }
     setSaving(true);
     try {
       await api.saveConfig(tournamentId, {
         seedingMethod,
+        seedCount: usesSeeding ? seedCountNum : null,
         fields: configFields.map((f) => ({
           fieldKey: f.fieldKey,
           value: String(f.value ?? f.defaultValue ?? ""),
@@ -706,6 +738,19 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 )}
               </div>
             )}
+
+            {basic.isRegister && basic.registrationFormTemplateId && (
+              <div className="sm:col-span-2">
+                <label className="admin-label">Xem trước form đăng ký</label>
+                {previewLoading ? (
+                  <p className="text-sm text-slate-500 py-6 text-center border border-dashed rounded-lg">
+                    Đang tải preview...
+                  </p>
+                ) : (
+                  <RegistrationFormPreviewPanel preview={templatePreview} />
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 mt-6">
@@ -741,6 +786,24 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
+                {seedingMethod !== "RANDOM" && (
+                  <>
+                    <label className="admin-label mt-4">Số lượng hạt giống *</label>
+                    <input
+                      type="number"
+                      min={1}
+                      className="admin-input w-full"
+                      placeholder="VD: 16"
+                      value={seedCount}
+                      onChange={(e) => setSeedCount(e.target.value)}
+                    />
+                    <p className="text-xs text-slate-400 mt-1">
+                      Ở trang Người tham gia, gán hạt giống cho đúng số người này (không cần nhập đủ
+                      tất cả). Hệ thống sẽ chặn bốc thăm nếu chưa gán đủ. Người không có hạt giống sẽ
+                      được bốc thăm ngẫu nhiên vào các vị trí còn lại.
+                    </p>
+                  </>
+                )}
               </div>
 
               <h3 className="text-sm font-semibold text-slate-700 mb-3">Trường cấu hình giải</h3>
@@ -833,7 +896,12 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                   {resolvedConfig && (
                     <div>
                       <p className="text-xs text-slate-400 uppercase mb-1">Xếp hạt giống</p>
-                      <p className="font-medium">{resolvedConfig.seedingMethod}</p>
+                      <p className="font-medium">
+                        {resolvedConfig.seedingMethod}
+                        {resolvedConfig.seedingMethod !== "RANDOM" && resolvedConfig.seedCount != null
+                          ? ` — ${resolvedConfig.seedCount} hạt giống`
+                          : ""}
+                      </p>
                     </div>
                   )}
                 </div>

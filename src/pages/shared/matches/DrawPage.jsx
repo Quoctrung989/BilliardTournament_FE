@@ -5,12 +5,15 @@ import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
   ArrowLeftRight, Eye, Lock, Search, GripVertical,
   ChevronRight, Users, Swords, Zap, BarChart2, Scissors,
+  Loader2, X,
 } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
+import SocketConnectionBadge from "../../../components/shared/SocketConnectionBadge";
+import SocketReconnectBanner from "../../../components/shared/SocketReconnectBanner";
 import { getApiErrorMessage } from "../../../utils/apiError";
-import { useMatchWebSocket } from "../../../hooks/useMatchWebSocket";
+import { useTournamentSocket } from "../../../hooks/useTournamentSocket";
 
 /* ══════════════════════════════════════════════════════════
    Constants & helpers
@@ -46,6 +49,37 @@ function getRoundStyle(roundNo, totalRounds) {
 }
 
 const EDITABLE_STAGES = ["KNOCKOUT", "WINNERS"];
+
+const MATCH_FILTERS = [
+  { key: "ALL", label: "Tất cả" },
+  { key: "IN_PROGRESS", label: "Đang diễn ra" },
+  { key: "PENDING", label: "Chờ bắt đầu" },
+  { key: "DONE", label: "Đã xong" },
+];
+
+function matchPassesFilter(m, statusFilter, query) {
+  if (statusFilter === "DONE") {
+    if (!["COMPLETED", "WALKOVER", "BYE"].includes(m.status)) return false;
+  } else if (statusFilter !== "ALL" && m.status !== statusFilter) {
+    return false;
+  }
+  if (query) {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    const hay = [m.matchCode, m.player1?.displayName, m.player2?.displayName]
+      .filter(Boolean).join(" ").toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+/** Vòng "đang cần chú ý" đầu tiên (còn trận chưa xong); nếu cả stage đã xong thì fallback vòng cuối. */
+function computeDefaultRound(sortedRounds) {
+  for (const [roundNo, matches] of sortedRounds) {
+    if (matches.some(m => !["COMPLETED", "WALKOVER", "BYE"].includes(m.status))) return Number(roundNo);
+  }
+  return sortedRounds.length ? Number(sortedRounds[sortedRounds.length - 1][0]) : null;
+}
 
 /* Pure helper: swap two player slots in local stages state immediately */
 function swapPlayersInState(stages, mId1, sl1, mId2, sl2) {
@@ -120,6 +154,13 @@ const DrawPage = ({ api, basePath }) => {
   const [eventsModal,  setEventsModal]  = useState(null);
   const [events,       setEvents]       = useState([]);
 
+  /* ── Per-match action loading (không khoá toàn trang) ── */
+  const [startingId,   setStartingId]   = useState(null);
+
+  /* ── Tìm kiếm / lọc trận đấu (giúp quản lý dễ hơn khi nhiều trận) ── */
+  const [matchQuery,   setMatchQuery]   = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
   /* ── CUT_TO_SE / GROUP_PLAYOFF actions ── */
   const [populating,     setPopulating]     = useState(false);
   const [generatingPO,   setGeneratingPO]   = useState(false);
@@ -159,34 +200,66 @@ const DrawPage = ({ api, basePath }) => {
     if (!isPreview) { setEditMode(false); setSwapFirst(null); }
   }, [isPreview]);
 
-  /* ══ WebSocket ══════════════════════════════════════════ */
+  /* ══ WebSocket — cập nhật tại chỗ, không reload cả trang ══ */
   const [flashIds, setFlashIds] = useState(() => new Set());
   const flashTimers = useRef({});
 
-  const handleMatchUpdate = useCallback((upd) => {
+  const flashMatch = useCallback((id) => {
+    const numId = Number(id);
+    setFlashIds(prev => { const s = new Set(prev); s.add(numId); return s; });
+    clearTimeout(flashTimers.current[numId]);
+    flashTimers.current[numId] = setTimeout(() => {
+      setFlashIds(prev => { const s = new Set(prev); s.delete(numId); return s; });
+    }, 1500);
+  }, []);
+
+  /** Patch 1 trận vào state cục bộ — dùng cho cả WS message lẫn response API trực tiếp. */
+  const applyMatchToStages = useCallback((upd) => {
+    if (!upd?.id) return;
     setStages(prev => prev.map(stage => {
       if (!stage.matches) return stage;
       const idx = stage.matches.findIndex(m => Number(m.id) === Number(upd.id));
       if (idx === -1) return stage;
       const nm = [...stage.matches];
-      nm[idx] = {
-        ...nm[idx],
-        player1Score: upd.player1Score, player2Score: upd.player2Score,
-        status: upd.status, winner: upd.winner, loser: upd.loser,
-        player1: upd.player1 ?? nm[idx].player1,
-        player2: upd.player2 ?? nm[idx].player2,
-      };
+      nm[idx] = { ...nm[idx], ...upd };
       return { ...stage, matches: nm };
     }));
+    flashMatch(upd.id);
+  }, [flashMatch]);
 
-    const id = Number(upd.id);
-    setFlashIds(prev => { const s = new Set(prev); s.add(id); return s; });
-    clearTimeout(flashTimers.current[id]);
-    flashTimers.current[id] = setTimeout(() => {
-      setFlashIds(prev => { const s = new Set(prev); s.delete(id); return s; });
-    }, 1500);
-  }, []);
-  useMatchWebSocket(tournamentId, handleMatchUpdate);
+  /** BRACKET_SYNC — server đẩy toàn bộ match sau complete/walkover (bao gồm cả trận kế tiếp được cập nhật). */
+  const handleBracketSync = useCallback((matches) => {
+    if (!Array.isArray(matches) || matches.length === 0) return;
+    const byId = new Map(matches.map(m => [Number(m.id), m]));
+    setStages(prev => prev.map(stage => ({
+      ...stage,
+      matches: stage.matches?.map(m => {
+        const upd = byId.get(Number(m.id));
+        if (!upd) return m;
+        if (upd.status !== m.status || upd.player1?.id !== m.player1?.id ||
+            upd.player2?.id !== m.player2?.id || upd.player1Score !== m.player1Score ||
+            upd.player2Score !== m.player2Score) {
+          flashMatch(upd.id);
+        }
+        return { ...m, ...upd };
+      }),
+    })));
+  }, [flashMatch]);
+
+  const { connectionState } = useTournamentSocket(tournamentId, {
+    enabled: !noDrawYet,
+    onMatchUpdate: applyMatchToStages,
+    onBracketSync: handleBracketSync,
+    onReconnect: load,
+  });
+
+  /** Tải lại nhẹ (không bật spinner toàn trang) — dùng làm lưới an toàn khi mất kết nối realtime. */
+  const silentResync = useCallback(async () => {
+    try {
+      const stagesData = await api.getStages(tournamentId);
+      if (Array.isArray(stagesData)) setStages(stagesData);
+    } catch { /* giữ nguyên state hiện tại nếu lỗi */ }
+  }, [api, tournamentId]);
 
   /* ══ R1 position map (for search modal) ═════════════════ */
   const r1PlayerMap = useMemo(() => {
@@ -402,10 +475,16 @@ const DrawPage = ({ api, basePath }) => {
     );
   };
 
-  /* ══ Match lifecycle ════════════════════════════════════ */
+  /* ══ Match lifecycle — patch tại chỗ, không reload cả trang ══ */
   const handleStart = async (matchId) => {
-    try { await api.startMatch(matchId); toast.success("Đã bắt đầu trận"); load(); }
-    catch (err) { toast.error(getApiErrorMessage(err)); }
+    if (startingId) return;
+    setStartingId(matchId);
+    try {
+      const updated = await api.startMatch(matchId);
+      applyMatchToStages(updated);
+      toast.success("Đã bắt đầu trận");
+    } catch (err) { toast.error(getApiErrorMessage(err)); }
+    finally { setStartingId(null); }
   };
 
   const handleSaveScore = async () => {
@@ -414,8 +493,9 @@ const DrawPage = ({ api, basePath }) => {
     if (isNaN(p1)||isNaN(p2)||p1<0||p2<0) { toast.warn("Tỷ số không hợp lệ"); return; }
     setSaving(true);
     try {
-      await api.updateScore(scoreModal.id, { player1Score: p1, player2Score: p2 });
-      toast.success("Đã cập nhật tỷ số"); setScoreModal(null); load();
+      const updated = await api.updateScore(scoreModal.id, { player1Score: p1, player2Score: p2 });
+      applyMatchToStages(updated);
+      toast.success("Đã cập nhật tỷ số"); setScoreModal(null);
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setSaving(false); }
   };
@@ -424,8 +504,12 @@ const DrawPage = ({ api, basePath }) => {
     if (!completeModal) return;
     setSaving(true);
     try {
-      await api.completeMatch(completeModal.id, { winnerParticipantId: winnerId });
-      toast.success("Trận kết thúc — người thắng đã được chuyển lên"); setCompleteModal(null); load();
+      const updated = await api.completeMatch(completeModal.id, { winnerParticipantId: winnerId });
+      applyMatchToStages(updated);
+      toast.success("Trận kết thúc — người thắng đã được chuyển lên"); setCompleteModal(null);
+      // Việc chuyển người thắng lên trận kế tiếp được đồng bộ qua BRACKET_SYNC (realtime);
+      // nếu socket đang mất kết nối thì tải nhẹ để không bị lệch dữ liệu.
+      if (connectionState !== "connected") silentResync();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setSaving(false); }
   };
@@ -434,8 +518,10 @@ const DrawPage = ({ api, basePath }) => {
     if (!completeModal) return;
     setSaving(true);
     try {
-      await api.walkover(completeModal.id, { winnerParticipantId: winnerId });
-      toast.success("Walkover đã ghi nhận"); setCompleteModal(null); load();
+      const updated = await api.walkover(completeModal.id, { winnerParticipantId: winnerId });
+      applyMatchToStages(updated);
+      toast.success("Walkover đã ghi nhận"); setCompleteModal(null);
+      if (connectionState !== "connected") silentResync();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setSaving(false); }
   };
@@ -462,9 +548,14 @@ const DrawPage = ({ api, basePath }) => {
 
       {/* ── Top bar ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-          ← Chi tiết giải
-        </AdminButton>
+        <div className="flex items-center gap-3">
+          <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
+            ← Chi tiết giải
+          </AdminButton>
+          {!noDrawYet && (
+            <SocketConnectionBadge connectionState={connectionState} compact />
+          )}
+        </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           {noDrawYet && (
@@ -605,6 +696,51 @@ const DrawPage = ({ api, basePath }) => {
         </div>
       )}
 
+      {!noDrawYet && (
+        <SocketReconnectBanner connectionState={connectionState} />
+      )}
+
+      {/* ── Tìm kiếm / lọc trận đấu ── */}
+      {!noDrawYet && !isPreview && (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[200px] max-w-xs">
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              className="admin-input w-full pl-8 pr-8 text-sm"
+              placeholder="Tìm mã trận hoặc tên cơ thủ..."
+              value={matchQuery}
+              onChange={e => setMatchQuery(e.target.value)}
+            />
+            {matchQuery && (
+              <button
+                onClick={() => setMatchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500"
+                aria-label="Xoá tìm kiếm"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {MATCH_FILTERS.map(f => (
+              <button
+                key={f.key}
+                onClick={() => setStatusFilter(f.key)}
+                className={[
+                  "px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors",
+                  statusFilter === f.key
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                ].join(" ")}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Empty state ── */}
       {noDrawYet ? (
         <AdminCard>
@@ -636,6 +772,9 @@ const DrawPage = ({ api, basePath }) => {
             dropTarget={dropTarget}
             swapping={swapping}
             isPreview={isPreview}
+            matchQuery={matchQuery}
+            statusFilter={statusFilter}
+            startingId={startingId}
             onSlotClick={handleSlotClick}
             onDragStart={onDragStart}
             onDragOver={onDragOver}
@@ -953,8 +1092,16 @@ const DrawPage = ({ api, basePath }) => {
 /* ══════════════════════════════════════════════════════════
    StageSection
 ══════════════════════════════════════════════════════════ */
+const STAGE_ICON = {
+  KNOCKOUT:    <Swords size={14} />,
+  WINNERS:     <Trophy size={14} />,
+  LOSERS:      <ArrowLeftRight size={14} />,
+  GRAND_FINAL: <Trophy size={14} className="text-amber-500" />,
+};
+
 const StageSection = ({
   stage, editMode, swapFirst, dragSrc, dropTarget, swapping, isPreview,
+  matchQuery, statusFilter, startingId,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
   onOpenSearch, onStart, onScore, onComplete, onEvents, flashIds,
 }) => {
@@ -969,12 +1116,22 @@ const StageSection = ({
   const totalCount   = stage.matches?.length ?? 0;
   const isEditable   = EDITABLE_STAGES.includes(stage.stageType);
 
-  const STAGE_ICON = {
-    KNOCKOUT:    <Swords size={14} />,
-    WINNERS:     <Trophy size={14} />,
-    LOSERS:      <ArrowLeftRight size={14} />,
-    GRAND_FINAL: <Trophy size={14} className="text-amber-500" />,
-  };
+  // Vòng đang chọn để xem — mặc định vòng đầu tiên còn trận chưa xong (giúp không phải cuộn qua
+  // cả bracket khi có nhiều trận). Giữ state cục bộ theo key=stage.id nên không bị reset khi WS cập nhật.
+  const [activeRound, setActiveRound] = useState(() => computeDefaultRound(sortedRounds));
+  useEffect(() => {
+    if (activeRound == null && sortedRounds.length) setActiveRound(computeDefaultRound(sortedRounds));
+  }, [sortedRounds, activeRound]);
+
+  const isSearching = Boolean(matchQuery.trim()) || statusFilter !== "ALL";
+
+  const visibleRounds = isSearching
+    ? sortedRounds
+    : sortedRounds.filter(([roundNo]) => Number(roundNo) === activeRound);
+
+  const filteredRounds = visibleRounds
+    .map(([roundNo, matches]) => [roundNo, matches.filter(m => matchPassesFilter(m, statusFilter, matchQuery))])
+    .filter(([, matches]) => matches.length > 0);
 
   return (
     <AdminCard padding={false}>
@@ -998,18 +1155,52 @@ const StageSection = ({
         </div>
       </div>
 
+      {/* Round tabs — ẩn khi đang tìm kiếm/lọc (lúc đó hiện phẳng tất cả vòng khớp) */}
+      {!isSearching && totalRounds > 1 && (
+        <div className="flex items-center gap-1.5 px-5 py-2.5 border-b border-slate-50 overflow-x-auto">
+          {sortedRounds.map(([roundNo, matches]) => {
+            const rStyle = getRoundStyle(Number(roundNo), totalRounds);
+            const rDone = matches.filter(m => ["COMPLETED","WALKOVER","BYE"].includes(m.status)).length;
+            const active = Number(roundNo) === activeRound;
+            return (
+              <button
+                key={roundNo}
+                onClick={() => setActiveRound(Number(roundNo))}
+                className={[
+                  "shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors",
+                  active
+                    ? `${rStyle.bg} ${rStyle.text} ${rStyle.border} ring-1 ring-inset ring-current/20`
+                    : "bg-white text-slate-400 border-slate-200 hover:border-slate-300 hover:text-slate-600",
+                ].join(" ")}
+              >
+                {rStyle.label}
+                <span className="text-[10px] opacity-70">{rDone}/{matches.length}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Rounds */}
-      {sortedRounds.map(([roundNo, matches]) => {
+      {totalCount === 0 ? (
+        <p className="text-sm text-slate-400 text-center py-8">Chưa có trận nào.</p>
+      ) : filteredRounds.length === 0 ? (
+        <p className="text-sm text-slate-400 text-center py-8">
+          Không có trận nào khớp bộ lọc.
+        </p>
+      ) : filteredRounds.map(([roundNo, matches]) => {
         const rStyle = getRoundStyle(Number(roundNo), totalRounds);
         return (
           <div key={roundNo} className="border-b border-slate-50 last:border-0">
-            {/* Round label */}
-            <div className="px-5 py-2 flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${rStyle.bg} ${rStyle.text} ${rStyle.border}`}>
-                {rStyle.label}
-              </span>
-              <span className="text-xs text-slate-300">{matches.length} trận</span>
-            </div>
+            {/* Round label — chỉ hiện khi đang tìm kiếm/lọc (round tab đã thay thế vai trò này) */}
+            {isSearching && (
+              <div className="px-5 py-2 flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${rStyle.bg} ${rStyle.text} ${rStyle.border}`}>
+                  {rStyle.label}
+                </span>
+                <span className="text-xs text-slate-300">{matches.length} trận</span>
+              </div>
+            )}
 
             {/* Matches */}
             <div className="divide-y divide-slate-50 px-2 pb-2">
@@ -1024,6 +1215,7 @@ const StageSection = ({
                   dragSrc={dragSrc}
                   dropTarget={dropTarget}
                   swapping={swapping}
+                  starting={startingId === m.id}
                   onSlotClick={onSlotClick}
                   onDragStart={onDragStart}
                   onDragOver={onDragOver}
@@ -1050,7 +1242,7 @@ const StageSection = ({
    MatchRow
 ══════════════════════════════════════════════════════════ */
 const MatchRow = ({
-  match, stageType, editMode, isPreview, swapFirst, dragSrc, dropTarget, swapping,
+  match, stageType, editMode, isPreview, swapFirst, dragSrc, dropTarget, swapping, starting,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
   onOpenSearch, onStart, onScore, onComplete, onEvents, flashIds,
 }) => {
@@ -1125,9 +1317,12 @@ const MatchRow = ({
         {!editMode && !isPreview && (
           <div className="flex gap-1 shrink-0">
             {match.status === "PENDING" && match.player1 && match.player2 && (
-              <ActionBtn icon={<Play size={13} />} title="Bắt đầu"
-                         cls="text-emerald-600 hover:bg-emerald-50"
-                         onClick={() => onStart(match.id)} />
+              <ActionBtn
+                icon={starting ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
+                title="Bắt đầu"
+                cls="text-emerald-600 hover:bg-emerald-50"
+                disabled={starting}
+                onClick={() => onStart(match.id)} />
             )}
             {match.status === "IN_PROGRESS" && (
               <>
@@ -1232,9 +1427,9 @@ const PlayerAvatar = ({ name, id, size = "sm" }) => {
   );
 };
 
-const ActionBtn = ({ icon, title, cls, onClick }) => (
-  <button type="button" title={title} onClick={onClick}
-          className={`admin-table-action ${cls}`}>
+const ActionBtn = ({ icon, title, cls, onClick, disabled }) => (
+  <button type="button" title={title} onClick={onClick} disabled={disabled}
+          className={`admin-table-action ${cls} disabled:opacity-50 disabled:pointer-events-none`}>
     {icon}
   </button>
 );
