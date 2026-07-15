@@ -35,12 +35,10 @@
 
 .admin-content {
   padding: 1.5rem 1.75rem 2.5rem;
-  max-width: 1440px;
   width: 100%;
 }
 
 .admin-content--full {
-  max-width: none;
   width: 100%;
 }
 
