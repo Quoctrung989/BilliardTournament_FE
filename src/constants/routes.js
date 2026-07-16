@@ -543,6 +543,10 @@ export const ROUTES = [
     component: PaymentReturn,
   },
   {
+    path: "/payment/cancel",
+    component: PaymentReturn,
+  },
+  {
     path: "/live/tournament/:id",
     component: TournamentLiveTvPage,
   },
