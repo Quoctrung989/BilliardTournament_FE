@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Clock, Crown, Monitor, RefreshCw } from "lucide-react";
+import { ArrowLeft, Clock, Crown, Monitor, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
 import { managerMatchApi } from "../../../api/matchApi";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -410,10 +410,10 @@ const ManagerLiveDashboardPage = () => {
       <div className="flex flex-wrap items-center gap-2 justify-between">
         <button
           type="button"
-          className="text-sm text-indigo-600 hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
           onClick={() => navigate(`/manager/tournaments/${tournamentId}`)}
         >
-          ← Quay lại chi tiết giải
+          <ArrowLeft size={14} /> Quay lại chi tiết giải
         </button>
         <div className="flex items-center gap-2">
           <SocketConnectionBadge connectionState={connectionState} />

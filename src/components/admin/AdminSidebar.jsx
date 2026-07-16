@@ -3,12 +3,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   ChevronLeft,
+  FileText,
   LayoutDashboard,
   Mail,
   MapPin,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
+  Share2,
   Trophy,
   UserCog,
   Users,
@@ -25,6 +27,8 @@ const iconMap = {
   "user-cog": UserCog,
   "map-pin": MapPin,
   mail: Mail,
+  "file-text": FileText,
+  "share-2": Share2,
 };
 
 const NavLink = ({ active, onClick, icon: Icon, label, indent, collapsed }) => {

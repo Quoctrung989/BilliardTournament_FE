@@ -70,7 +70,7 @@ const PlayerMatchSchedulePage = () => {
             ) : matches.length === 0 ? (
               <div className="profile-prefs-empty">
                 <p className="mb-4">Bạn chưa có trận đấu nào.</p>
-                <button type="button" className="profile-btn-save" onClick={() => navigate("/player/tournaments")}>
+                <button type="button" className="profile-btn-save" onClick={() => navigate("/event")}>
                   Xem giải đấu
                 </button>
               </div>
@@ -93,7 +93,7 @@ const PlayerMatchSchedulePage = () => {
                             {stageType && `${stageType} · `}{group.matches.length} trận
                           </p>
                         </div>
-                        <button type="button" onClick={() => navigate(`/player/tournaments/${tournamentId}`)}
+                        <button type="button" onClick={() => navigate(`/event/${tournamentId}`)}
                           className="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 border border-slate-600 hover:bg-slate-700 transition-colors flex-shrink-0">
                           Xem giải →
                         </button>
@@ -240,7 +240,7 @@ const PlayerMatchSchedulePage = () => {
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white text-slate-900 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer">
                   Đóng
                 </button>
-                <button type="button" onClick={() => navigate(`/player/tournaments/${m.tournamentId}`)}
+                <button type="button" onClick={() => navigate(`/event/${m.tournamentId}`)}
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg text-white transition-colors cursor-pointer"
                   style={{ background: "#0c1527" }}>
                   Xem giải đấu

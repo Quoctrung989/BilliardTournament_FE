@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, List, GitBranch, ChevronDown, Trophy, BarChart2, Wifi, ZoomIn, ZoomOut, Move, Maximize2 } from "lucide-react";
+import { Search, List, GitBranch, ChevronDown, Trophy, BarChart2, ZoomIn, ZoomOut, Move, Maximize2 } from "lucide-react";
 import { getPublicStages } from "../../api/matchApi";
-import { useMatchWebSocket } from "../../hooks/useMatchWebSocket";
+import { useTournamentSocket } from "../../hooks/useTournamentSocket";
 import "./eventTheme.css";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -55,7 +55,7 @@ const apiStatus = (s) =>
   : s === "COMPLETED" || s === "WALKOVER" || s === "BYE" ? "done"
   : "upcoming";
 
-const apiMatchToComp = (m) => {
+export const apiMatchToComp = (m) => {
   const status = apiStatus(m.status);
   let winSide = null;
   if (m.winner) {
@@ -204,7 +204,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
   );
 };
 
-const MatchRow = ({ m, matchNum, flashIds }) => {
+export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
   const navigate   = useNavigate();
   const num        = matchNum ?? m.seq;
   const isLive     = m.status === "live";
@@ -249,9 +249,11 @@ const MatchRow = ({ m, matchNum, flashIds }) => {
             </span>
           : <span className="text-[10px] text-sky-600 dark:text-sky-300/80 font-normal">{fmtTime(m.time)}</span>
         }
-        <span className="text-[9px] text-sky-600 dark:text-sky-300/70 font-normal tracking-wide">
-          #{num} / W#{num+15} / L#{num+25}
-        </span>
+        {showRefs && (
+          <span className="text-[9px] text-sky-600 dark:text-sky-300/70 font-normal tracking-wide">
+            #{num} / W#{num+15} / L#{num+25}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -587,24 +589,6 @@ const DoubleEliminationBracketView = ({ stages, flashIds }) => {
   );
 };
 
-/* ═══════════════════════════════════════════════════════════════════
-   FORMAT BADGE
-═══════════════════════════════════════════════════════════════════ */
-const FORMAT_INFO = {
-  single_elimination: { label:"Loại trực tiếp 1 lần thua", bg:"bg-blue-50",   text:"text-blue-600",   dot:"bg-blue-400"   },
-  double_elimination: { label:"Loại trực tiếp 2 lần thua", bg:"bg-purple-50", text:"text-purple-600", dot:"bg-purple-400" },
-  round_robin:        { label:"Vòng tròn đơn",             bg:"bg-green-50",  text:"text-green-600",  dot:"bg-green-400"  },
-  group_stage:        { label:"Vòng bảng + Playoff",       bg:"bg-amber-50",  text:"text-amber-600",  dot:"bg-amber-400"  },
-};
-const FormatBadge = ({ format }) => {
-  const info = FORMAT_INFO[format]; if (!info) return null;
-  return (
-    <span className={`inline-flex items-center gap-1.5 text-[10px] font-medium px-3 py-1 rounded-full ${info.bg} ${info.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${info.dot}`}/>{info.label}
-    </span>
-  );
-};
-
 const EmptyState = ({ onClear }) => (
   <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm text-center py-16">
     <p className="text-gray-400 dark:text-white/50 text-sm font-light">Không tìm thấy trận đấu phù hợp.</p>
@@ -628,7 +612,6 @@ const MatchesTab = ({ tournament }) => {
   const [view,        setView]        = useState("list");
   const [nameSearch,  setNameSearch]  = useState("");
   const [roundFilter, setRoundFilter] = useState("");
-  const [wsConnected, setWsConnected] = useState(false);
 
   const load = useCallback(async () => {
     if (!tournament?.id) { setLoading(false); return; }
@@ -645,9 +628,17 @@ const MatchesTab = ({ tournament }) => {
   const [flashIds, setFlashIds] = useState(() => new Set());
   const flashTimers = useRef({});
 
-  /* ── WebSocket: cập nhật tỷ số real-time ── */
+  /* ── WebSocket: cập nhật tỷ số + người chơi kế tiếp real-time ── */
+  const flashMatch = useCallback((id) => {
+    const sid = String(id);
+    setFlashIds(prev => { const s = new Set(prev); s.add(sid); return s; });
+    clearTimeout(flashTimers.current[sid]);
+    flashTimers.current[sid] = setTimeout(() => {
+      setFlashIds(prev => { const s = new Set(prev); s.delete(sid); return s; });
+    }, 1500);
+  }, []);
+
   const handleMatchUpdate = useCallback((updatedMatch) => {
-    setWsConnected(true);
     setStages(prev => prev.map(stage => {
       if (!stage.matches) return stage;
       const matchIdx = stage.matches.findIndex(m => m.id === updatedMatch.id);
@@ -655,6 +646,10 @@ const MatchesTab = ({ tournament }) => {
       const newMatches = [...stage.matches];
       newMatches[matchIdx] = {
         ...newMatches[matchIdx],
+        // player1/player2 phải merge ở đây — đây là chỗ trận kế tiếp (vòng sau)
+        // nhận người thắng vừa được điền vào (trước đó là null/TBD).
+        player1: updatedMatch.player1 ?? newMatches[matchIdx].player1,
+        player2: updatedMatch.player2 ?? newMatches[matchIdx].player2,
         player1Score: updatedMatch.player1Score,
         player2Score: updatedMatch.player2Score,
         status: updatedMatch.status,
@@ -664,16 +659,32 @@ const MatchesTab = ({ tournament }) => {
       return { ...stage, matches: newMatches };
     }));
 
-    // Flash effect: dùng string ID vì apiMatchToComp chuyển id → String
-    const sid = String(updatedMatch.id);
-    setFlashIds(prev => { const s = new Set(prev); s.add(sid); return s; });
-    clearTimeout(flashTimers.current[sid]);
-    flashTimers.current[sid] = setTimeout(() => {
-      setFlashIds(prev => { const s = new Set(prev); s.delete(sid); return s; });
-    }, 1500);
+    flashMatch(updatedMatch.id);
+  }, [flashMatch]);
+
+  /* Safety net: nếu lỡ mất một message MATCH_UPDATE (rớt mạng, reconnect...),
+     BE luôn kèm theo BRACKET_SYNC (toàn bộ trận của tournament) để đồng bộ lại. */
+  const handleBracketSync = useCallback((matches) => {
+    if (!Array.isArray(matches) || !matches.length) return;
+    setStages(prev => {
+      const byStage = new Map();
+      matches.forEach(m => {
+        const key = m.stageId ?? m.stageType;
+        if (!byStage.has(key)) byStage.set(key, []);
+        byStage.get(key).push(m);
+      });
+      return prev.map(stage => {
+        const key = stage.id ?? stage.stageType;
+        const stageMatches = byStage.get(key);
+        return stageMatches ? { ...stage, matches: stageMatches } : stage;
+      });
+    });
   }, []);
 
-  useMatchWebSocket(tournament?.id, handleMatchUpdate);
+  useTournamentSocket(tournament?.id, {
+    onMatchUpdate: handleMatchUpdate,
+    onBracketSync: handleBracketSync,
+  });
 
   /* Detect format */
   const format = useMemo(
@@ -762,17 +773,8 @@ const MatchesTab = ({ tournament }) => {
 
   return (
     <div className="space-y-4">
-      {/* Header: format badge + view toggle */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <FormatBadge format={format}/>
-          {tournament?.status === "IN_PROGRESS" && (
-            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${wsConnected ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-              <Wifi size={10}/>
-              {wsConnected ? "Realtime" : "Kết nối..."}
-            </span>
-          )}
-        </div>
+      {/* Header: view toggle */}
+      <div className="flex items-center justify-end flex-wrap gap-2">
         <div className="flex gap-1.5">
           {views.map(({id,label,Icon})=>(
             <button key={id} onClick={()=>setView(id)}

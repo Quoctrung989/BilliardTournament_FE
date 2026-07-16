@@ -116,7 +116,7 @@ const PaymentSuccessPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/player/tournaments")}
+                onClick={() => navigate("/event")}
                 className="w-full py-2.5 rounded-2xl font-medium text-sm text-slate-500 hover:text-[#010851] border border-slate-200 hover:border-[#010851] transition-colors"
               >
                 Xem giải đấu khác

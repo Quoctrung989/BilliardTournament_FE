@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { CreditCard, Calendar, CheckCircle2, XCircle, Clock, X } from "lucide-react";
+import { ArrowLeft, CreditCard, Calendar, CheckCircle2, XCircle, Clock, X } from "lucide-react";
 import { getMyPayments } from "../../api/paymentApi";
 import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
@@ -79,8 +79,8 @@ const MyPaymentsPage = () => {
               <p className="profile-prefs-lead" style={{ marginBottom: 0 }}>
                 Tất cả giao dịch thanh toán phí tham dự giải đấu
               </p>
-              <button type="button" className="profile-btn-secondary" onClick={() => navigate("/player/registrations")}>
-                ← Đăng ký của tôi
+              <button type="button" className="profile-btn-secondary inline-flex items-center gap-1.5" onClick={() => navigate("/player/registrations")}>
+                <ArrowLeft size={14} /> Đăng ký của tôi
               </button>
             </div>
 
@@ -90,7 +90,7 @@ const MyPaymentsPage = () => {
               <div className="profile-prefs-empty">
                 <CreditCard size={40} className="mx-auto mb-4 text-slate-300" />
                 <p className="mb-4">Chưa có giao dịch nào</p>
-                <button type="button" className="profile-btn-save" onClick={() => navigate("/player/tournaments")}>
+                <button type="button" className="profile-btn-save" onClick={() => navigate("/event")}>
                   Xem giải đấu
                 </button>
               </div>

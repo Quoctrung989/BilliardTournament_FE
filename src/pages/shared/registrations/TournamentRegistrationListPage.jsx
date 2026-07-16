@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { ArrowLeft } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
@@ -104,7 +105,7 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
         <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-          ← Chi tiết giải
+          <ArrowLeft size={14} /> Chi tiết giải
         </AdminButton>
       </div>
 

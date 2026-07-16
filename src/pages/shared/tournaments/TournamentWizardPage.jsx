@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Search, X } from "lucide-react";
+import { ArrowLeft, Search, X } from "lucide-react";
 import { toast } from "react-toastify";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
@@ -32,6 +32,8 @@ const defaultBasic = {
   startAt: "",
   endAt: "",
   isRegister: false,
+  isShowTournament: false,
+  isPublicRatio: false,
   registrationFormTemplateId: "",
 };
 
@@ -202,6 +204,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const branchScope = basePath.startsWith("/owner") ? "owner" : "manager";
 
   const [dateErrors, setDateErrors] = useState({ registrationDeadline: "", startAt: "", endAt: "" });
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [seedingMethod, setSeedingMethod] = useState("RANDOM");
   const [configFields, setConfigFields] = useState([]);
@@ -256,6 +259,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
         startAt: toLocalInput(detail.startAt),
         endAt: toLocalInput(detail.endAt),
         isRegister: !!detail.isRegister,
+        isShowTournament: !!detail.isShowTournament,
+        isPublicRatio: !!detail.isPublicRatio,
         registrationFormTemplateId: detail.registrationFormTemplateId
           ? String(detail.registrationFormTemplateId)
           : "",
@@ -337,6 +342,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     startAt: toInstantOrNull(basic.startAt),
     endAt: toInstantOrNull(basic.endAt),
     isRegister: !!basic.isRegister,
+    isShowTournament: !!basic.isShowTournament,
+    isPublicRatio: !!basic.isPublicRatio,
     registrationFormTemplateId: basic.isRegister && basic.registrationFormTemplateId
       ? Number(basic.registrationFormTemplateId)
       : null,
@@ -360,33 +367,38 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     setDateErrors(validateDates(next));
   };
 
+  const validateStep1 = () => {
+    const errs = {};
+    if (!basic.name.trim()) errs.name = "Tên giải đấu không được để trống.";
+    if (!basic.gameType) errs.gameType = "Vui lòng chọn loại bi.";
+    if (!basic.format) errs.format = "Vui lòng chọn thể thức.";
+    if (!basic.branchId) errs.branchId = "Vui lòng chọn chi nhánh tổ chức.";
+    if (!basic.maxParticipants || Number(basic.maxParticipants) < 2)
+      errs.maxParticipants = "Số người tham gia tối thiểu là 2.";
+    if (basic.isRegister && !basic.registrationFormTemplateId)
+      errs.registrationFormTemplateId = "Vui lòng chọn template form đăng ký.";
+    return errs;
+  };
+
   const handleSaveStep1 = async () => {
-    if (!basic.name.trim() || !basic.gameType || !basic.format) {
-      toast.warn("Vui lòng điền tên, loại bi và thể thức");
-      return;
-    }
-    if (!basic.branchId) {
-      toast.warn("Vui lòng chọn chi nhánh tổ chức");
-      return;
-    }
-    if (basic.isRegister && !basic.registrationFormTemplateId) {
-      toast.warn("Chọn template form đăng ký khi bật đăng ký online");
-      return;
-    }
-    const errs = validateDates(basic);
-    setDateErrors(errs);
-    if (Object.values(errs).some(Boolean)) {
-      toast.warn("Vui lòng kiểm tra lại các trường ngày tháng");
+    const errs = validateStep1();
+    const dErrs = validateDates(basic);
+    setFieldErrors(errs);
+    setDateErrors(dErrs);
+    if (Object.keys(errs).length > 0 || Object.values(dErrs).some(Boolean)) {
+      toast.warn("Vui lòng kiểm tra lại các trường bắt buộc");
       return;
     }
     setSaving(true);
     try {
       if (isNew) {
         const created = await api.createTournament(buildBasicPayload());
+        setFieldErrors({});
         toast.success("Đã tạo giải đấu");
         navigate(`${basePath}/${created.id}?step=2`, { replace: true });
       } else {
         await api.updateTournament(tournamentId, buildBasicPayload());
+        setFieldErrors({});
         toast.success("Đã cập nhật thông tin giải");
         setStep(2);
       }
@@ -462,13 +474,17 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
           )}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <label className="admin-label">Tên giải *</label>
+              <label className="admin-label">Tên giải <span className="text-red-500">*</span></label>
               <input
-                className="admin-input w-full"
+                className={`admin-input w-full ${fieldErrors.name ? "border-rose-400 focus:ring-rose-300" : ""}`}
                 placeholder="VD: CLB Bi-a FPT — Mở rộng 9-Ball 2026"
                 value={basic.name}
-                onChange={(e) => setBasic((b) => ({ ...b, name: e.target.value }))}
+                onChange={(e) => {
+                  setBasic((b) => ({ ...b, name: e.target.value }));
+                  if (fieldErrors.name) setFieldErrors((f) => ({ ...f, name: "" }));
+                }}
               />
+              {fieldErrors.name && <p className="mt-1 text-xs text-rose-600">{fieldErrors.name}</p>}
             </div>
             <div className="sm:col-span-2">
               <label className="admin-label">Mô tả</label>
@@ -505,25 +521,32 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
             </div>
 
             <div>
-              <label className="admin-label">Loại bi *</label>
+              <label className="admin-label">Loại bi <span className="text-red-500">*</span></label>
               <select
-                className="admin-select w-full"
+                className={`admin-select w-full ${fieldErrors.gameType ? "border-rose-400 focus:ring-rose-300" : ""}`}
                 value={basic.gameType}
-                onChange={(e) => setBasic((b) => ({ ...b, gameType: e.target.value }))}
+                onChange={(e) => {
+                  setBasic((b) => ({ ...b, gameType: e.target.value }));
+                  if (fieldErrors.gameType) setFieldErrors((f) => ({ ...f, gameType: "" }));
+                }}
               >
                 <option value="">-- Chọn loại bi --</option>
                 {gameTypes.map((g) => (
                   <option key={g.code} value={g.code}>{g.name}</option>
                 ))}
               </select>
+              {fieldErrors.gameType && <p className="mt-1 text-xs text-rose-600">{fieldErrors.gameType}</p>}
             </div>
 
             <div>
-              <label className="admin-label">Thể thức *</label>
+              <label className="admin-label">Thể thức <span className="text-red-500">*</span></label>
               <select
-                className="admin-select w-full"
+                className={`admin-select w-full ${fieldErrors.format ? "border-rose-400 focus:ring-rose-300" : ""}`}
                 value={basic.format}
-                onChange={(e) => setBasic((b) => ({ ...b, format: e.target.value }))}
+                onChange={(e) => {
+                  setBasic((b) => ({ ...b, format: e.target.value }));
+                  if (fieldErrors.format) setFieldErrors((f) => ({ ...f, format: "" }));
+                }}
                 disabled={!isNew && tournamentStatus !== "DRAFT"}
               >
                 <option value="">-- Chọn thể thức --</option>
@@ -531,27 +554,32 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                   <option key={f.code} value={f.code}>{f.name}</option>
                 ))}
               </select>
+              {fieldErrors.format && <p className="mt-1 text-xs text-rose-600">{fieldErrors.format}</p>}
               {!isNew && tournamentStatus !== "DRAFT" && (
                 <p className="text-xs text-slate-400 mt-1">Không thể đổi thể thức sau khi rời trạng thái Nháp.</p>
               )}
             </div>
 
             <div>
-              <label className="admin-label">Chi nhánh tổ chức *</label>
+              <label className="admin-label">Chi nhánh tổ chức <span className="text-red-500">*</span></label>
               {branches.length <= 1 ? (
                 <input
-                  className="admin-input w-full bg-slate-50"
+                  className={`admin-input w-full bg-slate-50 ${fieldErrors.branchId ? "border-rose-400 focus:ring-rose-300" : ""}`}
                   value={branches[0]?.name || "Chưa có chi nhánh khả dụng"}
                   readOnly
                 />
               ) : (
                 <BranchSearchSelect
                   value={basic.branchId}
-                  onChange={(branchId) => setBasic((b) => ({ ...b, branchId }))}
+                  onChange={(branchId) => {
+                    setBasic((b) => ({ ...b, branchId }));
+                    if (fieldErrors.branchId) setFieldErrors((f) => ({ ...f, branchId: "" }));
+                  }}
                   branches={branches}
                   disabled={!isNew && tournamentStatus !== "DRAFT"}
                 />
               )}
+              {fieldErrors.branchId && <p className="mt-1 text-xs text-rose-600">{fieldErrors.branchId}</p>}
               {branches.length === 0 && (
                 <p className="text-xs text-amber-600 mt-1">
                   Chưa có chi nhánh nào khả dụng — tạo chi nhánh trước khi tạo giải.
@@ -573,14 +601,18 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
             </div>
 
             <div>
-              <label className="admin-label">Số người tối đa</label>
+              <label className="admin-label">Số người tối đa <span className="text-red-500">*</span></label>
               <input
                 type="number"
                 min={2}
-                className="admin-input w-full"
+                className={`admin-input w-full ${fieldErrors.maxParticipants ? "border-rose-400 focus:ring-rose-300" : ""}`}
                 value={basic.maxParticipants}
-                onChange={(e) => setBasic((b) => ({ ...b, maxParticipants: e.target.value }))}
+                onChange={(e) => {
+                  setBasic((b) => ({ ...b, maxParticipants: e.target.value }));
+                  if (fieldErrors.maxParticipants) setFieldErrors((f) => ({ ...f, maxParticipants: "" }));
+                }}
               />
+              {fieldErrors.maxParticipants && <p className="mt-1 text-xs text-rose-600">{fieldErrors.maxParticipants}</p>}
             </div>
 
             <div>
@@ -685,16 +717,19 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
             {basic.isRegister && (
               <div className="sm:col-span-2">
-                <label className="admin-label">Template form đăng ký *</label>
+                <label className="admin-label">Template form đăng ký <span className="text-red-500">*</span></label>
                 {registrationTemplates.length === 0 ? (
                   <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
                     Chưa có template nào. Admin cần tạo template trước.
                   </p>
                 ) : (
                   <select
-                    className="admin-select w-full"
+                    className={`admin-select w-full ${fieldErrors.registrationFormTemplateId ? "border-rose-400 focus:ring-rose-300" : ""}`}
                     value={basic.registrationFormTemplateId}
-                    onChange={(e) => setBasic((b) => ({ ...b, registrationFormTemplateId: e.target.value }))}
+                    onChange={(e) => {
+                      setBasic((b) => ({ ...b, registrationFormTemplateId: e.target.value }));
+                      if (fieldErrors.registrationFormTemplateId) setFieldErrors((f) => ({ ...f, registrationFormTemplateId: "" }));
+                    }}
                   >
                     <option value="">-- Chọn template --</option>
                     {registrationTemplates.map((t) => (
@@ -704,8 +739,49 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                     ))}
                   </select>
                 )}
+                {fieldErrors.registrationFormTemplateId && <p className="mt-1 text-xs text-rose-600">{fieldErrors.registrationFormTemplateId}</p>}
               </div>
             )}
+
+            {/* Public visibility toggle */}
+            <div className="sm:col-span-2 pt-3 border-t border-slate-100">
+              <label className="flex items-center gap-3 text-sm font-medium text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded"
+                  checked={basic.isShowTournament}
+                  onChange={(e) =>
+                    setBasic((b) => ({ ...b, isShowTournament: e.target.checked }))
+                  }
+                />
+                <span>
+                  Hiển thị giải đấu công khai
+                  <span className="block text-xs font-normal text-slate-400 mt-0.5">
+                    Giải đấu sẽ xuất hiện trên trang sự kiện công khai và được đăng lên Facebook khi công bố.
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            {/* Public ratio toggle */}
+            <div className="sm:col-span-2">
+              <label className="flex items-center gap-3 text-sm font-medium text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded"
+                  checked={basic.isPublicRatio}
+                  onChange={(e) =>
+                    setBasic((b) => ({ ...b, isPublicRatio: e.target.checked }))
+                  }
+                />
+                <span>
+                  Công khai tỉ số & xếp hạng
+                  <span className="block text-xs font-normal text-slate-400 mt-0.5">
+                    Cho phép người xem công khai theo dõi trận đấu, tỉ số và bảng xếp hạng.
+                  </span>
+                </span>
+              </label>
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 mt-6">
@@ -751,7 +827,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
               <div className="flex justify-between gap-2 mt-6 pt-4 border-t border-slate-100">
                 <AdminButton variant="secondary" onClick={() => setStep(1)}>
-                  ← Bước 1
+                  <ArrowLeft size={14} /> Bước 1
                 </AdminButton>
                 <AdminButton variant="primary" onClick={handleSaveStep2} disabled={saving}>
                   {saving ? "Đang lưu..." : "Lưu config & xem lại →"}
@@ -829,6 +905,14 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                         ? `Có${selectedTemplateName ? ` — ${selectedTemplateName}` : ""}`
                         : "Không"}
                     </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase mb-1">Hiển thị công khai</p>
+                    <p className="font-medium">{basic.isShowTournament ? "Có" : "Không"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase mb-1">Công khai tỉ số</p>
+                    <p className="font-medium">{basic.isPublicRatio ? "Có" : "Không"}</p>
                   </div>
                   {resolvedConfig && (
                     <div>
@@ -908,7 +992,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
                 <div className="flex flex-wrap justify-between gap-2 pt-4 border-t border-slate-100">
                   <AdminButton variant="secondary" onClick={() => setStep(2)}>
-                    ← Chỉnh config
+                    <ArrowLeft size={14} /> Chỉnh config
                   </AdminButton>
                   <div className="flex gap-2">
                     <AdminButton

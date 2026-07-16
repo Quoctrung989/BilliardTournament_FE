@@ -18,3 +18,6 @@ export const getPublicTournamentRankings = (id) =>
 
 export const getParticipantProfile = (participantId) =>
   unwrap(axiosClient.get(`/participants/${participantId}/profile`));
+
+export const getPlayerProfileByUserId = (userId) =>
+  unwrap(axiosClient.get(`/participants/user/${userId}/profile`));

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { UserPlus, Upload, Download } from "lucide-react";
+import { ArrowLeft, UserPlus, Upload, Download } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
@@ -123,7 +123,7 @@ const ParticipantListPage = ({ api, basePath }) => {
     <div className="space-y-5">
       {/* Back */}
       <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-        ← Chi tiết giải
+        <ArrowLeft size={14} /> Chi tiết giải
       </AdminButton>
 
       <AdminCard padding={false}>

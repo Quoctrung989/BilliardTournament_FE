@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -6,13 +6,16 @@ import {
   Info, List, Radio, BarChart2, UserCheck,
   CreditCard, Clock, CheckCircle2, XCircle, ChevronRight, Search,
 } from "lucide-react";
-import MatchesTab from "./MatchesTab";
+import MatchesTab, { apiMatchToComp, MatchRow } from "./MatchesTab";
 import RankingTab from "./RankingTab";
 import { getPublicTournamentDetail } from "../../api/publicTournamentApi";
 import { getMyRegistrations } from "../../api/playerRegistrationApi";
 import { listPublicParticipants } from "../../api/participantApi";
+import { getPublicMatches } from "../../api/matchApi";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { useAuthStore } from "../../store/authStore";
+import { useTournamentSocket } from "../../hooks/useTournamentSocket";
+import { isMatchLive } from "../../utils/refereeMatch";
 import "./eventTheme.css";
 
 const BANNER_POOL = [
@@ -525,7 +528,7 @@ const PlayersTab = ({ participants }) => {
                   <button
                     key={p.id}
                     type="button"
-                    onClick={() => navigate(`/event/players/${p.id}`)}
+                    onClick={() => navigate(p.userId ? `/event/players/user/${p.userId}` : `/event/players/${p.id}`)}
                     className="flex items-center gap-3.5 px-4 py-5 cursor-pointer bg-transparent border-none text-left transition-colors rounded-2xl hover:bg-[#f8f9fb] dark:hover:bg-white/5"
                   >
                     {/* Avatar — ảnh thật hoặc ảnh mặc định (silhouette) khi chưa cập nhật */}
@@ -587,12 +590,94 @@ const PlayersTab = ({ participants }) => {
   );
 };
 
-const ComingSoon = ({ label }) => (
-  <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "6rem 2rem", gap: "0.5rem" }}>
-    <p style={{ color: "#e2e8f0", fontSize: "2.5rem", fontWeight: 600 }}>{label}</p>
-    <p style={{ color: "#94a3b8", fontSize: "0.875rem" }}>Sắp ra mắt</p>
-  </div>
-);
+/* ── Live tab — trận đang IN_PROGRESS được websocket đẩy vào, tự remove khi kết thúc ── */
+const LiveTab = ({ tournamentId }) => {
+  const [matchMap, setMatchMap] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [flashIds, setFlashIds] = useState(() => new Set());
+  const flashTimers = useRef({});
+
+  const upsertMatch = useCallback((m) => {
+    if (m?.id == null) return;
+    setMatchMap((prev) => ({ ...prev, [m.id]: m }));
+
+    const sid = String(m.id);
+    setFlashIds((prev) => { const s = new Set(prev); s.add(sid); return s; });
+    clearTimeout(flashTimers.current[sid]);
+    flashTimers.current[sid] = setTimeout(() => {
+      setFlashIds((prev) => { const s = new Set(prev); s.delete(sid); return s; });
+    }, 1500);
+  }, []);
+
+  const applyBracketSync = useCallback((matches) => {
+    if (!Array.isArray(matches)) return;
+    setMatchMap((prev) => {
+      const next = { ...prev };
+      matches.forEach((m) => { if (m?.id != null) next[m.id] = m; });
+      return next;
+    });
+  }, []);
+
+  const load = useCallback(async () => {
+    if (!tournamentId) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const matches = await getPublicMatches(tournamentId);
+      const map = {};
+      (matches || []).forEach((m) => { if (m?.id != null) map[m.id] = m; });
+      setMatchMap(map);
+    } catch { setMatchMap({}); }
+    finally { setLoading(false); }
+  }, [tournamentId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  useTournamentSocket(tournamentId, {
+    onMatchUpdate: upsertMatch,
+    onBracketSync: applyBracketSync,
+    onReconnect: load,
+  });
+
+  /* Chỉ giữ lại trận đang IN_PROGRESS — trận vừa COMPLETED/WALKOVER sẽ tự biến mất khỏi danh sách này. */
+  const liveMatches = useMemo(() => {
+    return Object.values(matchMap)
+      .filter((m) => isMatchLive(m.status))
+      .sort((a, b) => (a.tableNo ?? 9999) - (b.tableNo ?? 9999) || (a.id ?? 0) - (b.id ?? 0));
+  }, [matchMap]);
+
+  if (loading) {
+    return <p className="text-center py-16 text-sm text-slate-400 dark:text-white/40">Đang tải...</p>;
+  }
+
+  if (!liveMatches.length) {
+    return (
+      <div className="rounded-3xl overflow-hidden shadow-sm flex flex-col items-center justify-center py-20 gap-2"
+           style={{ background: "var(--evt-card-bg)", border: "1px solid var(--evt-card-border)" }}>
+        <Radio size={28} className="text-slate-300 dark:text-white/15" />
+        <p className="text-slate-400 dark:text-white/40 text-sm font-light">Hiện không có trận nào đang diễn ra</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-3xl overflow-hidden shadow-sm"
+         style={{ background: "var(--evt-card-bg)", border: "1px solid var(--evt-card-border)" }}>
+      <div className="flex items-center justify-between px-5 py-2.5"
+           style={{ background: "linear-gradient(135deg,#9b1c1c 0%,#7f1616 100%)" }}>
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          <span className="text-xs font-semibold text-white tracking-wide">Đang diễn ra</span>
+        </div>
+        <span className="text-[10px] font-light text-white/70">{liveMatches.length} trận</span>
+      </div>
+      <div>
+        {liveMatches.map((m) => (
+          <MatchRow key={m.id} m={apiMatchToComp(m)} showRefs={false} flashIds={flashIds} />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 /* ── Page ── */
 const EventDetailPage = () => {
@@ -793,9 +878,9 @@ const EventDetailPage = () => {
             />
           )}
           {activeTab === "players" && <PlayersTab participants={participants} />}
-          {activeTab === "matches" && <MatchesTab tournament={tournamentShim} />}
-          {activeTab === "live"    && <ComingSoon label="Trực tiếp" />}
-          {activeTab === "ranking" && <RankingTab tournament={tournamentShim} />}
+          {activeTab === "matches" && tournament?.isPublicRatio && <MatchesTab tournament={tournamentShim} />}
+          {activeTab === "live"    && tournament?.isPublicRatio && <LiveTab tournamentId={Number(id)} />}
+          {activeTab === "ranking" && tournament?.isPublicRatio && <RankingTab tournament={tournamentShim} />}
         </div>
       </div>
 
@@ -803,7 +888,10 @@ const EventDetailPage = () => {
       <div className="fixed bottom-5 left-0 right-0 z-50 flex justify-center px-6">
         <div className="flex gap-1 p-1.5 rounded-2xl shadow-xl w-full max-w-lg"
           style={{ background: "rgba(13,27,46,0.95)", backdropFilter: "blur(12px)" }}>
-          {TABS.map((tab) => {
+          {TABS.filter((tab) => {
+            if (!tournament?.isPublicRatio && (tab.id === "matches" || tab.id === "live" || tab.id === "ranking")) return false;
+            return true;
+          }).map((tab) => {
             const isActive   = activeTab === tab.id;
             const isDisabled = tab.id === "matches" && matchesLocked;
             return (

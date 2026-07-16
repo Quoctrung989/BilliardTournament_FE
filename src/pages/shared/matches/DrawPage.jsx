@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
-  ArrowLeftRight, Eye, Lock, Search, GripVertical,
+  ArrowLeft, ArrowLeftRight, Eye, Lock, Search, GripVertical,
   ChevronRight, Users, Swords, Zap, BarChart2, Scissors,
 } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -463,7 +463,7 @@ const DrawPage = ({ api, basePath }) => {
       {/* ── Top bar ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-          ← Chi tiết giải
+          <ArrowLeft size={14} /> Chi tiết giải
         </AdminButton>
 
         <div className="flex items-center gap-2 flex-wrap">

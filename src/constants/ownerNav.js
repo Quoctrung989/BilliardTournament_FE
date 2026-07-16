@@ -20,6 +20,7 @@ export const OWNER_NAV = [
     label: "Nội dung",
     items: [
       { label: "Tin tức & Bài viết", path: "/owner/news", icon: "file-text" },
+      { label: "Thống kê Facebook", path: "/owner/facebook-posts", icon: "share-2" },
     ],
   },
 ];
