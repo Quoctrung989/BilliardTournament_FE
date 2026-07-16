@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Trophy, Award, Star } from "lucide-react";
-import { getParticipantProfile } from "../../api/publicTournamentApi";
+import { getParticipantProfile, getPlayerProfileByUserId } from "../../api/publicTournamentApi";
 
 const DEFAULT_AVATAR = "/player-default.webp";
 
@@ -96,18 +96,28 @@ const AchievementCard = ({ entry }) => {
 
 /* ── Page ── */
 const PlayerProfilePage = () => {
-  const { participantId } = useParams();
+  const { participantId, userId } = useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    getParticipantProfile(participantId)
-      .then(setProfile)
+    const fetchProfile = userId
+      ? getPlayerProfileByUserId(userId)
+      : getParticipantProfile(participantId).then((data) => {
+          if (data.userId) {
+            navigate(`/event/players/user/${data.userId}`, { replace: true });
+            return null;
+          }
+          return data;
+        });
+
+    fetchProfile
+      .then((data) => { if (data) setProfile(data); })
       .catch(() => navigate("/event"))
       .finally(() => setLoading(false));
-  }, [participantId, navigate]);
+  }, [participantId, userId, navigate]);
 
   if (loading) {
     return (
@@ -119,7 +129,8 @@ const PlayerProfilePage = () => {
 
   if (!profile) return null;
 
-  const { first, last } = splitName(profile.displayName);
+  const primaryName = profile.accountName || profile.displayName;
+  const { first, last } = splitName(primaryName);
   const champCount = profile.achievements?.filter(a => a.finalRank === 1).length ?? 0;
   const totalEvents = profile.achievements?.length ?? 0;
 

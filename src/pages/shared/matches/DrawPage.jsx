@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
-  ArrowLeftRight, Eye, Lock, Search, GripVertical,
+  ArrowLeft, ArrowLeftRight, Eye, Lock, Search, GripVertical,
   ChevronRight, Users, Swords, Zap, BarChart2, Scissors,
   Loader2, X,
 } from "lucide-react";
@@ -550,7 +550,7 @@ const DrawPage = ({ api, basePath }) => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-            ← Chi tiết giải
+            <ArrowLeft size={14} /> Chi tiết giải
           </AdminButton>
           {!noDrawYet && (
             <SocketConnectionBadge connectionState={connectionState} compact />

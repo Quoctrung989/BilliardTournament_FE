@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { AlertTriangle, Bot, ChevronDown, ChevronUp, History, UserCog } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Bot, ChevronDown, ChevronUp, History, UserCog } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import ConfirmModal from "../../../components/shared/ui/ConfirmModal";
@@ -135,13 +135,9 @@ const TournamentDetailPage = ({ api, basePath }) => {
   return (
     <div className="space-y-5">
       {/* Back */}
-      <button
-        type="button"
-        className="text-sm text-indigo-600 hover:underline"
-        onClick={() => navigate(basePath)}
-      >
-        ← Danh sách giải
-      </button>
+      <AdminButton variant="secondary" onClick={() => navigate(basePath)}>
+        <ArrowLeft size={14} /> Danh sách giải
+      </AdminButton>
 
       {/* Header card */}
       <AdminCard>

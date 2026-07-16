@@ -103,7 +103,7 @@ const PlayerTournamentDetailPage = () => {
       setMyRegistration(found);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
-      navigate("/player/tournaments");
+      navigate("/event");
     } finally {
       setLoading(false);
     }
