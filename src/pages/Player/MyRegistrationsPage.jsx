@@ -113,7 +113,7 @@ const MyRegistrationsPage = () => {
   };
 
   return (
-    <div className="profile-page">
+    <div className="profile-page content-dark">
       <div className="profile-page-inner">
         <div className="profile-prefs-card">
           <div className="profile-prefs-tab">

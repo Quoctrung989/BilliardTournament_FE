@@ -47,3 +47,84 @@ body {
     animation: none;
   }
 }
+
+/* ===================================================================
+   DARK MODE — khu Player & Payment (CommonLayout, ngoài AdminLayout)
+   Chỉ áp cho phần tử có marker .content-dark nên không đụng trang khác.
+   Global vì admin.css chỉ load trong AdminLayout.
+   =================================================================== */
+/* Nền tối mặc định khi dark — cho trang không tự set nền (vd register, payment).
+   Trang có nền riêng (public/admin) sẽ phủ lên bình thường. */
+.dark body { background-color: #0a1220; }
+
+/* Biến màu cho các trang player dùng inline-style (vd PlayerTournamentDetail),
+   vì inline style không thể override bằng class. Dùng var() trong inline. */
+.content-dark {
+  --pd-page: #e8e8e8;
+  --pd-card: #ffffff;
+  --pd-subtle: #f8fafc;
+  --pd-border: #e2e8f0;
+  --pd-text: #1e293b;
+  --pd-heading: #010851;
+}
+
+.dark .content-dark {
+  --pd-page: #0a1220;
+  --pd-card: #131c2e;
+  --pd-subtle: #0e1626;
+  --pd-border: #243049;
+  --pd-text: #e2e8f0;
+  --pd-heading: #c7d2fe;
+  /* cấp biến --admin-* để admin-card / admin-input / admin-pagination
+     dùng trong player hoạt động đúng trên nền tối */
+  --admin-surface: #131c2e;
+  --admin-border: #243049;
+  --admin-text: #e2e8f0;
+  --admin-muted: #94a3b8;
+  --admin-accent: #6366f1;
+  --admin-accent-hover: #4f46e5;
+}
+
+/* Nền trang & card (profile.scss) */
+.dark .content-dark.profile-page,
+.dark .content-dark .profile-page { background: #0a1220; }
+.dark .content-dark .profile-prefs-card {
+  background: #131c2e;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+.dark .content-dark .profile-prefs-lead,
+.dark .content-dark .profile-prefs-empty { color: #94a3b8; }
+.dark .content-dark .profile-form-section-title { color: #f1f5f9; }
+.dark .content-dark .profile-form-section-desc { color: #94a3b8; }
+.dark .content-dark .profile-field-label { color: #cbd5e1; }
+.dark .content-dark .profile-input {
+  background: #0e1626;
+  border-color: #243049;
+  color: #e2e8f0;
+}
+.dark .content-dark .profile-input--readonly { background: #0b1220; color: #64748b; }
+.dark .content-dark .profile-btn-secondary {
+  background: #131c2e;
+  color: #cbd5e1;
+  border-color: #243049;
+}
+.dark .content-dark .profile-btn-secondary:hover:not(:disabled) { background: #1b2740; }
+
+/* Tailwind hardcode trong player/payment pages */
+.dark .content-dark .bg-white { background-color: #131c2e; }
+.dark .content-dark .text-slate-900,
+.dark .content-dark .text-gray-900 { color: #f1f5f9; }
+.dark .content-dark .text-slate-800,
+.dark .content-dark .text-gray-800 { color: #e2e8f0; }
+.dark .content-dark .text-slate-700,
+.dark .content-dark .text-gray-700 { color: #cbd5e1; }
+.dark .content-dark .text-slate-600,
+.dark .content-dark .text-gray-600 { color: #aab6c8; }
+.dark .content-dark .border-slate-100,
+.dark .content-dark .border-gray-100 { border-color: rgba(255, 255, 255, 0.06); }
+.dark .content-dark .border-slate-200,
+.dark .content-dark .border-gray-200 { border-color: rgba(255, 255, 255, 0.10); }
+.dark .content-dark .bg-slate-50,
+.dark .content-dark .bg-gray-50 { background-color: rgba(255, 255, 255, 0.03); }
+.dark .content-dark .bg-slate-100,
+.dark .content-dark .bg-gray-100 { background-color: rgba(255, 255, 255, 0.06); }
