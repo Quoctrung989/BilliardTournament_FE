@@ -171,7 +171,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
         {isLive
           ? <span className="flex items-center gap-1 text-[9px] text-red-400 font-bold"><span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"/>LIVE</span>
           : isDone
-            ? <span className="text-[9px] text-emerald-600 dark:text-emerald-400/60 font-medium">Kết thúc</span>
+            ? <span className="text-[9px] text-blue-600 dark:text-blue-400/60 font-medium">Kết thúc</span>
             : <span className="text-[9px] text-slate-400 dark:text-white/30">{fmtTime(match.time)}</span>}
       </div>
       {[{p:match.p1,side:1},{p:match.p2,side:2}].map(({p,side})=>{
@@ -179,12 +179,12 @@ const BracketCard = ({ match, compact, flashIds }) => {
         const isLoser  = isDone && match.winSide && !isWinner;
         return (
           <div key={side}
-               className={`relative flex items-center justify-between pl-3 pr-2.5 py-[4px] mx-1 my-[1px] rounded-md ${isWinner?"bg-yellow-400/[0.13]":""}`}>
-            {isWinner && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-[3px] rounded-full bg-[#fbbf24]"/>}
+               className={`relative flex items-center justify-between pl-3 pr-2.5 py-[4px] mx-1 my-[1px] rounded-md ${isWinner?"bg-blue-500/[0.12]":""}`}>
+            {isWinner && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-[3px] rounded-full bg-blue-500"/>}
             <span
                   onClick={p?.id ? (e) => { e.stopPropagation(); navigate(`/event/players/${p.id}`); } : undefined}
                   className={`text-[11.5px] leading-tight truncate ${p?.id?"cursor-pointer hover:underline":""} ${
-                    isWinner ? "text-amber-600 dark:text-[#fbbf24] font-bold"
+                    isWinner ? "text-blue-600 dark:text-blue-400 font-bold"
                     : isLoser ? "text-slate-400 dark:text-white/35 font-light"
                     : isUpcoming ? "text-slate-500 dark:text-white/55 font-light"
                     : "text-slate-700 dark:text-white/70 font-normal"}`}
@@ -192,7 +192,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
               {p?.name||"TBD"}
             </span>
             <span className={`text-[15px] font-black tabular-nums shrink-0 ${
-                    isWinner ? "text-[#ef342a]"
+                    isWinner ? "text-blue-600 dark:text-blue-400"
                     : isLoser ? "text-slate-300 dark:text-white/25"
                     : "text-slate-400 dark:text-white/40"}`}>
               {p?.score??(isUpcoming?"":"—")}
@@ -223,21 +223,21 @@ const MatchRow = ({ m, matchNum, flashIds }) => {
         <div className="flex-1 flex items-center justify-end gap-1.5 min-w-0">
           <span
             onClick={m.p1?.id ? () => navigate(`/event/players/${m.p1.id}`) : undefined}
-            className={`text-[13px] leading-tight truncate text-right max-w-[100px] sm:max-w-[140px] ${m.p1?.id?"cursor-pointer hover:underline":""} ${p1Win?"font-bold text-amber-600 dark:text-[#fbbf24]":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
+            className={`text-[13px] leading-tight truncate text-right max-w-[100px] sm:max-w-[140px] ${m.p1?.id?"cursor-pointer hover:underline":""} ${p1Win?"font-bold text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
             {m.p1?.name}
           </span>
-          <span className={`text-xl font-black tabular-nums shrink-0 w-7 text-right ${p1Win?"text-[#ef342a]":isDone?"text-slate-400 dark:text-white/40":m.p1?.score!=null?"text-slate-800 dark:text-white":"text-transparent"}`}>
+          <span className={`text-xl font-black tabular-nums shrink-0 w-7 text-right ${p1Win?"text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/40":m.p1?.score!=null?"text-slate-800 dark:text-white":"text-transparent"}`}>
             {m.p1?.score??""}
           </span>
         </div>
         <span className="shrink-0 text-[10px] text-slate-300 dark:text-white/20 font-medium px-3">vs</span>
         <div className="flex-1 flex items-center gap-1.5 min-w-0">
-          <span className={`text-xl font-black tabular-nums shrink-0 w-7 ${p2Win?"text-[#ef342a]":isDone?"text-slate-400 dark:text-white/40":m.p2?.score!=null?"text-slate-800 dark:text-white":"text-transparent"}`}>
+          <span className={`text-xl font-black tabular-nums shrink-0 w-7 ${p2Win?"text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/40":m.p2?.score!=null?"text-slate-800 dark:text-white":"text-transparent"}`}>
             {m.p2?.score??""}
           </span>
           <span
             onClick={m.p2?.id ? () => navigate(`/event/players/${m.p2.id}`) : undefined}
-            className={`text-[13px] leading-tight truncate max-w-[100px] sm:max-w-[140px] ${m.p2?.id?"cursor-pointer hover:underline":""} ${p2Win?"font-bold text-amber-600 dark:text-[#fbbf24]":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
+            className={`text-[13px] leading-tight truncate max-w-[100px] sm:max-w-[140px] ${m.p2?.id?"cursor-pointer hover:underline":""} ${p2Win?"font-bold text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
             {m.p2?.name}
           </span>
         </div>
@@ -347,7 +347,7 @@ const StandingTable = ({ title, rows, qualifyCount }) => {
           </span>
           <span className="w-8 text-center shrink-0 text-[12px] text-slate-400 dark:text-white/45 tabular-nums">{r.played}</span>
           <span className="w-8 text-center shrink-0 text-[13px] font-bold text-slate-800 dark:text-white tabular-nums">{r.wins}</span>
-          <span className={`w-10 text-center shrink-0 text-[12px] font-semibold tabular-nums ${r.frameDiff>0?"text-emerald-600 dark:text-emerald-400":r.frameDiff<0?"text-red-600 dark:text-red-400":"text-slate-400 dark:text-white/40"}`}>
+          <span className={`w-10 text-center shrink-0 text-[12px] font-semibold tabular-nums ${r.frameDiff>0?"text-blue-600 dark:text-blue-400":r.frameDiff<0?"text-red-600 dark:text-red-400":"text-slate-400 dark:text-white/40"}`}>
             {r.frameDiff>0?"+":""}{r.frameDiff}
           </span>
           <span className="w-10 text-center shrink-0 text-[12px] text-slate-400 dark:text-white/45 tabular-nums">{r.framesWon}</span>
@@ -386,7 +386,6 @@ function buildBracketGeometry(rounds, matchesByRound) {
   // Find first round match count to determine bracket size
   const firstRoundId = rounds[0]?.id;
   const firstRoundCount = matchesByRound[firstRoundId]?.length || 1;
-  const bracketSize = firstRoundCount * 2; // total players
 
   function posY(roundIdx, matchIdx) {
     if (roundIdx === 0) {
