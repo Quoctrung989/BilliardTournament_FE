@@ -16,7 +16,6 @@ import OwnerBranchListPage from "../pages/Owner/branches/BranchListPage";
 import ManagerBranchListPage from "../pages/Manager/branches/BranchListPage";
 import StaffProfile from "../pages/Manager/StaffProfile";
 import PublicStaffListPage from "../pages/Public/StaffList";
-import StaffManagement from "../pages/Admin/StaffManagement";
 import FormatListPage from "../pages/Admin/tournament-config/FormatListPage";
 import FormatWizardPage from "../pages/Admin/tournament-config/FormatWizardPage";
 import GameTypeListPage from "../pages/Admin/tournament-config/GameTypeListPage";

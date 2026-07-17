@@ -175,6 +175,7 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
     if (selectedFile) {
       handleUpload();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFile]);
 
   return (
