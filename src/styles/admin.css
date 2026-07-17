@@ -845,3 +845,29 @@
   background: rgba(76, 5, 25, 0.4);
   border-color: #be123c;
 }
+
+/* ===================================================================
+   DARK MODE PHA 2 — làm sáng text/viền/nền cho các TRANG NỘI DUNG
+   Bao phủ chung mọi trang render trong .admin-content (chi tiết giải,
+   dashboard, chi nhánh, nhân viên, tin tức, cấu hình...). Chỉ áp trong
+   .admin-content nên KHÔNG đụng header/sidebar/modal (đã xử lý riêng).
+   =================================================================== */
+.dark .admin-content .text-slate-900,
+.dark .admin-content .text-gray-900 { color: #f1f5f9; }
+.dark .admin-content .text-slate-800,
+.dark .admin-content .text-gray-800 { color: #e2e8f0; }
+.dark .admin-content .text-slate-700,
+.dark .admin-content .text-gray-700 { color: #cbd5e1; }
+.dark .admin-content .text-slate-600,
+.dark .admin-content .text-gray-600 { color: #aab6c8; }
+
+.dark .admin-content .border-slate-100,
+.dark .admin-content .border-gray-100 { border-color: rgba(255, 255, 255, 0.06); }
+.dark .admin-content .border-slate-200,
+.dark .admin-content .border-gray-200 { border-color: rgba(255, 255, 255, 0.10); }
+
+.dark .admin-content .bg-white { background-color: #131c2e; }
+.dark .admin-content .bg-slate-50,
+.dark .admin-content .bg-gray-50 { background-color: rgba(255, 255, 255, 0.03); }
+.dark .admin-content .bg-slate-100,
+.dark .admin-content .bg-gray-100 { background-color: rgba(255, 255, 255, 0.06); }
