@@ -6,12 +6,7 @@ import { buildListParams, DEFAULT_PAGE_SIZE } from "../../../utils/pagination";
 
 const DEFAULT_AVATAR = "https://cdn-icons-png.freepik.com/512/219/219986.png";
 
-const TABS = [
-  { value: "STAFF", label: "Nhân viên" },
-  { value: "REFEREE", label: "Trọng tài" },
-];
-
-/** Trọng tài khi bio === "REFEREE"; còn lại coi là Nhân viên (khớp Admin/StaffManagement). */
+/** Trọng tài khi bio === "REFEREE" (khớp Admin/StaffManagement). */
 const isReferee = (emp) => emp?.bio === "REFEREE";
 
 const StaffCard = ({ emp, onClick }) => {
@@ -75,7 +70,6 @@ const CardSkeleton = () => (
 
 const StaffListPage = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("STAFF");
   const [searchInput, setSearchInput] = useState("");
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(0);
@@ -91,7 +85,7 @@ const StaffListPage = () => {
         page,
         size: DEFAULT_PAGE_SIZE,
         keyword,
-        type: tab,
+        type: "REFEREE",
       });
       const res = await listPublicEmployees(params);
       setData(res);
@@ -101,17 +95,11 @@ const StaffListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, keyword, tab]);
+  }, [page, keyword]);
 
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
-
-  const handleTab = (value) => {
-    if (value === tab) return;
-    setTab(value);
-    setPage(0);
-  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -119,10 +107,8 @@ const StaffListPage = () => {
     setPage(0);
   };
 
-  /* Lọc client theo bio, phòng khi backend chưa hỗ trợ param `type` */
-  const items = (data.content || []).filter((emp) =>
-    tab === "REFEREE" ? isReferee(emp) : !isReferee(emp)
-  );
+  /* Chỉ hiển thị trọng tài — lọc client theo bio, phòng khi backend chưa hỗ trợ param `type` */
+  const items = (data.content || []).filter(isReferee);
 
   return (
     <div className="w-full min-h-screen bg-white dark:bg-[#0a1220]">
@@ -141,7 +127,7 @@ const StaffListPage = () => {
               <Users size={14} /> Đội ngũ điều hành
             </p>
             <h1 className="text-4xl font-black uppercase italic tracking-tight text-white">
-              Nhân viên &amp; Trọng tài
+              Đội ngũ Trọng tài
             </h1>
           </div>
         </div>
@@ -151,21 +137,9 @@ const StaffListPage = () => {
       <div className="sticky top-[64px] z-30 border-b border-gray-200 bg-[#f7f7f7] dark:border-white/10 dark:bg-[#0d1b2e]">
         <div className="mx-auto max-w-[1600px] px-8 py-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="flex flex-wrap gap-2">
-              {TABS.map((t) => (
-                <button
-                  key={t.value}
-                  onClick={() => handleTab(t.value)}
-                  className={`rounded-full px-5 py-1.5 text-sm font-semibold transition-all duration-200 ${
-                    tab === t.value
-                      ? "bg-[#0c1527] text-white dark:bg-white dark:text-[#0d1b2e]"
-                      : "border border-gray-300 text-[#333] hover:border-[#0c1527] dark:border-white/20 dark:text-white/70 dark:hover:border-white/60"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
+            <span className="text-sm font-semibold text-slate-600 dark:text-white/70">
+              Danh sách trọng tài điều hành giải đấu
+            </span>
 
             <form onSubmit={handleSearchSubmit} className="relative w-full lg:ml-auto lg:w-64">
               <Search
@@ -196,7 +170,7 @@ const StaffListPage = () => {
           <ErrorState status={errorStatus} onLogin={() => navigate("/login")} onRetry={fetchEmployees} />
         ) : items.length === 0 ? (
           <div className="py-24 text-center text-slate-500 dark:text-white/50">
-            {tab === "REFEREE" ? "Chưa có trọng tài nào." : "Chưa có nhân viên nào."}
+            Chưa có trọng tài nào.
           </div>
         ) : (
           <>
