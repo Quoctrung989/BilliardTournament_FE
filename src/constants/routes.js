@@ -34,7 +34,6 @@ import TournamentDetailPage from "../pages/shared/tournaments/TournamentDetailPa
 import TournamentRegistrationListPage from "../pages/shared/registrations/TournamentRegistrationListPage";
 import TournamentRegisterPage from "../pages/Player/TournamentRegisterPage";
 import MyRegistrationsPage from "../pages/Player/MyRegistrationsPage";
-import PlayerTournamentListPage from "../pages/Player/PlayerTournamentListPage";
 import PlayerTournamentDetailPage from "../pages/Player/PlayerTournamentDetailPage";
 import PaymentSuccessPage from "../pages/Payment/PaymentSuccessPage";
 import MyPaymentsPage from "../pages/Payment/MyPaymentsPage";
@@ -51,6 +50,8 @@ import EmailTemplateListPage from "../pages/Admin/email/EmailTemplateListPage";
 import EmailAutomationRulesPage from "../pages/Admin/email/EmailAutomationRulesPage";
 import EmailLogListPage from "../pages/Admin/email/EmailLogListPage";
 import TournamentNotificationsPage from "../pages/shared/tournaments/TournamentNotificationsPage";
+import FacebookPostsStatsPage from "../pages/shared/facebook/FacebookPostsStatsPage";
+import FacebookPostDetailPage from "../pages/shared/facebook/FacebookPostDetailPage";
 import PlayerRoute from "../components/guards/PlayerRoute";
 import {
   ownerTournamentApi,
@@ -180,14 +181,6 @@ const PlayerMyRegistrations = () => (
   <PlayerRoute>
     <CommonLayout>
       <MyRegistrationsPage />
-    </CommonLayout>
-  </PlayerRoute>
-);
-
-const PlayerTournamentList = () => (
-  <PlayerRoute>
-    <CommonLayout>
-      <PlayerTournamentListPage />
     </CommonLayout>
   </PlayerRoute>
 );
@@ -423,6 +416,24 @@ export const ROUTES = [
     component: withOwnerPage(OwnerArticleEditor, "Bài viết", "Tạo / sửa bài viết", { fullWidth: true }),
   },
   {
+    path: "/owner/facebook-posts",
+    component: withOwnerPage(
+      () => <FacebookPostsStatsPage basePath="/owner/facebook-posts" />,
+      "Thống kê Facebook",
+      "Bài đăng giải đấu và lượt tương tác trên Page",
+      { fullWidth: true }
+    ),
+  },
+  {
+    path: "/owner/facebook-posts/:postId",
+    component: withOwnerPage(
+      () => <FacebookPostDetailPage basePath="/owner/facebook-posts" />,
+      "Chi tiết bài Facebook",
+      "Nội dung đầy đủ và thống kê tương tác",
+      { fullWidth: true }
+    ),
+  },
+  {
     path: "/manager/dashboard",
     component: withManagerPage(ManagerDashboard, "Tổng quan", "Thống kê giải đấu"),
   },
@@ -514,8 +525,22 @@ export const ROUTES = [
     component: withManagerPage(ManagerArticleEditor, "Bài viết", "Tạo / sửa bài viết", { fullWidth: true }),
   },
   {
-    path: "/player/tournaments",
-    component: PlayerTournamentList,
+    path: "/manager/facebook-posts",
+    component: withManagerPage(
+      () => <FacebookPostsStatsPage basePath="/manager/facebook-posts" />,
+      "Thống kê Facebook",
+      "Bài đăng giải đấu và lượt tương tác trên Page",
+      { fullWidth: true }
+    ),
+  },
+  {
+    path: "/manager/facebook-posts/:postId",
+    component: withManagerPage(
+      () => <FacebookPostDetailPage basePath="/manager/facebook-posts" />,
+      "Chi tiết bài Facebook",
+      "Nội dung đầy đủ và thống kê tương tác",
+      { fullWidth: true }
+    ),
   },
   {
     path: "/player/tournaments/:id",
@@ -542,12 +567,17 @@ export const ROUTES = [
     component: PaymentReturn,
   },
   {
+    path: "/payment/cancel",
+    component: PaymentReturn,
+  },
+  {
     path: "/live/tournament/:id",
     component: TournamentLiveTvPage,
   },
   { path: "/news", component: NewsListPage, layout: CommonLayout },
   { path: "/news/:slug", component: ArticleDetailPage, layout: CommonLayout },
   { path: "/event", component: EventPage, layout: CommonLayout },
+  { path: "/event/players/user/:userId", component: PlayerProfilePage, layout: CommonLayout },
   { path: "/event/players/:participantId", component: PlayerProfilePage, layout: CommonLayout },
   { path: "/event/:id", component: EventDetailPage, layout: CommonLayout },
   { path: "/branches", component: BranchListPage, layout: CommonLayout },

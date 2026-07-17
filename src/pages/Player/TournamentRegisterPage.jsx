@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { CheckCircle, CreditCard, Loader } from "lucide-react";
+import { ArrowLeft, CheckCircle, CreditCard, Loader } from "lucide-react";
 import {
   getTournamentRegistrationForm,
   submitTournamentRegistration,
@@ -159,7 +159,7 @@ const TournamentRegisterPage = () => {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/player/tournaments")}
+              onClick={() => navigate("/event")}
               className="text-sm text-slate-400 hover:text-slate-600"
             >
               Xem giải đấu khác
@@ -211,10 +211,10 @@ const TournamentRegisterPage = () => {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <button
         type="button"
-        className="text-sm text-indigo-600 hover:underline mb-5 block"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors mb-5"
         onClick={() => navigate(`/player/tournaments/${tournamentId}`)}
       >
-        ← Quay lại chi tiết giải
+        <ArrowLeft size={14} /> Quay lại chi tiết giải
       </button>
 
       {/* Tournament header */}

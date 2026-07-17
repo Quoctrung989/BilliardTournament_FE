@@ -2,7 +2,7 @@ const AdminModal = ({ open, onClose, title, children, footer, size = "md" }) => 
   if (!open) return null;
 
   const maxWidth =
-    size === "lg" ? "max-w-2xl" : size === "sm" ? "max-w-sm" : "max-w-md";
+    size === "lg" ? "max-w-3xl" : size === "sm" ? "max-w-sm" : "max-w-md";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

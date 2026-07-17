@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { ArrowLeft } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import ImageUploader from "../../../components/shared/ImageUploader";
@@ -80,7 +81,7 @@ const ArticleEditorPage = ({ api, basePath }) => {
   return (
     <div className="space-y-5">
       <AdminButton variant="secondary" onClick={() => navigate(basePath)}>
-        ← Danh sách bài viết
+        <ArrowLeft size={14} /> Danh sách bài viết
       </AdminButton>
 
       <AdminCard title={isNew ? "Tạo bài viết mới" : "Sửa bài viết"}>

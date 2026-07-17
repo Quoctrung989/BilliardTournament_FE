@@ -16,7 +16,7 @@ const BranchCard = ({ branch, index }) => {
 
   return (
     <div
-      className="tournament-card-stream flex flex-col cursor-pointer group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
+      className="tournament-card-stream flex flex-col cursor-pointer group bg-white dark:bg-[#0d1b2e] border border-transparent dark:border-white/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
       style={{ animationDelay: `${index * 0.15}s` }}
       onClick={() => navigate(`/branches/${branch.id}`)}
       role="button"
@@ -40,25 +40,25 @@ const BranchCard = ({ branch, index }) => {
 
       {/* Info */}
       <div className="flex flex-col gap-2 p-4 flex-1">
-        <div className="flex items-start gap-2 text-sm text-slate-600">
-          <MapPin size={15} className="text-black shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-white/60">
+          <MapPin size={15} className="text-black dark:text-white/70 shrink-0 mt-0.5" />
           <span className="line-clamp-2">{branch.address}</span>
         </div>
         {branch.phone && (
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <Phone size={15} className="text-black shrink-0" />
+          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-white/60">
+            <Phone size={15} className="text-black dark:text-white/70 shrink-0" />
             <span>{branch.phone}</span>
           </div>
         )}
         {branch.description && (
-          <p className="text-xs text-slate-400 line-clamp-2 mt-1">{branch.description}</p>
+          <p className="text-xs text-slate-400 dark:text-white/40 line-clamp-2 mt-1">{branch.description}</p>
         )}
 
         <div className="mt-auto pt-3 flex justify-end">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); navigate(`/branches/${branch.id}`); }}
-            className="text-xs font-bold tracking-wide uppercase px-4 py-1.5 rounded-full text-white bg-black hover:bg-slate-700 transition-colors"
+            className="text-xs font-bold tracking-wide uppercase px-4 py-1.5 rounded-full text-white bg-black hover:bg-slate-700 dark:bg-white dark:text-[#0d1b2e] dark:hover:bg-white/80 transition-colors"
           >
             Xem chi tiết
           </button>
@@ -76,9 +76,9 @@ const extractRegion = (address) => {
 };
 
 const StatBlock = ({ value, label, border = true }) => (
-  <div className={`flex-1 px-6 py-5 ${border ? "border-l border-slate-200 first:border-l-0" : ""}`}>
-    <p className="text-3xl sm:text-4xl font-black text-slate-900">{value}</p>
-    <p className="mt-1 text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+  <div className={`flex-1 px-6 py-5 ${border ? "border-l border-slate-200 dark:border-white/10 first:border-l-0" : ""}`}>
+    <p className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">{value}</p>
+    <p className="mt-1 text-[0.65rem] font-bold uppercase tracking-widest text-slate-400 dark:text-white/40">{label}</p>
   </div>
 );
 
@@ -133,23 +133,23 @@ const BranchListPage = () => {
   };
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white dark:bg-[#0a1220] transition-colors duration-300">
 
       {/* ── Hero banner ── */}
-      <div className="w-full relative overflow-hidden bg-white border-b border-slate-100">
+      <div className="w-full relative overflow-hidden bg-white dark:bg-[#0a1220] border-b border-slate-100 dark:border-white/10">
         <div className="relative max-w-[1600px] mx-auto px-10 pt-16 pb-10">
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-3">
+          <p className="text-slate-400 dark:text-white/40 text-xs font-bold uppercase tracking-[0.2em] mb-3">
             Hệ thống cơ sở
           </p>
-          <h1 className="text-5xl sm:text-6xl font-black text-slate-900 tracking-tight max-w-2xl">
+          <h1 className="text-5xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tight max-w-2xl">
             Tìm cơ sở gần bạn
           </h1>
-          <p className="mt-5 max-w-xl text-sm sm:text-base text-slate-500 leading-relaxed">
+          <p className="mt-5 max-w-xl text-sm sm:text-base text-slate-500 dark:text-white/60 leading-relaxed">
             Danh sách các cơ sở đang hoạt động — chọn cơ sở gần bạn để xem địa chỉ,
             số điện thoại và hình ảnh không gian club.
           </p>
 
-          <div className="mt-9 inline-flex rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
+          <div className="mt-9 inline-flex rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm">
             <StatBlock value={stats.total} label="Cơ sở" border={false} />
             <StatBlock value={stats.regions} label="Khu vực" />
           </div>
@@ -157,17 +157,17 @@ const BranchListPage = () => {
       </div>
 
       {/* ── Search bar ── */}
-      <div className="bg-[#f7f7f7] border-b border-gray-200 sticky top-[64px] z-30">
+      <div className="bg-[#f7f7f7] dark:bg-[#0d1b2e] border-b border-gray-200 dark:border-white/10 sticky top-[64px] z-30">
         <div className="max-w-[1600px] mx-auto px-8 py-3">
           <div className="flex flex-col lg:flex-row lg:items-center gap-3">
             <form onSubmit={handleSearchSubmit} className="relative lg:ml-auto w-full lg:w-72">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Tìm chi nhánh theo tên hoặc địa chỉ..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full border border-gray-300 bg-white text-sm rounded-full pl-8 pr-4 py-1.5 placeholder:text-gray-400 focus:outline-none focus:border-black"
+                className="w-full border border-gray-300 dark:border-white/15 bg-white dark:bg-white/5 text-sm rounded-full pl-8 pr-4 py-1.5 placeholder:text-gray-400 dark:text-white dark:placeholder:text-white/40 focus:outline-none focus:border-black dark:focus:border-white/50"
               />
             </form>
           </div>
@@ -178,23 +178,23 @@ const BranchListPage = () => {
       <div className="max-w-[1600px] mx-auto px-16 py-12">
 
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-semibold text-slate-700">Tất cả chi nhánh</h2>
+          <h2 className="text-base font-semibold text-slate-700 dark:text-white/85">Tất cả chi nhánh</h2>
           {!loading && (
-            <span className="text-sm text-slate-400 font-medium">
+            <span className="text-sm text-slate-400 dark:text-white/50 font-medium">
               {totalElements} chi nhánh
             </span>
           )}
         </div>
 
         {loading ? (
-          <div className="text-center py-24 text-slate-400">Đang tải...</div>
+          <div className="text-center py-24 text-slate-400 dark:text-white/50">Đang tải...</div>
         ) : items.length === 0 ? (
           <div className="text-center py-24">
-            <p className="text-slate-500 text-lg font-semibold">Không tìm thấy chi nhánh nào phù hợp.</p>
+            <p className="text-slate-500 dark:text-white/70 text-lg font-semibold">Không tìm thấy chi nhánh nào phù hợp.</p>
             {searchApplied && (
               <button
                 onClick={() => { setSearchInput(""); setSearchApplied(""); }}
-                className="mt-4 text-black text-sm font-semibold hover:underline"
+                className="mt-4 text-black dark:text-white text-sm font-semibold hover:underline"
               >
                 Xóa bộ lọc
               </button>

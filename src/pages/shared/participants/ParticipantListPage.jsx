@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { UserPlus, Upload, Download, Lock } from "lucide-react";
+import { ArrowLeft, UserPlus, Upload, Download, Lock } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
@@ -32,12 +32,14 @@ const ParticipantListPage = ({ api, basePath }) => {
   const [addModal, setAddModal] = useState(false);
   const [importResult, setImportResult] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [form, setForm] = useState({ displayName: "", phone: "", seedNo: "" });
+  const [form, setForm] = useState({ displayName: "", phone: "", partnerFullName: "", partnerPhone: "", seedNo: "" });
   const [withdrawModal, setWithdrawModal] = useState(null);
   const [tournamentStatus, setTournamentStatus] = useState(null);
+  const [participantType, setParticipantType] = useState(null);
 
   const tournamentApi = basePath.startsWith("/owner") ? ownerTournamentApi : managerTournamentApi;
   const rosterEditable = tournamentStatus == null || ROSTER_EDITABLE_STATUSES.includes(tournamentStatus);
+  const isDouble = participantType === "DOUBLE";
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -47,7 +49,10 @@ const ParticipantListPage = ({ api, basePath }) => {
         tournamentApi.getTournament(tournamentId).catch(() => null),
       ]);
       setItems(Array.isArray(data) ? data : []);
-      if (tournament) setTournamentStatus(tournament.status);
+      if (tournament) {
+        setTournamentStatus(tournament.status);
+        setParticipantType(tournament.participantType);
+      }
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -59,7 +64,11 @@ const ParticipantListPage = ({ api, basePath }) => {
 
   const handleAdd = async () => {
     if (!form.displayName.trim()) {
-      toast.warn("Vui lòng nhập tên hiển thị");
+      toast.warn(isDouble ? "Vui lòng nhập tên người chơi 1" : "Vui lòng nhập tên hiển thị");
+      return;
+    }
+    if (isDouble && !form.partnerFullName.trim()) {
+      toast.warn("Vui lòng nhập tên người chơi 2");
       return;
     }
     const seedNo = form.seedNo.trim() ? Number(form.seedNo) : undefined;
@@ -72,11 +81,13 @@ const ParticipantListPage = ({ api, basePath }) => {
       await api.addManual(tournamentId, {
         displayName: form.displayName.trim(),
         phone: form.phone.trim() || undefined,
+        partnerFullName: isDouble ? form.partnerFullName.trim() : undefined,
+        partnerPhone: isDouble ? form.partnerPhone.trim() || undefined : undefined,
         seedNo: seedNo,
       });
       toast.success("Đã thêm người tham gia");
       setAddModal(false);
-      setForm({ displayName: "", phone: "", seedNo: "" });
+      setForm({ displayName: "", phone: "", partnerFullName: "", partnerPhone: "", seedNo: "" });
       load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -135,7 +146,7 @@ const ParticipantListPage = ({ api, basePath }) => {
     <div className="space-y-5">
       {/* Back */}
       <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-        ← Chi tiết giải
+        <ArrowLeft size={14} /> Chi tiết giải
       </AdminButton>
 
       <AdminCard padding={false}>
@@ -295,7 +306,7 @@ const ParticipantListPage = ({ api, basePath }) => {
       >
         <div className="space-y-4">
           <div>
-            <label className="admin-label">Tên hiển thị *</label>
+            <label className="admin-label">{isDouble ? "Tên người chơi 1 *" : "Tên hiển thị *"}</label>
             <input
               className="admin-input w-full mt-1"
               placeholder="Nguyễn Văn A"
@@ -305,7 +316,7 @@ const ParticipantListPage = ({ api, basePath }) => {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="admin-label">Số điện thoại</label>
+              <label className="admin-label">{isDouble ? "SĐT người chơi 1" : "Số điện thoại"}</label>
               <input
                 className="admin-input w-full mt-1"
                 placeholder="0901234567"
@@ -325,6 +336,29 @@ const ParticipantListPage = ({ api, basePath }) => {
               />
             </div>
           </div>
+          {isDouble && (
+            <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+              <div className="col-span-2 -mb-1 mt-3">
+                <label className="admin-label">Người chơi 2</label>
+              </div>
+              <div>
+                <input
+                  className="admin-input w-full"
+                  placeholder="Tên người chơi 2 *"
+                  value={form.partnerFullName}
+                  onChange={(e) => setForm((f) => ({ ...f, partnerFullName: e.target.value }))}
+                />
+              </div>
+              <div>
+                <input
+                  className="admin-input w-full"
+                  placeholder="SĐT người chơi 2"
+                  value={form.partnerPhone}
+                  onChange={(e) => setForm((f) => ({ ...f, partnerPhone: e.target.value }))}
+                />
+              </div>
+            </div>
+          )}
           <p className="text-xs text-slate-400">
             Import nhiều người cùng lúc → dùng nút "Import Excel". Tải template từ nút bên phải.
           </p>

@@ -83,15 +83,6 @@ const Header = () => {
               {label}
             </div>
           ))}
-
-          {isPlayer && (
-            <div
-              onClick={() => navigate("/player/tournaments")}
-              className="flex items-center whitespace-nowrap h-full px-2 text-[11px] font-semibold tracking-widest uppercase text-[#EF342A] hover:opacity-80 cursor-pointer transition-opacity"
-            >
-              Đăng ký giải
-            </div>
-          )}
         </div>
 
         {/* Auth area */}

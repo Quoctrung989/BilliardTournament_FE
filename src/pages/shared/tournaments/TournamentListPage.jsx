@@ -200,7 +200,7 @@ const TournamentListPage = ({ api, basePath }) => {
               </select>
             </div>
           </div>
-          <AdminButton onClick={() => navigate(`${basePath}/new`)} className="shrink-0 lg:pb-0.5">
+          <AdminButton onClick={() => navigate(`${basePath}/new`)} className="shrink-0">
             <Plus size={18} />
             Tạo giải mới
           </AdminButton>
