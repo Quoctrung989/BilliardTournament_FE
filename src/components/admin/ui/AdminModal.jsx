@@ -17,12 +17,12 @@ const AdminModal = ({ open, onClose, title, children, footer, size = "md" }) => 
         role="dialog"
         aria-modal="true"
       >
-        <div className="px-6 py-4 border-b border-slate-200 shrink-0">
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 shrink-0">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
         </div>
-        <div className="px-6 py-4 text-sm text-slate-600 overflow-y-auto">{children}</div>
+        <div className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 overflow-y-auto">{children}</div>
         {footer && (
-          <div className="px-6 py-4 border-t border-slate-200 flex justify-end gap-2 bg-slate-50/80 rounded-b-xl shrink-0">
+          <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 flex justify-end gap-2 bg-slate-50/80 dark:bg-white/[0.03] rounded-b-xl shrink-0">
             {footer}
           </div>
         )}

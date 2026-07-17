@@ -18,14 +18,14 @@ const AdminPagination = ({
   const canNext = page < totalPages - 1 && !disabled;
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-t border-slate-200 bg-slate-50/80">
-      <p className="text-sm text-slate-600">
-        Tổng <span className="font-semibold text-slate-800">{totalElements}</span> bản ghi
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-t border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03]">
+      <p className="text-sm text-slate-600 dark:text-slate-300">
+        Tổng <span className="font-semibold text-slate-800 dark:text-slate-100">{totalElements}</span> bản ghi
         {totalPages > 0 && (
           <>
             {" "}
             · Trang{" "}
-            <span className="font-semibold text-slate-800">{current}</span> / {totalPages}
+            <span className="font-semibold text-slate-800 dark:text-slate-100">{current}</span> / {totalPages}
           </>
         )}
       </p>

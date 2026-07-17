@@ -37,7 +37,7 @@ const NavLink = ({ active, onClick, icon: Icon, label, indent, collapsed }) => {
         className={`w-full flex items-center justify-center rounded-lg py-2.5 transition-colors ${
           active
             ? "bg-indigo-600/90 text-white shadow-sm"
-            : "text-slate-300 hover:bg-slate-800 hover:text-white"
+            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
         }`}
       >
         {Icon && <Icon size={18} strokeWidth={2} className="flex-shrink-0 opacity-90" />}
@@ -86,13 +86,13 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
 
   return (
     <aside
-      className={`admin-shell fixed left-0 top-0 z-40 flex h-screen flex-col bg-[var(--admin-sidebar)] text-white border-r border-slate-800/50 transition-all duration-250 ease-in-out ${
+      className={`admin-shell fixed left-0 top-0 z-40 flex h-screen flex-col bg-white dark:bg-[#0b1424] text-slate-800 dark:text-white border-r border-slate-200 dark:border-white/10 transition-all duration-250 ease-in-out ${
         collapsed ? "w-16" : "w-[var(--admin-sidebar-w)]"
       }`}
     >
       {/* Header */}
       <div
-        className={`flex items-center min-h-[var(--admin-header-h)] py-4 border-b border-slate-700/50 flex-shrink-0 ${
+        className={`flex items-center min-h-[var(--admin-header-h)] py-4 border-b border-slate-200 dark:border-slate-700/50 flex-shrink-0 ${
           collapsed ? "justify-center px-2" : "gap-3 px-5"
         }`}
       >
@@ -113,7 +113,7 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
           type="button"
           onClick={onToggle}
           title={collapsed ? "Mở rộng menu" : "Thu gọn menu"}
-          className={`rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex-shrink-0 ${
+          className={`rounded-lg p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0 ${
             collapsed ? "mt-0" : ""
           }`}
         >
@@ -155,8 +155,8 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
                   onClick={() => toggleSection(section.id)}
                   className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     sectionActive
-                      ? "bg-slate-800 text-white"
-                      : "text-slate-300 hover:bg-slate-800"
+                      ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
                 >
                   <span className="flex items-center gap-3">
@@ -213,12 +213,12 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
       </nav>
 
       {/* Footer */}
-      <div className={`border-t border-slate-700/50 ${collapsed ? "p-2" : "p-4"}`}>
+      <div className={`border-t border-slate-200 dark:border-slate-700/50 ${collapsed ? "p-2" : "p-4"}`}>
         <button
           type="button"
           onClick={() => navigate("/")}
           title="Về trang chủ"
-          className={`w-full flex items-center rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors ${
+          className={`w-full flex items-center rounded-lg text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors ${
             collapsed ? "justify-center py-2.5" : "justify-center gap-2 py-2.5"
           }`}
         >
