@@ -5,7 +5,7 @@ import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
   ArrowLeftRight, Eye, Lock, Search, GripVertical,
   ChevronRight, Users, Swords, Zap, BarChart2, Scissors,
-  Loader2, X,
+  Loader2, X, MapPin, CheckSquare,
 } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
@@ -55,11 +55,44 @@ const MATCH_FILTERS = [
   { key: "IN_PROGRESS", label: "Đang diễn ra" },
   { key: "PENDING", label: "Chờ bắt đầu" },
   { key: "DONE", label: "Đã xong" },
+  { key: "NO_TABLE", label: "Chưa gán bàn" },
+  { key: "NO_SCHEDULE", label: "Chưa xếp giờ" },
 ];
+
+/** Trận có thể gán bàn/giờ — khoá lại khi đã resolved (khớp rule ở BE). */
+function canAssignTable(match) {
+  return !["COMPLETED", "WALKOVER", "BYE"].includes(match.status);
+}
+
+function formatScheduledAt(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** ISO (UTC) → giá trị cho <input type="datetime-local"> theo giờ local trình duyệt. */
+function toDatetimeLocalValue(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** Giá trị <input type="datetime-local"> → ISO string (UTC) để gửi lên BE. */
+function fromDatetimeLocalValue(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
 
 function matchPassesFilter(m, statusFilter, query) {
   if (statusFilter === "DONE") {
     if (!["COMPLETED", "WALKOVER", "BYE"].includes(m.status)) return false;
+  } else if (statusFilter === "NO_TABLE") {
+    if (m.tableId || m.tableNo) return false;
+  } else if (statusFilter === "NO_SCHEDULE") {
+    if (m.scheduledAt) return false;
   } else if (statusFilter !== "ALL" && m.status !== statusFilter) {
     return false;
   }
@@ -157,6 +190,14 @@ const DrawPage = ({ api, basePath }) => {
   /* ── Per-match action loading (không khoá toàn trang) ── */
   const [startingId,   setStartingId]   = useState(null);
 
+  /* ── Gán bàn & giờ thi đấu (đơn + bulk) ── */
+  const [tables,       setTables]       = useState([]);
+  const [bulkMode,     setBulkMode]     = useState(false);
+  const [selectedIds,  setSelectedIds]  = useState(() => new Set());
+  const [assignModal,  setAssignModal]  = useState(null);  // { matchIds: number[] }
+  const [assignForm,   setAssignForm]   = useState({ tableId: "", scheduledAt: "", clearTable: false, clearScheduledAt: false });
+  const [assigning,    setAssigning]    = useState(false);
+
   /* ── Tìm kiếm / lọc trận đấu (giúp quản lý dễ hơn khi nhiều trận) ── */
   const [matchQuery,   setMatchQuery]   = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -197,8 +238,18 @@ const DrawPage = ({ api, basePath }) => {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
+    api.listActiveTables()
+      .then(data => setTables(Array.isArray(data) ? data : []))
+      .catch(() => setTables([]));
+  }, [api]);
+
+  useEffect(() => {
     if (!isPreview) { setEditMode(false); setSwapFirst(null); }
   }, [isPreview]);
+
+  useEffect(() => {
+    if (!bulkMode) setSelectedIds(new Set());
+  }, [bulkMode]);
 
   /* ══ WebSocket — cập nhật tại chỗ, không reload cả trang ══ */
   const [flashIds, setFlashIds] = useState(() => new Set());
@@ -526,6 +577,93 @@ const DrawPage = ({ api, basePath }) => {
     finally { setSaving(false); }
   };
 
+  /* ══ Gán bàn & giờ thi đấu ══════════════════════════════ */
+  const toggleSelect = useCallback((matchId) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(matchId)) next.delete(matchId); else next.add(matchId);
+      return next;
+    });
+  }, []);
+
+  const openAssignSingle = useCallback((match) => {
+    setAssignModal({ matchIds: [match.id] });
+    setAssignForm({
+      tableId: match.tableId != null ? String(match.tableId) : "",
+      scheduledAt: toDatetimeLocalValue(match.scheduledAt),
+      clearTable: false,
+      clearScheduledAt: false,
+    });
+  }, []);
+
+  const openAssignBulk = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    setAssignModal({ matchIds: Array.from(selectedIds) });
+    setAssignForm({ tableId: "", scheduledAt: "", clearTable: false, clearScheduledAt: false });
+  }, [selectedIds]);
+
+  /** Soft-warn: tìm trận khác (đã load) cùng bàn + giờ lệch nhau < 60 phút. Chỉ trong tournament hiện tại. */
+  const findTableConflict = useCallback((excludeIds, tableId, scheduledAtIso) => {
+    if (!tableId || !scheduledAtIso) return null;
+    const target = new Date(scheduledAtIso).getTime();
+    const WINDOW_MS = 60 * 60 * 1000;
+    for (const stage of stages) {
+      for (const m of stage.matches || []) {
+        if (excludeIds.includes(m.id)) continue;
+        if (m.status === "BYE") continue;
+        if (String(m.tableId ?? "") !== String(tableId)) continue;
+        if (!m.scheduledAt) continue;
+        if (Math.abs(new Date(m.scheduledAt).getTime() - target) < WINDOW_MS) return m;
+      }
+    }
+    return null;
+  }, [stages]);
+
+  const doSaveAssign = useCallback(async () => {
+    if (!assignModal) return;
+    const { matchIds } = assignModal;
+    const body = {
+      tableId: assignForm.clearTable || !assignForm.tableId ? null : Number(assignForm.tableId),
+      clearTable: assignForm.clearTable,
+      scheduledAt: assignForm.clearScheduledAt ? null : fromDatetimeLocalValue(assignForm.scheduledAt),
+      clearScheduledAt: assignForm.clearScheduledAt,
+    };
+    setAssigning(true);
+    try {
+      if (matchIds.length === 1) {
+        const updated = await api.assignMatch(matchIds[0], body);
+        applyMatchToStages(updated);
+      } else {
+        const updatedList = await api.bulkAssignMatches({ matchIds, ...body });
+        (Array.isArray(updatedList) ? updatedList : []).forEach(applyMatchToStages);
+      }
+      toast.success("Đã lưu bàn/giờ thi đấu");
+      setAssignModal(null);
+      setBulkMode(false);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setAssigning(false);
+    }
+  }, [assignModal, assignForm, api, applyMatchToStages]);
+
+  const handleSaveAssign = useCallback(() => {
+    if (!assignModal) return;
+    const tableId = assignForm.clearTable || !assignForm.tableId ? null : assignForm.tableId;
+    const scheduledAtIso = assignForm.clearScheduledAt ? null : fromDatetimeLocalValue(assignForm.scheduledAt);
+    const conflict = findTableConflict(assignModal.matchIds, tableId, scheduledAtIso);
+    if (conflict) {
+      showConfirm(
+        "Trùng bàn & giờ?",
+        `Bàn này đã được xếp cho trận ${conflict.matchCode} lúc ${formatScheduledAt(conflict.scheduledAt)} — vẫn lưu?`,
+        doSaveAssign,
+        { okLabel: "Vẫn lưu", okVariant: "primary" }
+      );
+      return;
+    }
+    doSaveAssign();
+  }, [assignModal, assignForm, findTableConflict, doSaveAssign, showConfirm]);
+
   const loadEvents = async (matchId, matchCode) => {
     setEventsModal({ matchId, matchCode }); setEvents([]);
     try {
@@ -606,6 +744,18 @@ const DrawPage = ({ api, basePath }) => {
                 </div>
                 <span className="text-xs font-semibold text-emerald-600">{progress}%</span>
               </div>
+
+              <button
+                onClick={() => setBulkMode(v => !v)}
+                className={[
+                  "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all border",
+                  bulkMode
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                ].join(" ")}>
+                <CheckSquare size={14} />
+                {bulkMode ? "Đang chọn nhiều…" : "Chọn nhiều — gán bàn/giờ"}
+              </button>
 
               {/* CUT_TO_SE: populate final bracket button */}
               {isDoubleElim && hasFinalBracket && !isFinalBracketReady && (
@@ -700,6 +850,24 @@ const DrawPage = ({ api, basePath }) => {
         <SocketReconnectBanner connectionState={connectionState} />
       )}
 
+      {/* ── Bulk-select action bar ── */}
+      {bulkMode && (
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
+          <span className="text-sm text-indigo-700">
+            Đã chọn <strong>{selectedIds.size}</strong> trận — tick vào các trận muốn gán cùng lúc.
+          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <AdminButton variant="secondary" onClick={() => setSelectedIds(new Set())} disabled={selectedIds.size === 0}>
+              Bỏ chọn
+            </AdminButton>
+            <AdminButton variant="primary" disabled={selectedIds.size === 0} onClick={openAssignBulk}
+                         className="flex items-center gap-2">
+              <MapPin size={14} /> Gán bàn & giờ ({selectedIds.size})
+            </AdminButton>
+          </div>
+        </div>
+      )}
+
       {/* ── Tìm kiếm / lọc trận đấu ── */}
       {!noDrawYet && !isPreview && (
         <div className="flex flex-wrap items-center gap-2">
@@ -775,6 +943,8 @@ const DrawPage = ({ api, basePath }) => {
             matchQuery={matchQuery}
             statusFilter={statusFilter}
             startingId={startingId}
+            bulkMode={bulkMode}
+            selectedIds={selectedIds}
             onSlotClick={handleSlotClick}
             onDragStart={onDragStart}
             onDragOver={onDragOver}
@@ -786,6 +956,8 @@ const DrawPage = ({ api, basePath }) => {
             onScore={(m) => { setScoreModal(m); setScoreForm({ p1: String(m.player1Score??0), p2: String(m.player2Score??0) }); }}
             onComplete={setCompleteModal}
             onEvents={loadEvents}
+            onToggleSelect={toggleSelect}
+            onOpenAssign={openAssignSingle}
             flashIds={flashIds}
           />
         ))
@@ -1085,6 +1257,79 @@ const DrawPage = ({ api, basePath }) => {
           </div>
         )}
       </AdminModal>
+
+      {/* Gán bàn & giờ thi đấu (đơn + bulk) */}
+      <AdminModal
+        open={!!assignModal}
+        onClose={() => !assigning && setAssignModal(null)}
+        title={
+          assignModal?.matchIds.length === 1
+            ? "Gán bàn & giờ thi đấu"
+            : `Gán bàn & giờ cho ${assignModal?.matchIds.length ?? 0} trận`
+        }
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={() => setAssignModal(null)} disabled={assigning}>
+              Hủy
+            </AdminButton>
+            <AdminButton variant="primary" onClick={handleSaveAssign} disabled={assigning}>
+              {assigning ? "Đang lưu…" : "Lưu"}
+            </AdminButton>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="admin-label">Bàn</label>
+            <select
+              className="admin-select mt-1 w-full"
+              value={assignForm.clearTable ? "" : assignForm.tableId}
+              disabled={assignForm.clearTable}
+              onChange={(e) => setAssignForm(f => ({ ...f, tableId: e.target.value }))}
+            >
+              <option value="">— Không đổi / chưa chọn —</option>
+              {tables.map(t => (
+                <option key={t.id} value={t.id}>
+                  {t.name}{t.tableNumber != null ? ` (#${t.tableNumber})` : ""}
+                </option>
+              ))}
+            </select>
+            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500">
+              <input
+                type="checkbox"
+                checked={assignForm.clearTable}
+                onChange={(e) => setAssignForm(f => ({ ...f, clearTable: e.target.checked, tableId: e.target.checked ? "" : f.tableId }))}
+              />
+              Bỏ gán bàn
+            </label>
+          </div>
+
+          <div>
+            <label className="admin-label">Giờ thi đấu</label>
+            <input
+              type="datetime-local"
+              className="admin-input mt-1 w-full"
+              value={assignForm.clearScheduledAt ? "" : assignForm.scheduledAt}
+              disabled={assignForm.clearScheduledAt}
+              onChange={(e) => setAssignForm(f => ({ ...f, scheduledAt: e.target.value }))}
+            />
+            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500">
+              <input
+                type="checkbox"
+                checked={assignForm.clearScheduledAt}
+                onChange={(e) => setAssignForm(f => ({ ...f, clearScheduledAt: e.target.checked, scheduledAt: e.target.checked ? "" : f.scheduledAt }))}
+              />
+              Bỏ giờ thi đấu
+            </label>
+          </div>
+
+          {assignModal?.matchIds.length > 1 && (
+            <p className="text-xs text-slate-400">
+              Chỉ những trường có thay đổi (không để trống, không tick &quot;Bỏ&quot;) mới được áp dụng cho tất cả các trận đã chọn.
+            </p>
+          )}
+        </div>
+      </AdminModal>
     </div>
   );
 };
@@ -1101,9 +1346,9 @@ const STAGE_ICON = {
 
 const StageSection = ({
   stage, editMode, swapFirst, dragSrc, dropTarget, swapping, isPreview,
-  matchQuery, statusFilter, startingId,
+  matchQuery, statusFilter, startingId, bulkMode, selectedIds,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
-  onOpenSearch, onStart, onScore, onComplete, onEvents, flashIds,
+  onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, flashIds,
 }) => {
   const rounds = {};
   (stage.matches || []).forEach(m => {
@@ -1216,6 +1461,8 @@ const StageSection = ({
                   dropTarget={dropTarget}
                   swapping={swapping}
                   starting={startingId === m.id}
+                  bulkMode={bulkMode}
+                  isSelected={selectedIds?.has(m.id)}
                   onSlotClick={onSlotClick}
                   onDragStart={onDragStart}
                   onDragOver={onDragOver}
@@ -1227,6 +1474,8 @@ const StageSection = ({
                   onScore={onScore}
                   onComplete={onComplete}
                   onEvents={onEvents}
+                  onToggleSelect={onToggleSelect}
+                  onOpenAssign={onOpenAssign}
                   flashIds={flashIds}
                 />
               ))}
@@ -1243,19 +1492,33 @@ const StageSection = ({
 ══════════════════════════════════════════════════════════ */
 const MatchRow = ({
   match, stageType, editMode, isPreview, swapFirst, dragSrc, dropTarget, swapping, starting,
+  bulkMode, isSelected,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
-  onOpenSearch, onStart, onScore, onComplete, onEvents, flashIds,
+  onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, flashIds,
 }) => {
   const canEdit    = editMode && match.roundNo === 1 && !["LOSERS","GRAND_FINAL"].includes(stageType);
   const sCfg       = STATUS_CFG[match.status] || STATUS_CFG.PENDING;
   const isBye      = match.status === "BYE";
   const isFlashing = flashIds?.has(Number(match.id));
+  const assignable = canAssignTable(match);
+  const scheduledLabel = formatScheduledAt(match.scheduledAt);
+  const tableLabel = match.tableName || (match.tableNo != null ? `Bàn ${match.tableNo}` : null);
 
   return (
     <div className={`rounded-xl my-1 transition-all ${isBye ? "opacity-60" : ""} ${
       canEdit ? "hover:bg-slate-50/80" : ""
     } ${isFlashing ? "ws-flash" : ""}`}>
       <div className="flex items-center gap-3 px-3 py-2.5">
+
+        {/* Bulk-select checkbox */}
+        {bulkMode && assignable && (
+          <input
+            type="checkbox"
+            className="shrink-0 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            checked={!!isSelected}
+            onChange={() => onToggleSelect(match.id)}
+          />
+        )}
 
         {/* Match code */}
         <span className="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md shrink-0 w-[4.5rem] text-center">
@@ -1303,6 +1566,19 @@ const MatchRow = ({
               <span className="text-xs text-slate-400">/ {match.raceTo}</span>
             </div>
           )}
+
+          {/* Bàn & giờ thi đấu */}
+          {!isBye && (
+            <div className="flex items-center gap-1.5 mt-1 text-[11px]">
+              <span className={tableLabel ? "text-slate-500 font-medium" : "text-slate-300"}>
+                {tableLabel || "Chưa gán bàn"}
+              </span>
+              <span className="text-slate-300">·</span>
+              <span className={scheduledLabel ? "text-slate-500 font-medium" : "text-slate-300"}>
+                {scheduledLabel || "Chưa xếp giờ"}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Status */}
@@ -1333,6 +1609,11 @@ const MatchRow = ({
                            cls="text-emerald-600 hover:bg-emerald-50"
                            onClick={() => onComplete(match)} />
               </>
+            )}
+            {assignable && (
+              <ActionBtn icon={<MapPin size={13} />} title="Gán bàn & giờ thi đấu"
+                         cls="text-indigo-600 hover:bg-indigo-50"
+                         onClick={() => onOpenAssign(match)} />
             )}
             <ActionBtn icon={<Trophy size={12} />} title="Lịch sử tỷ số"
                        cls="text-slate-400 hover:bg-slate-100"

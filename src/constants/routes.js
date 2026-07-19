@@ -13,6 +13,7 @@ import AdminAccountListPage from "../pages/Admin/accounts/AccountListPage";
 import OwnerEmployeeListPage from "../pages/Owner/employees/EmployeeListPage";
 import ManagerStaffListPage from "../pages/Manager/employees/StaffListPage";
 import OwnerBranchListPage from "../pages/Owner/branches/BranchListPage";
+import OwnerTableListPage from "../pages/Owner/tables/TableListPage";
 import ManagerBranchListPage from "../pages/Manager/branches/BranchListPage";
 import StaffProfile from "../pages/Manager/StaffProfile";
 import PublicStaffListPage from "../pages/Public/StaffList";
@@ -359,6 +360,14 @@ export const ROUTES = [
       OwnerBranchListPage,
       "Chi nhánh",
       "Tạo và quản lý các chi nhánh trong chuỗi"
+    ),
+  },
+  {
+    path: "/owner/tables",
+    component: withOwnerPage(
+      OwnerTableListPage,
+      "Quản lý bàn",
+      "Danh mục bàn dùng chung cho chuỗi"
     ),
   },
   {
