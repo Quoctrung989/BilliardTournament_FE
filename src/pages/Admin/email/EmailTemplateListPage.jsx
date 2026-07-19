@@ -129,12 +129,18 @@ const EmailTemplateListPage = () => {
       if (formMode === "create") {
         await adminEmailApi.createTemplate(form);
         toast.success("Đã tạo mẫu email");
+        setFormMode(null);
+        load(); // mẫu mới — cần tải lại để đúng vị trí/tổng số trang
       } else {
         await adminEmailApi.updateTemplate(editingId, form);
+        const categoryDisplayName =
+          EMAIL_TEMPLATE_CATEGORIES.find((c) => c.value === form.category)?.label || form.category;
+        setTemplates((prev) =>
+          prev.map((t) => (t.id === editingId ? { ...t, ...form, categoryDisplayName } : t))
+        );
         toast.success("Đã cập nhật mẫu email");
+        setFormMode(null);
       }
-      setFormMode(null);
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -143,10 +149,11 @@ const EmailTemplateListPage = () => {
   };
 
   const toggleActive = async (row) => {
+    const nextActive = !row.isActive;
     try {
-      await adminEmailApi.setTemplateActive(row.id, !row.isActive);
+      await adminEmailApi.setTemplateActive(row.id, nextActive);
+      setTemplates((prev) => prev.map((t) => (t.id === row.id ? { ...t, isActive: nextActive } : t)));
       toast.success(row.isActive ? "Đã tắt mẫu email" : "Đã bật mẫu email");
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     }

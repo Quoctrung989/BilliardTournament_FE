@@ -121,9 +121,9 @@ const ParticipantListPage = ({ api, basePath }) => {
     setActionLoading(true);
     try {
       await api.withdraw(withdrawModal.participantId);
+      setItems((prev) => prev.map((p) => (p.id === withdrawModal.participantId ? { ...p, status: "WITHDRAWN" } : p)));
       toast.success("Đã rút lui");
       setWithdrawModal(null);
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {

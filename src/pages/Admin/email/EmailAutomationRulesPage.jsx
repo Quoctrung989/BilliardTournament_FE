@@ -94,10 +94,11 @@ const EmailAutomationRulesPage = () => {
   };
 
   const toggleEnabled = async (row) => {
+    const nextEnabled = !row.isEnabled;
     try {
-      await adminEmailApi.setRuleEnabled(row.id, !row.isEnabled);
+      await adminEmailApi.setRuleEnabled(row.id, nextEnabled);
+      setRules((prev) => prev.map((r) => (r.id === row.id ? { ...r, isEnabled: nextEnabled } : r)));
       toast.success(row.isEnabled ? "Đã tắt quy tắc" : "Đã bật quy tắc");
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     }

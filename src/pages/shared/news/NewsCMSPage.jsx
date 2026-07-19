@@ -48,8 +48,8 @@ const NewsCMSPage = ({ api, editorPath }) => {
     setActionLoading(true);
     try {
       await api.publishPost(id);
+      setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "PUBLISHED", publishedAt: new Date().toISOString() } : p)));
       toast.success("Đã xuất bản");
-      load();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setActionLoading(false); }
   };
@@ -58,8 +58,8 @@ const NewsCMSPage = ({ api, editorPath }) => {
     setActionLoading(true);
     try {
       await api.hidePost(id);
+      setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "HIDDEN" } : p)));
       toast.success("Đã ẩn bài viết");
-      load();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setActionLoading(false); }
   };
@@ -69,9 +69,10 @@ const NewsCMSPage = ({ api, editorPath }) => {
     setActionLoading(true);
     try {
       await api.deletePost(deleteModal.id);
+      setPosts((prev) => prev.filter((p) => p.id !== deleteModal.id));
+      setTotalElements((prev) => Math.max(0, prev - 1));
       toast.success("Đã xoá");
       setDeleteModal(null);
-      load();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setActionLoading(false); }
   };

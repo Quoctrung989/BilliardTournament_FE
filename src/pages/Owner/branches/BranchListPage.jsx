@@ -125,12 +125,22 @@ const OwnerBranchListPage = () => {
       if (formMode === "create") {
         await ownerBranchApi.createBranch(body);
         toast.success("Đã tạo chi nhánh");
+        closeForm();
+        load(); // chi nhánh mới — cần tải lại để đúng vị trí sắp xếp/tổng số trang
       } else {
-        await ownerBranchApi.updateBranch(editingId, body);
+        const updated = await ownerBranchApi.updateBranch(editingId, body);
+        setBranches((prev) => prev.map((b) => (b.id === editingId ? {
+          ...b,
+          name: updated.name,
+          address: updated.address,
+          phone: updated.phone,
+          description: updated.description,
+          status: updated.status,
+          thumbnailUrl: updated.images?.[0]?.url ?? b.thumbnailUrl,
+        } : b)));
         toast.success("Đã cập nhật chi nhánh");
+        closeForm();
       }
-      closeForm();
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -150,9 +160,9 @@ const OwnerBranchListPage = () => {
     setSaving(true);
     try {
       await ownerBranchApi.updateStatus(row.id, { status });
+      setBranches((prev) => prev.map((b) => (b.id === row.id ? { ...b, status } : b)));
       toast.success(status === "ACTIVE" ? "Đã kích hoạt chi nhánh" : "Đã ngừng hoạt động chi nhánh");
       setConfirmToggle(null);
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {

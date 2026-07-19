@@ -444,9 +444,9 @@ const AccountManagementPage = ({ config }) => {
     setSaving(true);
     try {
       await config.deactivateAccount(confirmDeactivate.id);
+      setAccounts((prev) => prev.map((a) => (a.id === confirmDeactivate.id ? { ...a, status: "LOCKED" } : a)));
       toast.success("Đã vô hiệu hóa tài khoản");
       setConfirmDeactivate(null);
-      loadAccounts();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -535,9 +535,10 @@ const AccountManagementPage = ({ config }) => {
         body.branchId = Number(editForm.branchId);
       }
       await config.updateEmployee(editTarget.id, body);
+      const targetId = editTarget.id;
+      setAccounts((prev) => prev.map((a) => (a.id === targetId ? { ...a, ...body } : a)));
       toast.success("Đã cập nhật thông tin nhân viên");
       closeEditInfo();
-      loadAccounts();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
