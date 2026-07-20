@@ -76,6 +76,7 @@ export const ADMIN_NAV = [
       { label: "Mẫu email", path: "/admin/email/templates" },
       { label: "Quy tắc tự động", path: "/admin/email/automation" },
       { label: "Nhật ký gửi", path: "/admin/email/logs" },
+      { label: "Khung email", path: "/admin/email/layout" },
     ],
   },
 //   {

@@ -119,7 +119,7 @@ const TournamentRegisterPage = () => {
   /* ── Loading ── */
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-slate-400">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-slate-400 content-dark">
         Đang tải form đăng ký...
       </div>
     );
@@ -130,7 +130,7 @@ const TournamentRegisterPage = () => {
   /* ── Đang chuyển tới cổng thanh toán ── */
   if (submitState === "paying") {
     return (
-      <div className="max-w-lg mx-auto px-4 py-20 text-center">
+      <div className="max-w-lg mx-auto px-4 py-20 text-center content-dark">
         <Loader size={48} className="mx-auto mb-4 text-indigo-500 animate-spin" />
         <h2 className="text-xl font-bold text-slate-900 mb-2">Đang chuyển tới cổng thanh toán...</h2>
         <p className="text-slate-500">Vui lòng không đóng trang này.</p>
@@ -141,7 +141,7 @@ const TournamentRegisterPage = () => {
   /* ── Đăng ký miễn phí thành công ── */
   if (submitState === "success_free") {
     return (
-      <div className="max-w-lg mx-auto px-4 py-12">
+      <div className="max-w-lg mx-auto px-4 py-12 content-dark">
         <div className="admin-card p-8 text-center">
           <CheckCircle size={56} className="mx-auto mb-4 text-emerald-500" />
           <h2 className="text-xl font-bold text-slate-900 mb-2">Đăng ký thành công!</h2>
@@ -173,7 +173,7 @@ const TournamentRegisterPage = () => {
   /* ── Có phí nhưng checkout lỗi — cho phép thử lại ── */
   if (submitState === "success_paid_retry") {
     return (
-      <div className="max-w-lg mx-auto px-4 py-12">
+      <div className="max-w-lg mx-auto px-4 py-12 content-dark">
         <div className="admin-card p-8 text-center">
           <CheckCircle size={56} className="mx-auto mb-4 text-emerald-500" />
           <h2 className="text-xl font-bold text-slate-900 mb-2">Đăng ký đã được ghi nhận!</h2>
@@ -208,7 +208,7 @@ const TournamentRegisterPage = () => {
 
   /* ── Form đăng ký ── */
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-2xl mx-auto px-4 py-8 content-dark">
       <button
         type="button"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors mb-5"

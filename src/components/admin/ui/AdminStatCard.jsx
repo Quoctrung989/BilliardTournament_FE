@@ -11,9 +11,9 @@ const AdminStatCard = ({ label, value, hint, icon: Icon, trend, accent = "indigo
     <div className="admin-card p-5 flex flex-col gap-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1 tracking-tight">{value}</p>
-          {hint && <p className="text-xs text-slate-500 mt-1">{hint}</p>}
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1 tracking-tight">{value}</p>
+          {hint && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{hint}</p>}
         </div>
         {Icon && (
           <div

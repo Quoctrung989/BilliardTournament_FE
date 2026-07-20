@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, LayoutDashboard, LogOut, Search, Settings } from "lucide-react";
+import { Bell, ChevronDown, LayoutDashboard, LogOut, Moon, Search, Settings, Sun } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
+import { useThemeStore } from "../../store/themeStore";
 import { ROLES } from "../../constants/auth";
 import { normalizeRole } from "../../utils/auth";
 
@@ -31,6 +32,8 @@ const AdminHeader = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
+  const isDark = theme === "dark";
 
   const breadcrumb =
     breadcrumbMap[location.pathname] ||
@@ -58,7 +61,7 @@ const AdminHeader = ({
 
   return (
     <header
-      className={`admin-header sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 ${
+      className={`admin-header sticky top-0 z-30 bg-white/95 dark:bg-[#0b1424]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 ${
         hasSubtitle ? "admin-header--tall" : ""
       }`}
     >
@@ -86,13 +89,23 @@ const AdminHeader = ({
             <input
               type="search"
               placeholder="Tìm kiếm nhanh..."
-              className="admin-input pl-10 py-2 h-10 bg-slate-50 border-slate-200"
+              className="admin-input pl-10 py-2 h-10 bg-slate-50 border-slate-200 dark:bg-[#0e1626] dark:border-[#243049]"
             />
           </div>
         </div>
       )}
 
       <div className="flex items-center gap-2 flex-shrink-0">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full"
+          aria-label={isDark ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
+          title={isDark ? "Giao diện sáng" : "Giao diện tối"}
+        >
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+
         <button
           type="button"
           className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full hidden sm:flex"
@@ -104,27 +117,27 @@ const AdminHeader = ({
         <div className="relative" ref={menuRef}>
           <button
             type="button"
-            className="flex items-center gap-2 pl-2 pr-3 h-10 rounded-full hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
+            className="flex items-center gap-2 pl-2 pr-3 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-white/10"
             onClick={() => setMenuOpen((v) => !v)}
           >
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0">
               {initials}
             </div>
             <div className="hidden sm:block text-left min-w-0">
-              <p className="text-sm font-semibold text-slate-800 leading-tight max-w-[140px] truncate">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-tight max-w-[140px] truncate">
                 {user?.email || "Admin"}
               </p>
-              <p className="text-xs text-slate-500 leading-tight">{user?.role || "ADMIN"}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">{user?.role || "ADMIN"}</p>
             </div>
             <ChevronDown size={16} className="text-slate-400 hidden sm:block flex-shrink-0" />
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-56 admin-card py-1 shadow-xl border border-slate-200 z-50">
+            <div className="absolute right-0 mt-2 w-56 admin-card py-1 shadow-xl border border-slate-200 dark:border-white/10 z-50">
               {canManage && dashboardPath && (
                 <button
                   type="button"
-                  className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
                   onClick={() => {
                     navigate(dashboardPath);
                     setMenuOpen(false);
@@ -136,7 +149,7 @@ const AdminHeader = ({
               {role === ROLES.ADMIN && (
                 <button
                   type="button"
-                  className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
                   onClick={() => {
                     navigate("/admin/tournament-config/formats");
                     setMenuOpen(false);
@@ -145,10 +158,10 @@ const AdminHeader = ({
                   <Settings size={16} /> Cài đặt mặc định
                 </button>
               )}
-              <hr className="my-1 border-slate-100" />
+              <hr className="my-1 border-slate-100 dark:border-white/10" />
               <button
                 type="button"
-                className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2"
                 onClick={handleLogout}
               >
                 <LogOut size={16} /> Đăng xuất

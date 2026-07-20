@@ -114,12 +114,15 @@ const GameTypeListPage = () => {
       if (isCreate) {
         await createGameType(body);
         toast.success("Đã tạo loại bi");
+        closeForm();
+        load(); // loại bi mới — cần tải lại để đúng vị trí/tổng số trang
       } else {
         await updateGameType(form.code, body);
+        const code = form.code;
+        setGameTypes((prev) => prev.map((g) => (g.code === code ? { ...g, ...body } : g)));
         toast.success("Đã cập nhật loại bi");
+        closeForm();
       }
-      closeForm();
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -139,9 +142,9 @@ const GameTypeListPage = () => {
     setSaving(true);
     try {
       await patchGameTypeActive(row.code, { isActive });
+      setGameTypes((prev) => prev.map((g) => (g.code === row.code ? { ...g, isActive } : g)));
       toast.success(isActive ? "Đã kích hoạt loại bi" : "Đã tắt loại bi");
       setConfirmToggle(null);
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {

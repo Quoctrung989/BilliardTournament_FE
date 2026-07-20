@@ -13,10 +13,10 @@ import AdminAccountListPage from "../pages/Admin/accounts/AccountListPage";
 import OwnerEmployeeListPage from "../pages/Owner/employees/EmployeeListPage";
 import ManagerStaffListPage from "../pages/Manager/employees/StaffListPage";
 import OwnerBranchListPage from "../pages/Owner/branches/BranchListPage";
+import OwnerTableListPage from "../pages/Owner/tables/TableListPage";
 import ManagerBranchListPage from "../pages/Manager/branches/BranchListPage";
 import StaffProfile from "../pages/Manager/StaffProfile";
 import PublicStaffListPage from "../pages/Public/StaffList";
-import StaffManagement from "../pages/Admin/StaffManagement";
 import FormatListPage from "../pages/Admin/tournament-config/FormatListPage";
 import FormatWizardPage from "../pages/Admin/tournament-config/FormatWizardPage";
 import GameTypeListPage from "../pages/Admin/tournament-config/GameTypeListPage";
@@ -50,6 +50,7 @@ import ArticleEditorPage from "../pages/shared/news/ArticleEditorPage";
 import EmailTemplateListPage from "../pages/Admin/email/EmailTemplateListPage";
 import EmailAutomationRulesPage from "../pages/Admin/email/EmailAutomationRulesPage";
 import EmailLogListPage from "../pages/Admin/email/EmailLogListPage";
+import EmailLayoutSettingsPage from "../pages/Admin/email/EmailLayoutSettingsPage";
 import TournamentNotificationsPage from "../pages/shared/tournaments/TournamentNotificationsPage";
 import FacebookPostsStatsPage from "../pages/shared/facebook/FacebookPostsStatsPage";
 import FacebookPostDetailPage from "../pages/shared/facebook/FacebookPostDetailPage";
@@ -335,6 +336,15 @@ export const ROUTES = [
     component: withAdminPage(EmailLogListPage, "Nhật ký email", "Lịch sử gửi email toàn hệ thống", { fullWidth: true }),
   },
   {
+    path: "/admin/email/layout",
+    component: withAdminPage(
+      EmailLayoutSettingsPage,
+      "Khung email",
+      "Chỉnh header/footer chung áp dụng cho mọi email gửi ra",
+      { fullWidth: true },
+    ),
+  },
+  {
     path: "/owner/dashboard",
     component: withOwnerPage(OwnerDashboard, "Tổng quan", "Thống kê giải đấu và doanh thu"),
   },
@@ -352,6 +362,14 @@ export const ROUTES = [
       OwnerBranchListPage,
       "Chi nhánh",
       "Tạo và quản lý các chi nhánh trong chuỗi"
+    ),
+  },
+  {
+    path: "/owner/tables",
+    component: withOwnerPage(
+      OwnerTableListPage,
+      "Quản lý bàn",
+      "Danh mục bàn dùng chung cho chuỗi"
     ),
   },
   {

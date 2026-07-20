@@ -129,12 +129,18 @@ const EmailTemplateListPage = () => {
       if (formMode === "create") {
         await adminEmailApi.createTemplate(form);
         toast.success("Đã tạo mẫu email");
+        setFormMode(null);
+        load(); // mẫu mới — cần tải lại để đúng vị trí/tổng số trang
       } else {
         await adminEmailApi.updateTemplate(editingId, form);
+        const categoryDisplayName =
+          EMAIL_TEMPLATE_CATEGORIES.find((c) => c.value === form.category)?.label || form.category;
+        setTemplates((prev) =>
+          prev.map((t) => (t.id === editingId ? { ...t, ...form, categoryDisplayName } : t))
+        );
         toast.success("Đã cập nhật mẫu email");
+        setFormMode(null);
       }
-      setFormMode(null);
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -143,10 +149,11 @@ const EmailTemplateListPage = () => {
   };
 
   const toggleActive = async (row) => {
+    const nextActive = !row.isActive;
     try {
-      await adminEmailApi.setTemplateActive(row.id, !row.isActive);
+      await adminEmailApi.setTemplateActive(row.id, nextActive);
+      setTemplates((prev) => prev.map((t) => (t.id === row.id ? { ...t, isActive: nextActive } : t)));
       toast.success(row.isActive ? "Đã tắt mẫu email" : "Đã bật mẫu email");
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     }
@@ -202,7 +209,7 @@ const EmailTemplateListPage = () => {
                 <th>Tên</th>
                 <th>Danh mục</th>
                 <th>Trạng thái</th>
-                <th className="text-right">Thao tác</th>
+                <th className="align-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -221,8 +228,12 @@ const EmailTemplateListPage = () => {
               ) : (
                 templates.map((row) => (
                   <tr key={row.id}>
-                    <td className="font-mono text-xs">{row.code}</td>
-                    <td>{row.name}</td>
+                    <td>
+                      <code className="admin-table-code" title={row.code}>{row.code}</code>
+                    </td>
+                    <td>
+                      <span className="admin-table-name" title={row.name}>{row.name}</span>
+                    </td>
                     <td>{row.categoryDisplayName}</td>
                     <td>
                       <span
@@ -233,16 +244,18 @@ const EmailTemplateListPage = () => {
                         {row.isActive ? "Hoạt động" : "Tắt"}
                       </span>
                     </td>
-                    <td className="text-right space-x-2">
-                      <AdminButton variant="ghost" className="!px-2" onClick={() => openPreview(row)}>
-                        <Eye size={16} />
-                      </AdminButton>
-                      <AdminButton variant="secondary" onClick={() => openEdit(row)}>
-                        Sửa
-                      </AdminButton>
-                      <AdminButton variant={row.isActive ? "danger" : "success"} onClick={() => toggleActive(row)}>
-                        {row.isActive ? "Tắt" : "Bật"}
-                      </AdminButton>
+                    <td className="align-right">
+                      <div className="admin-table-actions">
+                        <AdminButton variant="ghost" className="!px-2" onClick={() => openPreview(row)}>
+                          <Eye size={16} />
+                        </AdminButton>
+                        <AdminButton variant="secondary" onClick={() => openEdit(row)}>
+                          Sửa
+                        </AdminButton>
+                        <AdminButton variant={row.isActive ? "danger" : "success"} onClick={() => toggleActive(row)}>
+                          {row.isActive ? "Tắt" : "Bật"}
+                        </AdminButton>
+                      </div>
                     </td>
                   </tr>
                 ))

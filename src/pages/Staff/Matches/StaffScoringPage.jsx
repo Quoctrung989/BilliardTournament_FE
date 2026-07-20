@@ -21,7 +21,7 @@ import {
 } from "../../../utils/refereeMatch";
 
 const P1_COLOR = "#378add";
-const P2_COLOR = "#ef9f27";
+const P2_COLOR = "#ef4444";
 
 /**
  * Chấm "đang giao bóng" hiện đang được suy đoán từ tổng ván ((p1+p2)%2),
@@ -35,11 +35,12 @@ const P1_THEME = {
   accent: P1_COLOR,
   panel: "bg-[#0c1018]",
   panelTint:
-    "linear-gradient(180deg, rgba(55,138,221,0.14) 0%, rgba(12,16,24,1) 55%)",
+    "linear-gradient(175deg, rgba(55,138,221,0.34) 0%, rgba(55,138,221,0.10) 38%, rgba(10,14,20,1) 82%)",
   score: "text-white",
+  glow: "rgba(55,138,221,0.55)",
   name: "text-white",
-  label: "text-[#378add]/80",
-  hint: "text-slate-500",
+  label: "text-[#9cc9f2]",
+  hint: "text-slate-400",
   pipEmpty: "bg-white/[0.08]",
 };
 
@@ -47,11 +48,12 @@ const P2_THEME = {
   accent: P2_COLOR,
   panel: "bg-[#0c1018]",
   panelTint:
-    "linear-gradient(180deg, rgba(239,159,39,0.14) 0%, rgba(12,16,24,1) 55%)",
-  score: "text-[#f5e6d0]",
+    "linear-gradient(175deg, rgba(239,68,68,0.34) 0%, rgba(239,68,68,0.10) 38%, rgba(10,14,20,1) 82%)",
+  score: "text-[#ffe4e4]",
+  glow: "rgba(239,68,68,0.55)",
   name: "text-white",
-  label: "text-[#ef9f27]/85",
-  hint: "text-slate-500",
+  label: "text-[#f5a8a8]",
+  hint: "text-slate-400",
   pipEmpty: "bg-white/[0.08]",
 };
 
@@ -127,7 +129,6 @@ const ScorePanel = ({
   finished,
   isWinner,
   dimmed,
-  pointsRemaining,
   hasBreak,
   onTapPlus,
   onMinus,
@@ -154,50 +155,35 @@ const ScorePanel = ({
 
   return (
     <div
-      className="relative flex flex-1 flex-col min-h-0 rounded-none"
+      className="relative flex flex-1 flex-col min-h-0 rounded-none overflow-hidden"
       style={borderStyle}
     >
       <div
         className={`flex flex-1 flex-col min-h-0 transition-opacity duration-300 ${
-          dimmed ? "opacity-60" : "opacity-100"
+          dimmed ? "opacity-55" : "opacity-100"
         }`}
         style={{ background: theme.panelTint }}
       >
-        {/* Góc trạng thái */}
-        <div className="shrink-0 flex items-start justify-between px-4 pt-3 sm:pt-4 min-h-[2.75rem]">
-          {isWinner ? (
+        {/* Nhãn + tên cơ thủ */}
+        <div className="shrink-0 text-center px-3 pt-4 sm:pt-6">
+          <div className="flex items-center justify-center gap-2 min-h-[1.75rem]">
             <span
-              className="inline-flex items-center gap-2 font-medium text-[#f5c842]"
-              style={{ fontSize: "clamp(1rem, 2.8vh, 1.35rem)" }}
+              className={`font-semibold uppercase tracking-[0.22em] ${theme.label}`}
+              style={{ fontSize: "clamp(0.7rem, 1.7vh, 0.9rem)" }}
             >
-              <Crown size={20} strokeWidth={2} />
-              Thắng
+              Cơ thủ {slot}
             </span>
-          ) : (
-            <span />
-          )}
-          {!isWinner && pointsRemaining != null && pointsRemaining > 0 && (
+            {isWinner && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#f5c842]/15 text-[#f5c842] px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ring-[#f5c842]/35">
+                <Crown size={13} strokeWidth={2.5} />
+                Thắng
+              </span>
+            )}
+          </div>
+          <div className="mt-2 inline-flex max-w-full items-center gap-2.5 rounded-full bg-white/[0.07] px-4 py-1.5 ring-1 ring-inset ring-white/10 backdrop-blur-sm">
             <span
-              className="font-normal text-slate-400 tabular-nums"
-              style={{ fontSize: "clamp(1rem, 2.8vh, 1.35rem)" }}
-            >
-          
-            </span>
-          )}
-        </div>
-
-        {/* Tên */}
-        <div className="shrink-0 text-center px-3 sm:px-4 pb-2 sm:pb-3">
-          <p
-            className={`font-normal mb-1.5 sm:mb-2 ${theme.label}`}
-            style={{ fontSize: "clamp(1rem, 2.6vh, 1.25rem)" }}
-          >
-            Cơ thủ {slot}
-          </p>
-          <div className="inline-flex items-center gap-2.5 max-w-full">
-            <span
-              className={`shrink-0 h-3 w-3 rounded-full transition-opacity ${
-                hasBreak ? "opacity-100" : "opacity-0"
+              className={`shrink-0 h-2.5 w-2.5 rounded-full transition-opacity ${
+                hasBreak ? "opacity-100" : "hidden"
               }`}
               style={
                 hasBreak
@@ -211,29 +197,30 @@ const ScorePanel = ({
               aria-hidden={!hasBreak}
             />
             <h2
-              className={`font-medium leading-tight line-clamp-2 ${theme.name}`}
-              style={{ fontSize: "clamp(1.2rem, 4vh, 1.75rem)" }}
+              className={`font-semibold leading-tight line-clamp-1 ${theme.name}`}
+              style={{ fontSize: "clamp(1.1rem, 3.4vh, 1.6rem)" }}
             >
               {name}
             </h2>
           </div>
         </div>
 
-        {/* Vùng chạm +1 — số + pip + gợi ý */}
+        {/* Vùng chạm +1 — số khổng lồ có glow + pip */}
         <button
           type="button"
           disabled={!canAdd}
           onClick={onTapPlus}
-          className={`flex-1 flex flex-col items-center justify-center min-h-[6rem] w-full px-4 py-3 gap-3 sm:gap-4 transition-opacity touch-manipulation select-none disabled:cursor-default ${
-            canAdd ? "active:opacity-85 cursor-pointer" : "opacity-70"
+          className={`flex-1 flex flex-col items-center justify-center min-h-[6rem] w-full px-4 py-2 gap-4 sm:gap-6 touch-manipulation select-none transition-transform disabled:cursor-default ${
+            canAdd ? "active:scale-[0.99] cursor-pointer" : ""
           }`}
           aria-label={`Cộng 1 điểm cho ${name}`}
         >
           <p
-            className={`tabular-nums leading-none font-medium ${theme.score}`}
+            className={`tabular-nums leading-none font-bold ${theme.score}`}
             style={{
-              fontSize: "clamp(7rem, 34vh, 11rem)",
+              fontSize: "clamp(7rem, 38vh, 13rem)",
               fontVariantNumeric: "tabular-nums",
+              textShadow: `0 0 48px ${theme.glow}`,
               animation: pop ? "scorePop 0.26s ease-out" : undefined,
             }}
           >
@@ -246,39 +233,43 @@ const ScorePanel = ({
             accent={theme.accent}
             emptyClass={theme.pipEmpty}
           />
-
-          {canAdd && (
-            <span
-              className={`inline-flex items-center gap-2.5 font-normal ${theme.hint}`}
-              style={{ fontSize: "clamp(1rem, 2.4vh, 1.2rem)" }}
-            >
-              <Hand size={20} className="opacity-70" />
-              Chạm để +1
-            </span>
-          )}
-
-          {!canAdd && canUndo && !finished && (
-            <span
-              className="inline-flex items-center gap-2.5 font-normal text-emerald-400/80"
-              style={{ fontSize: "clamp(1rem, 2.4vh, 1.2rem)" }}
-            >
-              Đã đủ điểm — kết thúc trận
-            </span>
-          )}
-
-          {finished && (
-            <span
-              className="font-normal text-slate-500"
-              style={{ fontSize: "clamp(1rem, 2.4vh, 1.2rem)" }}
-            >
-              Trận đã kết thúc
-            </span>
-          )}
         </button>
       </div>
 
-      {/* Hoàn tác — tách riêng, style phụ */}
-      <div className="shrink-0 flex justify-center py-3.5 sm:py-4 bg-[#0a0e14]/90 border-t border-white/[0.06]">
+      {/* Hàng thao tác: +1 điểm (chính) + hoàn tác */}
+      <div className="shrink-0 flex items-stretch gap-2.5 px-3 sm:px-4 py-3.5 sm:py-4 bg-[#0a0e14]/85 border-t border-white/[0.06]">
+        <button
+          type="button"
+          disabled={!canAdd}
+          onClick={onTapPlus}
+          className={`flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl min-h-[56px] py-3.5 font-bold uppercase tracking-wide transition-all touch-manipulation active:scale-[0.98] disabled:cursor-default ${
+            canAdd
+              ? "text-white"
+              : "bg-white/[0.04] text-slate-500 ring-1 ring-inset ring-white/[0.06]"
+          }`}
+          style={
+            canAdd
+              ? {
+                  backgroundColor: theme.accent,
+                  boxShadow: `0 10px 26px -10px ${theme.accent}`,
+                  fontSize: "clamp(1rem, 2.4vh, 1.25rem)",
+                }
+              : { fontSize: "clamp(0.95rem, 2.2vh, 1.15rem)" }
+          }
+          aria-label={`Cộng 1 điểm cho ${name}`}
+        >
+          {canAdd ? (
+            <>
+              <Hand size={20} strokeWidth={2.4} />
+              +1 điểm
+            </>
+          ) : finished ? (
+            "Đã kết thúc"
+          ) : (
+            "Đã đủ điểm"
+          )}
+        </button>
+
         <button
           type="button"
           disabled={!canUndo}
@@ -286,13 +277,59 @@ const ScorePanel = ({
             e.stopPropagation();
             onMinus();
           }}
-          className="inline-flex items-center gap-2.5 rounded-xl px-5 py-3 min-h-[48px] font-normal text-slate-500 bg-white/[0.04] hover:bg-white/[0.07] hover:text-slate-300 disabled:opacity-25 disabled:pointer-events-none transition-colors touch-manipulation"
-          style={{ fontSize: "clamp(1rem, 2.4vh, 1.2rem)" }}
+          className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-2xl px-4 sm:px-5 min-h-[56px] font-medium text-slate-400 bg-white/[0.05] ring-1 ring-inset ring-white/10 hover:bg-white/[0.09] hover:text-slate-200 disabled:opacity-25 disabled:pointer-events-none transition-colors touch-manipulation"
+          style={{ fontSize: "clamp(0.95rem, 2.2vh, 1.15rem)" }}
+          aria-label={`Hoàn tác, trừ 1 điểm của ${name}`}
         >
-          <Undo2 size={18} className="opacity-70" />
-          Hoàn tác −1
+          <Undo2 size={18} className="opacity-80" />
+          <span className="hidden sm:inline">Hoàn tác</span>
+          <span className="tabular-nums">−1</span>
         </button>
       </div>
+    </div>
+  );
+};
+
+/** Huy hiệu VS / vương miện ở giữa 2 panel — lấp khoảng trống trung tâm. */
+const VersusBadge = ({ winnerAccent }) => {
+  const isWinner = Boolean(winnerAccent);
+  return (
+    <div
+      className="pointer-events-none absolute inset-y-0 left-1/2 z-20 flex -translate-x-1/2 items-center justify-center"
+      aria-hidden
+    >
+      {/* Đường chia dọc phát sáng */}
+      <span
+        className="absolute top-0 bottom-0 w-px"
+        style={{
+          background:
+            "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.18) 20%, rgba(255,255,255,0.18) 80%, transparent 100%)",
+        }}
+      />
+      {/* Huy hiệu tròn */}
+      <span
+        className="relative flex h-20 w-20 items-center justify-center rounded-full bg-[#0a0e14] font-black sm:h-28 sm:w-28"
+        style={{
+          border: `3px solid ${isWinner ? winnerAccent : "rgba(255,255,255,0.22)"}`,
+          boxShadow: isWinner
+            ? `0 0 44px -4px ${winnerAccent}`
+            : `0 0 0 8px rgba(10,14,20,0.92), 0 0 34px -6px ${P1_COLOR}55, 0 0 34px -6px ${P2_COLOR}55`,
+        }}
+      >
+        {isWinner ? (
+          <Crown size={46} strokeWidth={2.2} style={{ color: winnerAccent }} />
+        ) : (
+          <span
+            className="italic tracking-tight text-white"
+            style={{
+              fontSize: "clamp(1.7rem, 5vh, 3rem)",
+              textShadow: "0 2px 14px rgba(0,0,0,0.6)",
+            }}
+          >
+            VS
+          </span>
+        )}
+      </span>
     </div>
   );
 };
@@ -387,9 +424,6 @@ const StaffScoringPage = () => {
   const anyoneReachedRace = raceLeader != null;
   const defaultWinnerId = pickDefaultWinnerId(match, scores.p1, scores.p2);
   const breakSlot = getBreakSlot(scores);
-
-  const p1Remaining = Math.max(0, raceTo - scores.p1);
-  const p2Remaining = Math.max(0, raceTo - scores.p2);
 
   const raceReached = scores.p1 >= raceTo || scores.p2 >= raceTo;
   const scoreInteractive = live && !finished && actionLoading !== "complete";
@@ -551,38 +585,57 @@ const StaffScoringPage = () => {
         }
       `}</style>
 
-      {/* Header phân cấp */}
-      <header className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-white/[0.06] bg-[#0f141c]">
+      {/* Header — gọn 1 hàng */}
+      <header
+        className="shrink-0 flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 border-b border-white/[0.08] bg-[#0f141c]"
+        style={{ boxShadow: "0 1px 0 0 rgba(255,255,255,0.04)" }}
+      >
         <button
           type="button"
           onClick={() => navigate("/staff/matches")}
-          className="rounded-lg p-2 text-slate-500 hover:text-white hover:bg-white/5 transition-colors touch-manipulation"
+          className="shrink-0 rounded-lg p-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors touch-manipulation"
           aria-label="Quay lại"
         >
           <ArrowLeft size={20} />
         </button>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex flex-1 min-w-0 items-center gap-2.5">
           <h1
-            className="font-medium text-white leading-tight truncate tabular-nums"
-            style={{ fontSize: "clamp(1.25rem, 3.5vh, 1.5rem)" }}
+            className="shrink-0 font-bold text-white leading-none tabular-nums"
+            style={{ fontSize: "clamp(1.2rem, 3.4vh, 1.6rem)" }}
           >
             {header.table}
           </h1>
           {header.raceGame && (
-            <p className="text-sm font-normal text-slate-400 truncate mt-0.5">
+            <span className="shrink-0 inline-flex items-center rounded-md bg-white/[0.06] px-2.5 py-1 text-xs sm:text-sm font-medium text-slate-300 ring-1 ring-inset ring-white/10">
               {header.raceGame}
-            </p>
+            </span>
           )}
           {header.code && (
-            <p className="text-xs font-normal text-slate-600 truncate mt-0.5">
+            <span className="hidden md:inline truncate text-xs font-normal text-slate-500">
               {header.code}
-            </p>
+            </span>
           )}
         </div>
 
-        <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 text-emerald-400 ring-1 ring-inset ring-emerald-500/25 px-2.5 py-1 text-xs font-normal">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+        <span
+          className={`shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${
+            finished
+              ? "bg-slate-500/15 text-slate-300 ring-slate-500/25"
+              : live
+                ? "bg-emerald-500/15 text-emerald-400 ring-emerald-500/30"
+                : "bg-amber-500/15 text-amber-400 ring-amber-500/30"
+          }`}
+        >
+          <span
+            className={`h-2 w-2 rounded-full ${
+              finished
+                ? "bg-slate-400"
+                : live
+                  ? "bg-emerald-400 animate-pulse"
+                  : "bg-amber-400"
+            }`}
+          />
           {statusLabel}
         </span>
 
@@ -626,7 +679,7 @@ const StaffScoringPage = () => {
       )}
 
       {/* Hai panel — luôn cạnh nhau để trọng tài so sánh tỉ số nhanh */}
-      <div className="flex-1 flex flex-row min-h-0">
+      <div className="relative flex-1 flex flex-row min-h-0">
         <ScorePanel
           name={p1Name}
           score={scores.p1}
@@ -638,11 +691,21 @@ const StaffScoringPage = () => {
           finished={finished}
           isWinner={raceLeader?.slot === 1}
           dimmed={anyoneReachedRace && raceLeader?.slot !== 1}
-          pointsRemaining={raceLeader?.slot === 1 ? null : p1Remaining}
           hasBreak={SHOW_BREAK && breakSlot === 1 && live}
           onTapPlus={() => handleIncrement(1, 1)}
           onMinus={() => handleIncrement(1, -1)}
         />
+
+        <VersusBadge
+          winnerAccent={
+            anyoneReachedRace
+              ? raceLeader?.slot === 1
+                ? P1_COLOR
+                : P2_COLOR
+              : null
+          }
+        />
+
         <ScorePanel
           name={p2Name}
           score={scores.p2}
@@ -654,7 +717,6 @@ const StaffScoringPage = () => {
           finished={finished}
           isWinner={raceLeader?.slot === 2}
           dimmed={anyoneReachedRace && raceLeader?.slot !== 2}
-          pointsRemaining={raceLeader?.slot === 2 ? null : p2Remaining}
           hasBreak={SHOW_BREAK && breakSlot === 2 && live}
           onTapPlus={() => handleIncrement(2, 1)}
           onMinus={() => handleIncrement(2, -1)}
@@ -682,9 +744,10 @@ const StaffScoringPage = () => {
               type="button"
               onClick={openEndDialog}
               disabled={actionLoading === "complete"}
-              className="rounded-xl px-6 py-3 min-h-[48px] font-normal text-slate-500 bg-white/[0.04] hover:text-slate-300 transition-colors touch-manipulation"
-              style={{ fontSize: "clamp(1rem, 2.4vh, 1.2rem)" }}
+              className="inline-flex items-center gap-2 rounded-xl px-6 py-3 min-h-[48px] font-semibold text-slate-300 bg-white/[0.06] ring-1 ring-inset ring-white/[0.12] hover:bg-white/[0.1] hover:text-white disabled:opacity-50 transition-colors touch-manipulation"
+              style={{ fontSize: "clamp(0.95rem, 2.2vh, 1.15rem)" }}
             >
+              <Flag size={18} className="opacity-80" />
               Kết thúc trận
             </button>
           </div>

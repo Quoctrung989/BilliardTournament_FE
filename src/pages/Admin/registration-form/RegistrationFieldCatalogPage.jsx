@@ -140,12 +140,16 @@ const RegistrationFieldCatalogPage = () => {
           isActive: form.isActive,
         });
         toast.success("Đã tạo field");
+        setModal(null);
+        load(); // field mới — cần tải lại để đúng vị trí/tổng số trang
       } else {
-        await updateRegistrationField(modal.fieldKey, buildPayload());
+        const payload = buildPayload();
+        await updateRegistrationField(modal.fieldKey, payload);
+        const fieldKey = modal.fieldKey;
+        setItems((prev) => prev.map((it) => (it.fieldKey === fieldKey ? { ...it, ...payload } : it)));
         toast.success("Đã cập nhật field");
+        setModal(null);
       }
-      setModal(null);
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -164,9 +168,9 @@ const RegistrationFieldCatalogPage = () => {
   const applyToggleActive = async (fieldKey, isActive) => {
     try {
       await patchRegistrationFieldActive(fieldKey, { isActive });
+      setItems((prev) => prev.map((it) => (it.fieldKey === fieldKey ? { ...it, isActive } : it)));
       toast.success(isActive ? "Đã kích hoạt field" : "Đã tắt field");
       setConfirmToggle(null);
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     }

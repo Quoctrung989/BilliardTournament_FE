@@ -1,4 +1,4 @@
-import { Braces, Layers, MapPin, User } from "lucide-react";
+import { Braces, Layers, MapPin } from "lucide-react";
 import { ACCOUNT_ROLE_LABELS, ACCOUNT_STATUS_LABELS } from "../../../constants/accountConfig";
 
 const STATUS_ACCENT = {

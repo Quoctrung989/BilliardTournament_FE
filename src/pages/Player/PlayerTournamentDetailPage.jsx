@@ -143,7 +143,7 @@ const PlayerTournamentDetailPage = () => {
   };
 
   return (
-    <div style={{ background: "#e8e8e8", minHeight: "100vh" }}>
+    <div className="content-dark" style={{ background: "var(--pd-page)", minHeight: "100vh" }}>
 
       {/* ══════════════════════════════════════════
           HERO BANNER
@@ -180,7 +180,7 @@ const PlayerTournamentDetailPage = () => {
       ══════════════════════════════════════════ */}
       <div style={{ position: "relative", zIndex: 10, maxWidth: "min(1100px, calc(100% - 3rem))", margin: "-60px auto 0", paddingBottom: "3rem" }}>
         <div style={{
-          background: "#fff",
+          background: "var(--pd-card)",
           borderRadius: "1.25rem",
           boxShadow: "0 10px 40px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08)",
           overflow: "visible",
@@ -207,7 +207,7 @@ const PlayerTournamentDetailPage = () => {
           <div style={{ textAlign: "center", padding: "2.5rem 2rem 1.5rem" }}>
             <h1 style={{
               fontWeight: 900, fontSize: "clamp(1.4rem, 3vw, 2rem)",
-              color: "#010851", fontStyle: "italic",
+              color: "var(--pd-heading)", fontStyle: "italic",
               textTransform: "uppercase", letterSpacing: "-0.01em",
               lineHeight: 1.25, margin: "0 0 0.5rem",
             }}>
@@ -221,7 +221,7 @@ const PlayerTournamentDetailPage = () => {
           </div>
 
           {/* ── 4-column info bar ── */}
-          <div style={{ borderTop: "1px solid #e2e8f0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+          <div style={{ borderTop: "1px solid var(--pd-border)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
             <InfoCol icon={Calendar} label="Ngày diễn ra"
               value={fmtDateRange(detail.startAt, detail.endAt)} />
             <InfoCol icon={Gamepad2} label="Loại bi"
@@ -380,7 +380,7 @@ const PlayerTournamentDetailPage = () => {
 
           {/* Địa điểm tổ chức */}
           {detail.venue && (
-            <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+            <div style={{ background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
                 <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
                 <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
@@ -388,11 +388,11 @@ const PlayerTournamentDetailPage = () => {
                 </p>
               </div>
               <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
-                <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <MapPin size={14} style={{ color: "#010851" }} />
+                <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "var(--pd-subtle)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <MapPin size={14} style={{ color: "var(--pd-heading)" }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: "0.9375rem", fontWeight: 700, color: "#1e293b", margin: "0 0 0.25rem" }}>
+                  <p style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--pd-text)", margin: "0 0 0.25rem" }}>
                     {detail.venue.name}
                   </p>
                   <p style={{ fontSize: "0.8125rem", color: "#64748b", margin: 0 }}>{detail.venue.address}</p>
@@ -410,7 +410,7 @@ const PlayerTournamentDetailPage = () => {
                       key={img.id}
                       src={img.url}
                       alt=""
-                      style={{ height: "5rem", width: "5rem", borderRadius: "0.625rem", objectFit: "cover", border: "1px solid #e2e8f0" }}
+                      style={{ height: "5rem", width: "5rem", borderRadius: "0.625rem", objectFit: "cover", border: "1px solid var(--pd-border)" }}
                     />
                   ))}
                 </div>
@@ -419,7 +419,7 @@ const PlayerTournamentDetailPage = () => {
           )}
 
           {/* Schedule */}
-          <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+          <div style={{ background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
               <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
               <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
@@ -433,12 +433,12 @@ const PlayerTournamentDetailPage = () => {
                 { label: "Kết thúc", value: fmtDateFull(detail.endAt), icon: Calendar },
               ].map(({ label, value, icon: Icon }) => (
                 <div key={label} style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
-                  <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Icon size={14} style={{ color: "#010851" }} />
+                  <div style={{ width: "2rem", height: "2rem", borderRadius: "0.5rem", background: "var(--pd-subtle)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Icon size={14} style={{ color: "var(--pd-heading)" }} />
                   </div>
                   <div>
                     <p style={{ fontSize: "0.7rem", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 0.15rem" }}>{label}</p>
-                    <p style={{ fontSize: "0.875rem", fontWeight: 600, color: "#1e293b", margin: 0 }}>{value}</p>
+                    <p style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--pd-text)", margin: 0 }}>{value}</p>
                   </div>
                 </div>
               ))}
@@ -446,7 +446,7 @@ const PlayerTournamentDetailPage = () => {
           </div>
 
           {/* Slots + Fee */}
-          <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+          <div style={{ background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
             {!isEndedOrClosed && (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
@@ -464,18 +464,18 @@ const PlayerTournamentDetailPage = () => {
                 { label: "Phí tham dự", value: fmtCurrency(detail.entryFee), icon: CreditCard },
                 { label: "Giải thưởng", value: fmtCurrency(detail.prizePool), icon: Trophy },
               ].map(({ label, value, icon: Icon }) => (
-                <div key={label} style={{ padding: "0.75rem", borderRadius: "0.625rem", background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                <div key={label} style={{ padding: "0.75rem", borderRadius: "0.625rem", background: "var(--pd-subtle)", border: "1px solid var(--pd-border)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.3rem", color: "#94a3b8" }}>
                     <Icon size={11} />
                     <span style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
                   </div>
-                  <p style={{ fontWeight: 700, fontSize: "0.875rem", color: "#010851", margin: 0 }}>{value}</p>
+                  <p style={{ fontWeight: 700, fontSize: "0.875rem", color: "var(--pd-heading)", margin: 0 }}>{value}</p>
                 </div>
               ))}
             </div>
 
             {detail.prizeDescription && (
-              <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", color: "#64748b", lineHeight: 1.5, paddingTop: "0.75rem", borderTop: "1px solid #f1f5f9" }}>
+              <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", color: "#64748b", lineHeight: 1.5, paddingTop: "0.75rem", borderTop: "1px solid var(--pd-border)" }}>
                 {detail.prizeDescription}
               </p>
             )}
@@ -483,7 +483,7 @@ const PlayerTournamentDetailPage = () => {
 
           {/* Format / Config */}
           {(detail.configSummary || detail.formatName) && (
-            <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+            <div style={{ background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
                 <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
                 <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
@@ -506,9 +506,9 @@ const PlayerTournamentDetailPage = () => {
                   },
                   detail.configSummary?.thirdPlaceMatch != null && { label: "Tranh hạng 3", value: detail.configSummary.thirdPlaceMatch ? "Có" : "Không" },
                 ].filter(Boolean).map(({ label, value }) => (
-                  <div key={label} style={{ padding: "0.75rem", borderRadius: "0.625rem", background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                  <div key={label} style={{ padding: "0.75rem", borderRadius: "0.625rem", background: "var(--pd-subtle)", border: "1px solid var(--pd-border)" }}>
                     <p style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "#94a3b8", margin: "0 0 0.25rem" }}>{label}</p>
-                    <p style={{ fontWeight: 700, fontSize: "0.875rem", color: "#010851", margin: 0 }}>{value}</p>
+                    <p style={{ fontWeight: 700, fontSize: "0.875rem", color: "var(--pd-heading)", margin: 0 }}>{value}</p>
                   </div>
                 ))}
               </div>
@@ -518,9 +518,9 @@ const PlayerTournamentDetailPage = () => {
 
         {/* ── If registration not available online ── */}
         {!detail.isRegister && detail.status !== "COMPLETED" && (
-          <div style={{ marginTop: "1rem", background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0", padding: "1.25rem 1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+          <div style={{ marginTop: "1rem", background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.25rem 1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
             <p style={{ fontSize: "0.875rem", color: "#64748b", margin: 0 }}>
-              <strong style={{ color: "#1e293b" }}>Lưu ý:</strong> Giải đấu này không nhận đăng ký online. Vui lòng liên hệ Ban tổ chức để tham dự.
+              <strong style={{ color: "var(--pd-text)" }}>Lưu ý:</strong> Giải đấu này không nhận đăng ký online. Vui lòng liên hệ Ban tổ chức để tham dự.
             </p>
           </div>
         )}

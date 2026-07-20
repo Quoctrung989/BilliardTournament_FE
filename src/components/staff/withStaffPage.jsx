@@ -1,6 +1,4 @@
-import StaffRoute from "../guards/StaffRoute";
-import AdminLayout from "../admin/AdminLayout";
-import { STAFF_NAV } from "../../constants/staffNav";
+import { withPageMeta } from "../admin/pageMetaLeaf";
 
 /**
  * @param {React.ComponentType} Page
@@ -8,39 +6,32 @@ import { STAFF_NAV } from "../../constants/staffNav";
  * @param {{
  *   subtitle?: string,
  *   fullWidth?: boolean,
- *   navConfig?: object,
  *   hideBreadcrumb?: boolean,
  *   hideSearch?: boolean,
  *   hideTitles?: boolean,
  *   contentClassName?: string,
- * }} [options]
+ * }} [options] navConfig không còn nhận per-page nữa — cố định theo section (STAFF_NAV) tại
+ * routes/index.jsx.
  */
 export const withStaffPage = (Page, title, options = {}) => {
   const {
     subtitle,
     fullWidth = false,
-    navConfig = STAFF_NAV,
     hideBreadcrumb = false,
     hideSearch = false,
     hideTitles = false,
     contentClassName = "",
   } = options;
 
-  const Wrapped = () => (
-    <StaffRoute>
-      <AdminLayout
-        title={title}
-        subtitle={subtitle}
-        fullWidth={fullWidth}
-        navConfig={navConfig}
-        hideBreadcrumb={hideBreadcrumb}
-        hideSearch={hideSearch}
-        hideTitles={hideTitles}
-        contentClassName={contentClassName}
-      >
-        <Page />
-      </AdminLayout>
-    </StaffRoute>
-  );
+  const Wrapped = withPageMeta(Page, {
+    title,
+    subtitle,
+    fullWidth,
+    hideBreadcrumb,
+    hideSearch,
+    hideTitles,
+    contentClassName,
+  });
+  Wrapped.__routeSection = "staff";
   return Wrapped;
 };

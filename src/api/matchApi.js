@@ -36,6 +36,12 @@ export const createMatchApi = (scope) => ({
   updateScore:   (matchId, body)   => unwrap(axiosClient.put(`/${scope}/matches/${matchId}/score`, body)),
   completeMatch: (matchId, body)   => unwrap(axiosClient.post(`/${scope}/matches/${matchId}/complete`, body)),
   walkover:      (matchId, body)   => unwrap(axiosClient.post(`/${scope}/matches/${matchId}/walkover`, body)),
+
+  // Gán bàn / giờ thi đấu / trọng tài
+  assignMatch:       (matchId, body) => unwrap(axiosClient.patch(`/${scope}/matches/${matchId}/assignment`, body)),
+  bulkAssignMatches: (body)          => unwrap(axiosClient.patch(`/${scope}/matches/bulk-assignment`, body)),
+  listActiveTables:  ()              =>
+    unwrap(axiosClient.get(scope === "owner" ? "/owner/tables/active" : "/manager/tables")),
 });
 
 export const ownerMatchApi   = createMatchApi("owner");

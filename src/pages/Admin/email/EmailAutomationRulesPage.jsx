@@ -94,10 +94,11 @@ const EmailAutomationRulesPage = () => {
   };
 
   const toggleEnabled = async (row) => {
+    const nextEnabled = !row.isEnabled;
     try {
-      await adminEmailApi.setRuleEnabled(row.id, !row.isEnabled);
+      await adminEmailApi.setRuleEnabled(row.id, nextEnabled);
+      setRules((prev) => prev.map((r) => (r.id === row.id ? { ...r, isEnabled: nextEnabled } : r)));
       toast.success(row.isEnabled ? "Đã tắt quy tắc" : "Đã bật quy tắc");
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     }
@@ -123,7 +124,7 @@ const EmailAutomationRulesPage = () => {
                 <th>Mẫu email</th>
                 <th>Người nhận</th>
                 <th>Trạng thái</th>
-                <th className="text-right">Thao tác</th>
+                <th className="align-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -142,8 +143,12 @@ const EmailAutomationRulesPage = () => {
               ) : (
                 rules.map((row) => (
                   <tr key={row.id}>
-                    <td className="font-mono text-xs">{row.code}</td>
-                    <td>{row.name}</td>
+                    <td>
+                      <code className="admin-table-code" title={row.code}>{row.code}</code>
+                    </td>
+                    <td>
+                      <span className="admin-table-name" title={row.name}>{row.name}</span>
+                    </td>
                     <td className="text-xs">{row.eventTypeDisplayName}</td>
                     <td className="text-xs">{row.templateName}</td>
                     <td className="text-xs">{row.recipientTypeDisplayName}</td>
@@ -156,10 +161,12 @@ const EmailAutomationRulesPage = () => {
                         {row.isEnabled ? "Đang bật" : "Đang tắt"}
                       </span>
                     </td>
-                    <td className="text-right">
-                      <AdminButton variant={row.isEnabled ? "danger" : "success"} onClick={() => toggleEnabled(row)}>
-                        {row.isEnabled ? "Tắt" : "Bật"}
-                      </AdminButton>
+                    <td className="align-right">
+                      <div className="admin-table-actions">
+                        <AdminButton variant={row.isEnabled ? "danger" : "success"} onClick={() => toggleEnabled(row)}>
+                          {row.isEnabled ? "Tắt" : "Bật"}
+                        </AdminButton>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -21,6 +21,7 @@ const StaffProfile = () => {
 
   useEffect(() => {
     fetchUserDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   return (
@@ -41,11 +42,13 @@ const StaffProfile = () => {
                 <img
                   className="avatarProfile"
                   src={`${userDetail?.avatarUrl}`}
+                  alt={userDetail?.displayName || "Ảnh đại diện nhân viên"}
                 />
               ) : (
                 <img
                   className="avatarProfile"
                   src={`https://cdn-icons-png.freepik.com/512/219/219986.png`}
+                  alt="Ảnh đại diện mặc định"
                 />
               )}
             </div>

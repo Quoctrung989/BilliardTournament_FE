@@ -688,3 +688,186 @@
   font-family: var(--font-mono);
   color: #0f172a;
 }
+
+/* ===================================================================
+   DARK MODE — override biến & các chỗ hardcode sáng cho AdminLayout
+   (áp dụng chung cho Admin / Owner / Manager / Staff)
+   =================================================================== */
+.dark .admin-shell {
+  --admin-bg: #0a1220;
+  --admin-surface: #131c2e;
+  --admin-sidebar: #0b1424;
+  --admin-sidebar-hover: #1b2740;
+  --admin-sidebar-active: #24304d;
+  --admin-text: #e2e8f0;
+  --admin-muted: #94a3b8;
+  --admin-border: #243049;
+  --admin-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* Nút phụ + hover */
+.dark .admin-btn-secondary:hover {
+  background: #1b2740;
+}
+.dark .admin-btn-ghost:hover {
+  background: #1b2740;
+  color: var(--admin-text);
+}
+.dark .admin-btn-success:disabled {
+  background: #334155;
+  color: #94a3b8;
+}
+
+/* Input / select */
+.dark .admin-input,
+.dark .admin-select {
+  background: #0e1626;
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+.dark .admin-input::placeholder {
+  color: #64748b;
+}
+.dark .admin-input:focus,
+.dark .admin-select:focus {
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.28);
+}
+
+/* Bảng */
+.dark .admin-table thead {
+  background: #0e1626;
+}
+.dark .admin-table tbody tr:hover {
+  background: #0e1626;
+}
+.dark .admin-table-code {
+  background: #1b2740;
+  color: #cbd5e1;
+}
+.dark .admin-table-num {
+  color: #cbd5e1;
+}
+.dark .admin-table-action--primary {
+  color: #a5b4fc;
+}
+.dark .admin-table-action--primary:hover {
+  background: #1e1b4b;
+}
+.dark .admin-table-action--warning {
+  color: #fcd34d;
+}
+.dark .admin-table-action--warning:hover {
+  background: #422006;
+}
+
+/* Toolbar */
+.dark .admin-toolbar {
+  background: linear-gradient(180deg, #131c2e 0%, #0e1626 100%);
+  border-color: var(--admin-border);
+}
+.dark .admin-toolbar-label {
+  color: #cbd5e1;
+}
+
+/* Skeleton */
+.dark .admin-skeleton {
+  background: linear-gradient(90deg, #1b2740 25%, #24304d 50%, #1b2740 75%);
+  background-size: 200% 100%;
+}
+
+/* Toggle switch (off) */
+.dark .admin-toggle[data-on="false"] {
+  background: #475569;
+}
+
+/* Catalog detail — modal cấu hình (Admin) */
+.dark .catalog-detail-hero,
+.dark .catalog-detail-accent--string {
+  background: linear-gradient(135deg, #131c2e 0%, #0e1626 70%);
+  border-color: var(--admin-border);
+}
+.dark .catalog-detail-accent--boolean {
+  background: linear-gradient(135deg, #1e1b4b 0%, #131c2e 65%);
+  border-color: #3730a3;
+}
+.dark .catalog-detail-accent--int {
+  background: linear-gradient(135deg, #083344 0%, #131c2e 65%);
+  border-color: #155e75;
+}
+.dark .catalog-detail-accent--enum {
+  background: linear-gradient(135deg, #2e1065 0%, #131c2e 65%);
+  border-color: #6d28d9;
+}
+.dark .catalog-detail-hero-icon {
+  background: #0e1626;
+  border-color: rgba(99, 102, 241, 0.35);
+}
+.dark .catalog-detail-hero-key {
+  color: #c7d2fe;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: #3730a3;
+}
+.dark .catalog-detail-chip,
+.dark .catalog-detail-enum-list li {
+  background: #0e1626;
+  border-color: var(--admin-border);
+}
+.dark .catalog-detail-section {
+  background: #131c2e;
+  border-color: var(--admin-border);
+}
+.dark .catalog-detail-section-head {
+  color: #cbd5e1;
+}
+.dark .catalog-detail-desc,
+.dark .catalog-detail-spec-value {
+  color: #cbd5e1;
+}
+.dark .catalog-detail-spec-code {
+  background: #1b2740;
+  color: #cbd5e1;
+}
+.dark .catalog-detail-enum-index {
+  background: #1e1b4b;
+  color: #c7d2fe;
+}
+.dark .catalog-detail-enum-list code {
+  color: #e2e8f0;
+}
+.dark .catalog-detail-status--on {
+  color: #6ee7b7;
+  background: rgba(6, 78, 59, 0.4);
+  border-color: #047857;
+}
+.dark .catalog-detail-status--off {
+  color: #fda4af;
+  background: rgba(76, 5, 25, 0.4);
+  border-color: #be123c;
+}
+
+/* ===================================================================
+   DARK MODE PHA 2 — làm sáng text/viền/nền cho các TRANG NỘI DUNG
+   Bao phủ chung mọi trang render trong .admin-content (chi tiết giải,
+   dashboard, chi nhánh, nhân viên, tin tức, cấu hình...). Chỉ áp trong
+   .admin-content nên KHÔNG đụng header/sidebar/modal (đã xử lý riêng).
+   =================================================================== */
+.dark .admin-content .text-slate-900,
+.dark .admin-content .text-gray-900 { color: #f1f5f9; }
+.dark .admin-content .text-slate-800,
+.dark .admin-content .text-gray-800 { color: #e2e8f0; }
+.dark .admin-content .text-slate-700,
+.dark .admin-content .text-gray-700 { color: #cbd5e1; }
+.dark .admin-content .text-slate-600,
+.dark .admin-content .text-gray-600 { color: #aab6c8; }
+
+.dark .admin-content .border-slate-100,
+.dark .admin-content .border-gray-100 { border-color: rgba(255, 255, 255, 0.06); }
+.dark .admin-content .border-slate-200,
+.dark .admin-content .border-gray-200 { border-color: rgba(255, 255, 255, 0.10); }
+
+.dark .admin-content .bg-white { background-color: #131c2e; }
+.dark .admin-content .bg-slate-50,
+.dark .admin-content .bg-gray-50 { background-color: rgba(255, 255, 255, 0.03); }
+.dark .admin-content .bg-slate-100,
+.dark .admin-content .bg-gray-100 { background-color: rgba(255, 255, 255, 0.06); }

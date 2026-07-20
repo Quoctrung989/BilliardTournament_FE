@@ -95,12 +95,15 @@ const ConfigFieldCatalogPage = () => {
       if (formMode === "create") {
         await createCatalogItem(body);
         toast.success("Đã tạo field catalog");
+        closeForm();
+        loadCatalog(); // field mới — cần tải lại để đúng vị trí/tổng số trang
       } else {
-        await updateCatalogItem(editItem.fieldKey, body);
+        const fieldKey = editItem.fieldKey;
+        await updateCatalogItem(fieldKey, body);
+        setItems((prev) => prev.map((it) => (it.fieldKey === fieldKey ? { ...it, ...body } : it)));
         toast.success("Đã cập nhật field catalog");
+        closeForm();
       }
-      closeForm();
-      loadCatalog();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -143,9 +146,9 @@ const ConfigFieldCatalogPage = () => {
   const applyToggleActive = async (fieldKey, isActive) => {
     try {
       await patchCatalogItemActive(fieldKey, { isActive });
+      setItems((prev) => prev.map((it) => (it.fieldKey === fieldKey ? { ...it, isActive } : it)));
       toast.success(isActive ? "Đã kích hoạt trường" : "Đã tắt trường");
       setConfirmToggle(null);
-      loadCatalog();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     }
