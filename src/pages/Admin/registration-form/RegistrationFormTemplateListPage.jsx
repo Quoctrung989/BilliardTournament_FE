@@ -78,8 +78,8 @@ const RegistrationFormTemplateListPage = () => {
   const applyPatch = async (id, body) => {
     try {
       await patchRegistrationFormTemplateActive(id, body);
+      setItems((prev) => prev.map((it) => (it.id === id ? { ...it, isActive: body.isActive } : it)));
       toast.success(body.isActive ? "Đã bật template" : "Đã tắt template");
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {

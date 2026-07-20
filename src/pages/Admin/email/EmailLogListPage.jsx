@@ -109,7 +109,7 @@ const EmailLogListPage = () => {
                 <th>Giải đấu</th>
                 <th>Trạng thái</th>
                 <th>Thời gian</th>
-                <th></th>
+                <th className="align-right"></th>
               </tr>
             </thead>
             <tbody>
@@ -128,10 +128,16 @@ const EmailLogListPage = () => {
               ) : (
                 logs.map((row) => (
                   <tr key={row.id}>
-                    <td className="text-xs">{row.recipientEmail}</td>
+                    <td className="text-xs">
+                      <code className="admin-table-code" title={row.recipientEmail}>{row.recipientEmail}</code>
+                    </td>
                     <td className="text-xs max-w-[220px] truncate">{row.subjectRendered}</td>
-                    <td className="text-xs">{row.templateCode}</td>
-                    <td className="text-xs">{row.triggerType}</td>
+                    <td className="text-xs">
+                      <code className="admin-table-code" title={row.templateCode}>{row.templateCode}</code>
+                    </td>
+                    <td className="text-xs">
+                      <code className="admin-table-code" title={row.triggerType}>{row.triggerType}</code>
+                    </td>
                     <td className="text-xs">{row.tournamentName || "—"}</td>
                     <td>
                       <StatusBadge status={row.status} />
@@ -139,10 +145,12 @@ const EmailLogListPage = () => {
                     <td className="text-xs">
                       {new Date(row.sentAt || row.createdAt).toLocaleString("vi-VN")}
                     </td>
-                    <td className="text-right">
-                      <AdminButton variant="ghost" className="!px-2" onClick={() => openDetail(row)}>
-                        <Eye size={16} />
-                      </AdminButton>
+                    <td className="align-right">
+                      <div className="admin-table-actions">
+                        <AdminButton variant="ghost" className="!px-2" onClick={() => openDetail(row)}>
+                          <Eye size={16} />
+                        </AdminButton>
+                      </div>
                     </td>
                   </tr>
                 ))

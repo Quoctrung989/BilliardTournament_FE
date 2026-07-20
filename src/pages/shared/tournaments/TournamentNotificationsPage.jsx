@@ -247,7 +247,7 @@ const AutomationTab = ({ api, tournamentId }) => {
               <th>Người nhận</th>
               <th>Phạm vi</th>
               <th>Trạng thái</th>
-              <th className="text-right">Thao tác</th>
+              <th className="align-right">Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -280,10 +280,12 @@ const AutomationTab = ({ api, tournamentId }) => {
                       {rule.isEnabled ? "Đang bật" : "Đang tắt"}
                     </span>
                   </td>
-                  <td className="text-right">
-                    <AdminButton variant={rule.isEnabled ? "danger" : "success"} onClick={() => toggle(rule)}>
-                      {rule.isEnabled ? "Tắt" : "Bật"}
-                    </AdminButton>
+                  <td className="align-right">
+                    <div className="admin-table-actions">
+                      <AdminButton variant={rule.isEnabled ? "danger" : "success"} onClick={() => toggle(rule)}>
+                        {rule.isEnabled ? "Tắt" : "Bật"}
+                      </AdminButton>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -371,9 +373,13 @@ const HistoryTab = ({ api, tournamentId }) => {
             ) : (
               logs.map((row) => (
                 <tr key={row.id}>
-                  <td className="text-xs">{row.recipientEmail}</td>
+                  <td className="text-xs">
+                    <code className="admin-table-code" title={row.recipientEmail}>{row.recipientEmail}</code>
+                  </td>
                   <td className="text-xs max-w-[220px] truncate">{row.subjectRendered}</td>
-                  <td className="text-xs">{row.triggerType}</td>
+                  <td className="text-xs">
+                    <code className="admin-table-code" title={row.triggerType}>{row.triggerType}</code>
+                  </td>
                   <td>
                     <StatusBadge status={row.status} />
                   </td>

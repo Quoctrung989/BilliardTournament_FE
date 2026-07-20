@@ -71,9 +71,9 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
     setActionLoading(true);
     try {
       await api.approveRegistration(registrationId);
+      setItems((prev) => prev.map((it) => (it.id === registrationId ? { ...it, status: "APPROVED" } : it)));
       toast.success("Đã duyệt đăng ký");
       setDetail(null);
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -89,11 +89,13 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
     setActionLoading(true);
     try {
       await api.rejectRegistration(rejectModal.id, { reason: rejectReason.trim() });
+      const rejectedId = rejectModal.id;
+      const reason = rejectReason.trim();
+      setItems((prev) => prev.map((it) => (it.id === rejectedId ? { ...it, status: "REJECTED", rejectReason: reason } : it)));
       toast.success("Đã từ chối đăng ký");
       setRejectModal(null);
       setRejectReason("");
       setDetail(null);
-      load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {

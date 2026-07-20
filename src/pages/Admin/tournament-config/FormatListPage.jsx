@@ -66,8 +66,8 @@ const FormatListPage = () => {
   const applyPatchActive = async (code, body) => {
     try {
       await patchFormatActive(code, body);
+      setFormats((prev) => prev.map((f) => (f.code === code ? { ...f, isActive: body.isActive } : f)));
       toast.success(body.isActive ? "Đã bật thể thức" : "Đã tắt thể thức");
-      loadFormats();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {

@@ -48,8 +48,8 @@ const NewsCMSPage = ({ api, editorPath }) => {
     setActionLoading(true);
     try {
       await api.publishPost(id);
+      setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "PUBLISHED", publishedAt: new Date().toISOString() } : p)));
       toast.success("Đã xuất bản");
-      load();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setActionLoading(false); }
   };
@@ -58,8 +58,8 @@ const NewsCMSPage = ({ api, editorPath }) => {
     setActionLoading(true);
     try {
       await api.hidePost(id);
+      setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, status: "HIDDEN" } : p)));
       toast.success("Đã ẩn bài viết");
-      load();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setActionLoading(false); }
   };
@@ -69,9 +69,10 @@ const NewsCMSPage = ({ api, editorPath }) => {
     setActionLoading(true);
     try {
       await api.deletePost(deleteModal.id);
+      setPosts((prev) => prev.filter((p) => p.id !== deleteModal.id));
+      setTotalElements((prev) => Math.max(0, prev - 1));
       toast.success("Đã xoá");
       setDeleteModal(null);
-      load();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setActionLoading(false); }
   };
@@ -104,7 +105,7 @@ const NewsCMSPage = ({ api, editorPath }) => {
                   <th>Danh mục</th>
                   <th>Trạng thái</th>
                   <th>Ngày xuất bản</th>
-                  <th className="text-right pr-4">Thao tác</th>
+                  <th className="align-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -121,8 +122,8 @@ const NewsCMSPage = ({ api, editorPath }) => {
                       </span>
                     </td>
                     <td className="text-sm text-slate-500">{fmtDate(post.publishedAt)}</td>
-                    <td className="text-right pr-4">
-                      <div className="flex justify-end gap-1">
+                    <td className="align-right">
+                      <div className="admin-table-actions">
                         <button
                           type="button"
                           className="admin-table-action"
