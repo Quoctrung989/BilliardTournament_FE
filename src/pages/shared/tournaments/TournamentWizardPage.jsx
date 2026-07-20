@@ -253,7 +253,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
         bannerUrl: detail.bannerUrl || "",
         gameType: detail.gameType || "",
         format: detail.format || "",
-        branchId: detail.branchId ? String(detail.branchId) : "",
+        branchId: detail.venue?.branchId ? String(detail.venue.branchId) : "",
         participantType: detail.participantType || "SINGLE",
         maxParticipants: detail.maxParticipants ?? 16,
         entryFee: detail.entryFee ?? "",
