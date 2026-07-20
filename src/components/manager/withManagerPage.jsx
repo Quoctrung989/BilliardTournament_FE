@@ -1,19 +1,15 @@
-import ManagerRoute from "../guards/ManagerRoute";
-import AdminLayout from "../admin/AdminLayout";
-import { MANAGER_NAV } from "../../constants/managerNav";
+import { withPageMeta } from "../admin/pageMetaLeaf";
 
 export const withManagerPage = (Page, title, subtitle, options = {}) => {
-  const Wrapped = () => (
-    <ManagerRoute>
-      <AdminLayout
-        title={title}
-        subtitle={subtitle}
-        fullWidth={options.fullWidth}
-        navConfig={MANAGER_NAV}
-      >
-        <Page />
-      </AdminLayout>
-    </ManagerRoute>
-  );
+  const Wrapped = withPageMeta(Page, {
+    title,
+    subtitle,
+    fullWidth: options.fullWidth,
+    hideBreadcrumb: options.hideBreadcrumb,
+    hideSearch: options.hideSearch,
+    hideTitles: options.hideTitles,
+    contentClassName: options.contentClassName,
+  });
+  Wrapped.__routeSection = "manager";
   return Wrapped;
 };

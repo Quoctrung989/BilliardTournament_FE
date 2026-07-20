@@ -52,6 +52,7 @@ import ArticleEditorPage from "../pages/shared/news/ArticleEditorPage";
 import EmailTemplateListPage from "../pages/Admin/email/EmailTemplateListPage";
 import EmailAutomationRulesPage from "../pages/Admin/email/EmailAutomationRulesPage";
 import EmailLogListPage from "../pages/Admin/email/EmailLogListPage";
+import EmailLayoutSettingsPage from "../pages/Admin/email/EmailLayoutSettingsPage";
 import TournamentNotificationsPage from "../pages/shared/tournaments/TournamentNotificationsPage";
 import PlayerRoute from "../components/guards/PlayerRoute";
 import {
@@ -341,6 +342,15 @@ export const ROUTES = [
   {
     path: "/admin/email/logs",
     component: withAdminPage(EmailLogListPage, "Nhật ký email", "Lịch sử gửi email toàn hệ thống", { fullWidth: true }),
+  },
+  {
+    path: "/admin/email/layout",
+    component: withAdminPage(
+      EmailLayoutSettingsPage,
+      "Khung email",
+      "Chỉnh header/footer chung áp dụng cho mọi email gửi ra",
+      { fullWidth: true },
+    ),
   },
   {
     path: "/owner/dashboard",

@@ -105,7 +105,7 @@ const NewsCMSPage = ({ api, editorPath }) => {
                   <th>Danh mục</th>
                   <th>Trạng thái</th>
                   <th>Ngày xuất bản</th>
-                  <th className="text-right pr-4">Thao tác</th>
+                  <th className="align-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -122,8 +122,8 @@ const NewsCMSPage = ({ api, editorPath }) => {
                       </span>
                     </td>
                     <td className="text-sm text-slate-500">{fmtDate(post.publishedAt)}</td>
-                    <td className="text-right pr-4">
-                      <div className="flex justify-end gap-1">
+                    <td className="align-right">
+                      <div className="admin-table-actions">
                         <button
                           type="button"
                           className="admin-table-action"

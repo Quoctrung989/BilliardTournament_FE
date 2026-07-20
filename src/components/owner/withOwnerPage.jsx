@@ -1,19 +1,15 @@
-import OwnerRoute from "../guards/OwnerRoute";
-import AdminLayout from "../admin/AdminLayout";
-import { OWNER_NAV } from "../../constants/ownerNav";
+import { withPageMeta } from "../admin/pageMetaLeaf";
 
 export const withOwnerPage = (Page, title, subtitle, options = {}) => {
-  const Wrapped = () => (
-    <OwnerRoute>
-      <AdminLayout
-        title={title}
-        subtitle={subtitle}
-        fullWidth={options.fullWidth}
-        navConfig={OWNER_NAV}
-      >
-        <Page />
-      </AdminLayout>
-    </OwnerRoute>
-  );
+  const Wrapped = withPageMeta(Page, {
+    title,
+    subtitle,
+    fullWidth: options.fullWidth,
+    hideBreadcrumb: options.hideBreadcrumb,
+    hideSearch: options.hideSearch,
+    hideTitles: options.hideTitles,
+    contentClassName: options.contentClassName,
+  });
+  Wrapped.__routeSection = "owner";
   return Wrapped;
 };

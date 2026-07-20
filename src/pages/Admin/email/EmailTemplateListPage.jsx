@@ -209,7 +209,7 @@ const EmailTemplateListPage = () => {
                 <th>Tên</th>
                 <th>Danh mục</th>
                 <th>Trạng thái</th>
-                <th className="text-right">Thao tác</th>
+                <th className="align-right">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -228,8 +228,12 @@ const EmailTemplateListPage = () => {
               ) : (
                 templates.map((row) => (
                   <tr key={row.id}>
-                    <td className="font-mono text-xs">{row.code}</td>
-                    <td>{row.name}</td>
+                    <td>
+                      <code className="admin-table-code" title={row.code}>{row.code}</code>
+                    </td>
+                    <td>
+                      <span className="admin-table-name" title={row.name}>{row.name}</span>
+                    </td>
                     <td>{row.categoryDisplayName}</td>
                     <td>
                       <span
@@ -240,16 +244,18 @@ const EmailTemplateListPage = () => {
                         {row.isActive ? "Hoạt động" : "Tắt"}
                       </span>
                     </td>
-                    <td className="text-right space-x-2">
-                      <AdminButton variant="ghost" className="!px-2" onClick={() => openPreview(row)}>
-                        <Eye size={16} />
-                      </AdminButton>
-                      <AdminButton variant="secondary" onClick={() => openEdit(row)}>
-                        Sửa
-                      </AdminButton>
-                      <AdminButton variant={row.isActive ? "danger" : "success"} onClick={() => toggleActive(row)}>
-                        {row.isActive ? "Tắt" : "Bật"}
-                      </AdminButton>
+                    <td className="align-right">
+                      <div className="admin-table-actions">
+                        <AdminButton variant="ghost" className="!px-2" onClick={() => openPreview(row)}>
+                          <Eye size={16} />
+                        </AdminButton>
+                        <AdminButton variant="secondary" onClick={() => openEdit(row)}>
+                          Sửa
+                        </AdminButton>
+                        <AdminButton variant={row.isActive ? "danger" : "success"} onClick={() => toggleActive(row)}>
+                          {row.isActive ? "Tắt" : "Bật"}
+                        </AdminButton>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -223,14 +223,16 @@ const ParticipantListPage = ({ api, basePath }) => {
                   <th>Hạt giống</th>
                   <th>Nguồn</th>
                   <th>Trạng thái</th>
-                  <th className="text-right pr-4">Thao tác</th>
+                  <th className="align-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((p, idx) => (
                   <tr key={p.id} className={p.status === "WITHDRAWN" ? "opacity-50" : ""}>
                     <td className="text-slate-400">{idx + 1}</td>
-                    <td className="font-medium">{p.displayName}</td>
+                    <td>
+                      <span className="admin-table-name" title={p.displayName}>{p.displayName}</span>
+                    </td>
                     <td>{p.phone || "—"}</td>
                     <td>{p.seedNo ?? "—"}</td>
                     <td>
@@ -243,17 +245,19 @@ const ParticipantListPage = ({ api, basePath }) => {
                         {p.status === "ACTIVE" ? "Tham gia" : "Rút lui"}
                       </span>
                     </td>
-                    <td className="text-right pr-4">
-                      {p.status === "ACTIVE" && (
-                        <button
-                          type="button"
-                          className="admin-table-action text-red-500"
-                          disabled={actionLoading}
-                          onClick={() => handleWithdraw(p.id, p.displayName)}
-                        >
-                          Rút lui
-                        </button>
-                      )}
+                    <td className="align-right">
+                      <div className="admin-table-actions">
+                        {p.status === "ACTIVE" && (
+                          <button
+                            type="button"
+                            className="admin-table-action text-red-500"
+                            disabled={actionLoading}
+                            onClick={() => handleWithdraw(p.id, p.displayName)}
+                          >
+                            Rút lui
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

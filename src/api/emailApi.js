@@ -25,6 +25,9 @@ export const adminEmailApi = {
 
   listLogs: (params) => unwrapPaged(axiosClient.get("/admin/email/logs", { params })),
   getLogDetail: (id) => unwrap(axiosClient.get(`/admin/email/logs/${id}`)),
+
+  getLayoutSettings: () => unwrap(axiosClient.get("/admin/email/layout")),
+  updateLayoutSettings: (body) => unwrap(axiosClient.put("/admin/email/layout", body)),
 };
 
 /** Owner/Manager — email theo phạm vi 1 giải đấu. */
