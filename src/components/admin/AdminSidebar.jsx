@@ -58,7 +58,7 @@ const NavLink = ({ active, onClick, icon: Icon, label, indent, collapsed }) => {
       } ${
         active
           ? "bg-indigo-600/90 text-white shadow-sm"
-          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+          : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
       }`}
     >
       {Icon && <Icon size={18} strokeWidth={2} className="flex-shrink-0 opacity-90" />}
@@ -151,7 +151,7 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
 
             return (
               <div key={section.id}>
-                <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                   {section.label}
                 </p>
                 <button
@@ -192,7 +192,7 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
           return (
             <div key={section.id}>
               {!collapsed && (
-                <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                   {section.label}
                 </p>
               )}
