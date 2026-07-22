@@ -5,12 +5,14 @@ import {
   ChevronLeft,
   FileText,
   LayoutDashboard,
+  LayoutGrid,
   Mail,
   MapPin,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
   Share2,
+  Tags,
   Trophy,
   UserCog,
   Users,
@@ -21,6 +23,7 @@ import { ADMIN_NAV } from "../../constants/adminNav";
 
 const iconMap = {
   "layout-dashboard": LayoutDashboard,
+  "layout-grid": LayoutGrid,
   users: Users,
   trophy: Trophy,
   settings: Settings,
@@ -29,6 +32,7 @@ const iconMap = {
   mail: Mail,
   "file-text": FileText,
   "share-2": Share2,
+  tags: Tags,
 };
 
 const NavLink = ({ active, onClick, icon: Icon, label, indent, collapsed }) => {
@@ -84,9 +88,21 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
   const toggleSection = (id) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const isActive = (path) =>
-    location.pathname === path ||
-    (path !== "/admin/dashboard" && location.pathname.startsWith(path + "/"));
+  const allPaths = navConfig.flatMap((s) => (s.items || s.children || []).map((i) => i.path));
+
+  // Prefix match chỉ được coi là active nếu không có path nào khác cụ thể hơn
+  // (dài hơn) cũng khớp — tránh việc 2 mục cùng sáng khi 1 mục là tiền tố của mục kia
+  // (vd "/owner/news" và "/owner/news/categories").
+  const isActive = (path) => {
+    if (location.pathname === path) return true;
+    if (path === "/admin/dashboard" || !location.pathname.startsWith(path + "/")) return false;
+    return !allPaths.some(
+      (p) =>
+        p !== path &&
+        p.length > path.length &&
+        (location.pathname === p || location.pathname.startsWith(p + "/"))
+    );
+  };
 
   return (
     <aside
