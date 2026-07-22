@@ -47,6 +47,7 @@ import ArticleDetailPage from "../pages/News/ArticleDetailPage";
 import PlayerProfilePage from "../pages/Event/PlayerProfilePage";
 import NewsCMSPage from "../pages/shared/news/NewsCMSPage";
 import ArticleEditorPage from "../pages/shared/news/ArticleEditorPage";
+import NewsTaxonomyPage from "../pages/shared/news/NewsTaxonomyPage";
 import EmailTemplateListPage from "../pages/Admin/email/EmailTemplateListPage";
 import EmailAutomationRulesPage from "../pages/Admin/email/EmailAutomationRulesPage";
 import EmailLogListPage from "../pages/Admin/email/EmailLogListPage";
@@ -159,10 +160,10 @@ const OwnerTournamentNotifications = () => <TournamentNotificationsPage api={own
 const ManagerTournamentNotifications = () => <TournamentNotificationsPage api={managerEmailApi} />;
 
 const OwnerNewsCMS = () => (
-  <NewsCMSPage api={ownerNewsCmsApi} editorPath="/owner/news" />
+  <NewsCMSPage api={ownerNewsCmsApi} editorPath="/owner/news" taxonomyPath="/owner/news/categories" />
 );
 const ManagerNewsCMS = () => (
-  <NewsCMSPage api={managerNewsCmsApi} editorPath="/manager/news" />
+  <NewsCMSPage api={managerNewsCmsApi} editorPath="/manager/news" taxonomyPath="/manager/news/categories" />
 );
 const OwnerArticleEditor = () => (
   <ArticleEditorPage api={ownerNewsCmsApi} basePath="/owner/news" />
@@ -170,6 +171,8 @@ const OwnerArticleEditor = () => (
 const ManagerArticleEditor = () => (
   <ArticleEditorPage api={managerNewsCmsApi} basePath="/manager/news" />
 );
+const OwnerNewsTaxonomy = () => <NewsTaxonomyPage api={ownerNewsCmsApi} />;
+const ManagerNewsTaxonomy = () => <NewsTaxonomyPage api={managerNewsCmsApi} />;
 
 const PlayerTournamentRegister = () => (
   <PlayerRoute>
@@ -431,6 +434,10 @@ export const ROUTES = [
     component: withOwnerPage(OwnerNewsCMS, "Tin tức & Bài viết", "Quản lý nội dung"),
   },
   {
+    path: "/owner/news/categories",
+    component: withOwnerPage(OwnerNewsTaxonomy, "Danh mục & Thẻ", "Quản lý danh mục và thẻ bài viết"),
+  },
+  {
     path: "/owner/news/:id",
     component: withOwnerPage(OwnerArticleEditor, "Bài viết", "Tạo / sửa bài viết", { fullWidth: true }),
   },
@@ -538,6 +545,10 @@ export const ROUTES = [
   {
     path: "/manager/news",
     component: withManagerPage(ManagerNewsCMS, "Tin tức & Bài viết", "Quản lý nội dung"),
+  },
+  {
+    path: "/manager/news/categories",
+    component: withManagerPage(ManagerNewsTaxonomy, "Danh mục & Thẻ", "Quản lý danh mục và thẻ bài viết"),
   },
   {
     path: "/manager/news/:id",

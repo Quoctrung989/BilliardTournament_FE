@@ -20,6 +20,7 @@ export const MANAGER_NAV = [
     label: "Nội dung",
     items: [
       { label: "Tin tức & Bài viết", path: "/manager/news", icon: "file-text" },
+      { label: "Danh mục & Thẻ", path: "/manager/news/categories", icon: "tags" },
       { label: "Thống kê Facebook", path: "/manager/facebook-posts", icon: "share-2" },
     ],
   },

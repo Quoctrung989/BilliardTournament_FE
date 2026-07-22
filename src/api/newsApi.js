@@ -18,6 +18,7 @@ export const listPublicCategories = () =>
 /* ── CMS (Owner/Manager) ── */
 export const createNewsCmsApi = (scope) => ({
   listPosts:      (params)         => unwrapPaged(axiosClient.get(`/${scope}/news`, { params })),
+  getPost:        (id)             => unwrap(axiosClient.get(`/${scope}/news/${id}`)),
   createPost:     (body)           => unwrap(axiosClient.post(`/${scope}/news`, body)),
   updatePost:     (id, body)       => unwrap(axiosClient.put(`/${scope}/news/${id}`, body)),
   publishPost:    (id)             => unwrap(axiosClient.post(`/${scope}/news/${id}/publish`, {})),
@@ -31,3 +32,11 @@ export const createNewsCmsApi = (scope) => ({
 
 export const ownerNewsCmsApi   = createNewsCmsApi("owner");
 export const managerNewsCmsApi = createNewsCmsApi("manager");
+
+/* ── Tags (shared Owner/Manager) ── */
+export const newsTagsApi = {
+  listTags:   ()           => unwrap(axiosClient.get("/shared/news/tags")),
+  createTag:  (body)       => unwrap(axiosClient.post("/shared/news/tags", body)),
+  updateTag:  (id, body)   => unwrap(axiosClient.put(`/shared/news/tags/${id}`, body)),
+  deleteTag:  (id)         => unwrap(axiosClient.delete(`/shared/news/tags/${id}`)),
+};

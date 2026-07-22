@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Plus, Eye, EyeOff, Trash2, Edit } from "lucide-react";
+import { Plus, Eye, EyeOff, Trash2, Edit, Tags } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminPagination from "../../../components/admin/ui/AdminPagination";
@@ -18,7 +18,7 @@ const STATUS_LABELS = { DRAFT: "Nháp", PUBLISHED: "Đã xuất bản", HIDDEN: 
 
 const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString("vi-VN") : "—";
 
-const NewsCMSPage = ({ api, editorPath }) => {
+const NewsCMSPage = ({ api, editorPath, taxonomyPath }) => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,14 +82,26 @@ const NewsCMSPage = ({ api, editorPath }) => {
       <AdminCard padding={false}>
         <div className="p-5 flex items-center justify-between border-b border-slate-100">
           <h2 className="font-semibold text-slate-900">Bài viết</h2>
-          <AdminButton
-            variant="primary"
-            onClick={() => navigate(`${editorPath}/new`)}
-            className="flex items-center gap-1.5"
-          >
-            <Plus size={15} />
-            Tạo bài viết
-          </AdminButton>
+          <div className="flex items-center gap-2">
+            {taxonomyPath && (
+              <AdminButton
+                variant="secondary"
+                onClick={() => navigate(taxonomyPath)}
+                className="flex items-center gap-1.5"
+              >
+                <Tags size={15} />
+                Danh mục &amp; Thẻ
+              </AdminButton>
+            )}
+            <AdminButton
+              variant="primary"
+              onClick={() => navigate(`${editorPath}/new`)}
+              className="flex items-center gap-1.5"
+            >
+              <Plus size={15} />
+              Tạo bài viết
+            </AdminButton>
+          </div>
         </div>
 
         <div className="admin-table-wrap">

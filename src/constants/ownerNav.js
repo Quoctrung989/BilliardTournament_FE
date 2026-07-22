@@ -21,6 +21,7 @@ export const OWNER_NAV = [
     label: "Nội dung",
     items: [
       { label: "Tin tức & Bài viết", path: "/owner/news", icon: "file-text" },
+      { label: "Danh mục & Thẻ", path: "/owner/news/categories", icon: "tags" },
       { label: "Thống kê Facebook", path: "/owner/facebook-posts", icon: "share-2" },
     ],
   },
