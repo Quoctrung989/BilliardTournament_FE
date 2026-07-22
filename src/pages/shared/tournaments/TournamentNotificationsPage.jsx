@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { RefreshCw } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminPagination from "../../../components/admin/ui/AdminPagination";
@@ -300,14 +301,15 @@ const AutomationTab = ({ api, tournamentId }) => {
 const HistoryTab = ({ api, tournamentId }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (silent) setRefreshing(true); else setLoading(true);
     try {
       const result = await api.listLogs(
         tournamentId,
@@ -320,6 +322,7 @@ const HistoryTab = ({ api, tournamentId }) => {
       toast.error(getApiErrorMessage(err));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [api, tournamentId, page, pageSize, statusFilter]);
 
@@ -327,8 +330,24 @@ const HistoryTab = ({ api, tournamentId }) => {
     load();
   }, [load]);
 
+  // Email vừa gửi ở trạng thái "Đang chờ gửi" sẽ được xử lý bất đồng bộ ở BE,
+  // nên tự động làm mới định kỳ tới khi không còn dòng nào chờ nữa — khỏi phải F5 cả trang.
+  useEffect(() => {
+    const hasPending = logs.some((row) => row.status === "QUEUED");
+    if (!hasPending) return undefined;
+    const timer = setInterval(() => load({ silent: true }), 4000);
+    return () => clearInterval(timer);
+  }, [logs, load]);
+
   return (
-    <AdminCard title={`Lịch sử gửi email (${totalElements})`}>
+    <AdminCard
+      title={`Lịch sử gửi email (${totalElements})`}
+      action={
+        <AdminButton variant="secondary" onClick={() => load({ silent: true })} disabled={loading || refreshing}>
+          <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Làm mới
+        </AdminButton>
+      }
+    >
       <div className="admin-toolbar flex flex-wrap gap-2 mb-4">
         <select
           className="admin-select w-auto"
