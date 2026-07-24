@@ -6,6 +6,8 @@ const unwrap = (p) => p.then((r) => getApiData(r));
 /* ── Public ── */
 export const getPublicStages  = (tournamentId) => unwrap(axiosClient.get(`/tournaments/${tournamentId}/stages`));
 export const getPublicMatches = (tournamentId) => unwrap(axiosClient.get(`/tournaments/${tournamentId}/matches`));
+export const getPublicStageStandings = (tournamentId, stageId) =>
+  unwrap(axiosClient.get(`/tournaments/${tournamentId}/stage-standings`, { params: { stageId } }));
 export const getMatchDetail   = (matchId)      => unwrap(axiosClient.get(`/matches/${matchId}`));
 export const getMatchEvents   = (matchId)      => unwrap(axiosClient.get(`/matches/${matchId}/events`));
 
@@ -26,6 +28,11 @@ export const createMatchApi = (scope) => ({
   eliminateBottom:     (tournamentId, body) => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/eliminate-bottom`, body)),
   // GROUP_PLAYOFF: populate playoff bracket từ standings
   generatePlayoff:     (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/generate-playoff`)),
+  // PROGRESSIVE_ROUND_ROBIN: chuyển giai đoạn + standings từng giai đoạn
+  advanceStage:        (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/advance-stage`)),
+  getStageStandings:   (tournamentId, stageId) => unwrap(axiosClient.get(`/${scope}/tournaments/${tournamentId}/stage-standings`, { params: { stageId } })),
+  // Trọng tài: danh sách staff của chi nhánh giải để gán cho trận
+  getReferees:         (tournamentId)    => unwrap(axiosClient.get(`/${scope}/tournaments/${tournamentId}/referees`)),
 
   // Read stages + matches
   getStages:     (tournamentId)    => unwrap(axiosClient.get(`/${scope}/tournaments/${tournamentId}/stages`)),

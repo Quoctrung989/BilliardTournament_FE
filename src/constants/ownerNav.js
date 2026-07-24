@@ -6,7 +6,6 @@ export const OWNER_NAV = [
       { label: "Dashboard", path: "/owner/dashboard", icon: "layout-dashboard" },
       { label: "Giải đấu", path: "/owner/tournaments", icon: "trophy" },
       { label: "Chi nhánh", path: "/owner/branches", icon: "map-pin" },
-      { label: "Quản lý bàn", path: "/owner/tables", icon: "layout-grid" },
     ],
   },
   {
