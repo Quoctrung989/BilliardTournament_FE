@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  BarChart3,
   ChevronDown,
   ChevronLeft,
+  CreditCard,
   FileText,
   LayoutDashboard,
   LayoutGrid,
@@ -24,6 +26,8 @@ import { ADMIN_NAV } from "../../constants/adminNav";
 const iconMap = {
   "layout-dashboard": LayoutDashboard,
   "layout-grid": LayoutGrid,
+  "bar-chart-3": BarChart3,
+  "credit-card": CreditCard,
   users: Users,
   trophy: Trophy,
   settings: Settings,

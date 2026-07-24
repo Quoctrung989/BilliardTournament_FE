@@ -70,6 +70,9 @@ import {
 } from "../api/newsApi";
 import { ownerEmailApi, managerEmailApi } from "../api/emailApi";
 import { getOwnerStats, getManagerStats } from "../api/dashboardApi";
+import { ownerAnalyticsApi, managerAnalyticsApi } from "../api/analyticsApi";
+import StatisticsPage from "../pages/shared/StatisticsPage";
+import TransactionsPage from "../pages/shared/TransactionsPage";
 import { ownerMatchApi, managerMatchApi } from "../api/matchApi";
 import { withAdminPage } from "../components/admin/withAdminPage";
 import { withStaffPage } from "../components/staff/withStaffPage";
@@ -145,8 +148,20 @@ const ManagerParticipantList = () => (
 const OwnerDashboard = () => (
   <DashboardPage statsLoader={getOwnerStats} basePath="/owner" title="Owner — Tổng quan" />
 );
+const OwnerStatistics = () => (
+  <StatisticsPage analyticsApi={ownerAnalyticsApi} title="Owner — Thống kê & Phân tích" />
+);
+const OwnerTransactions = () => (
+  <TransactionsPage analyticsApi={ownerAnalyticsApi} title="Owner — Quản lý giao dịch" />
+);
 const ManagerDashboard = () => (
   <DashboardPage statsLoader={getManagerStats} basePath="/manager" title="Manager — Tổng quan" />
+);
+const ManagerStatistics = () => (
+  <StatisticsPage analyticsApi={managerAnalyticsApi} title="Manager — Thống kê & Phân tích" />
+);
+const ManagerTransactions = () => (
+  <TransactionsPage analyticsApi={managerAnalyticsApi} title="Manager — Quản lý giao dịch" />
 );
 
 const OwnerDrawPage = () => (
@@ -352,6 +367,24 @@ export const ROUTES = [
     component: withOwnerPage(OwnerDashboard, "Tổng quan", "Thống kê giải đấu và doanh thu"),
   },
   {
+    path: "/owner/analytics",
+    component: withOwnerPage(
+      OwnerStatistics,
+      "Thống kê & Phân tích",
+      "Doanh thu, hiệu suất giải đấu, bảng xếp hạng cơ thủ và xuất báo cáo",
+      { fullWidth: true }
+    ),
+  },
+  {
+    path: "/owner/transactions",
+    component: withOwnerPage(
+      OwnerTransactions,
+      "Quản lý giao dịch",
+      "Tra cứu và quản lý toàn bộ giao dịch thanh toán",
+      { fullWidth: true }
+    ),
+  },
+  {
     path: "/owner/employees",
     component: withOwnerPage(
       OwnerEmployeeListPage,
@@ -462,6 +495,24 @@ export const ROUTES = [
   {
     path: "/manager/dashboard",
     component: withManagerPage(ManagerDashboard, "Tổng quan", "Thống kê giải đấu"),
+  },
+  {
+    path: "/manager/analytics",
+    component: withManagerPage(
+      ManagerStatistics,
+      "Thống kê & Phân tích",
+      "Doanh thu, hiệu suất giải đấu, bảng xếp hạng cơ thủ và xuất báo cáo",
+      { fullWidth: true }
+    ),
+  },
+  {
+    path: "/manager/transactions",
+    component: withManagerPage(
+      ManagerTransactions,
+      "Quản lý giao dịch",
+      "Tra cứu và quản lý toàn bộ giao dịch thanh toán",
+      { fullWidth: true }
+    ),
   },
   {
     path: "/manager/employees",

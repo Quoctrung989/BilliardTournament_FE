@@ -4,6 +4,8 @@ export const MANAGER_NAV = [
     label: "Tổng quan",
     items: [
       { label: "Dashboard", path: "/manager/dashboard", icon: "layout-dashboard" },
+      { label: "Thống kê & Phân tích", path: "/manager/analytics", icon: "bar-chart-3" },
+      { label: "Quản lý giao dịch", path: "/manager/transactions", icon: "credit-card" },
       { label: "Giải đấu", path: "/manager/tournaments", icon: "trophy" },
       { label: "Chi nhánh", path: "/manager/branches", icon: "map-pin" },
     ],

@@ -4,6 +4,8 @@ export const OWNER_NAV = [
     label: "Tổng quan",
     items: [
       { label: "Dashboard", path: "/owner/dashboard", icon: "layout-dashboard" },
+      { label: "Thống kê & Phân tích", path: "/owner/analytics", icon: "bar-chart-3" },
+      { label: "Quản lý giao dịch", path: "/owner/transactions", icon: "credit-card" },
       { label: "Giải đấu", path: "/owner/tournaments", icon: "trophy" },
       { label: "Chi nhánh", path: "/owner/branches", icon: "map-pin" },
       { label: "Quản lý bàn", path: "/owner/tables", icon: "layout-grid" },
