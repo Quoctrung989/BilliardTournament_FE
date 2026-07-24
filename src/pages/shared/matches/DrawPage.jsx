@@ -5,7 +5,7 @@ import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
   ArrowLeft, ArrowLeftRight, Eye, Lock, Search, GripVertical,
   ChevronRight, Users, Swords, Zap, BarChart2, Scissors,
-  Loader2, X, MapPin, CheckSquare,
+  Loader2, X, MapPin, CheckSquare, UserCheck,
 } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
@@ -40,7 +40,13 @@ const STATUS_CFG = {
   BYE:         { label: "BYE",           dot: "bg-slate-300",    pill: "bg-slate-100 text-slate-400" },
 };
 
-function getRoundStyle(roundNo, totalRounds) {
+/* Stage vòng tròn (mỗi cặp gặp nhau 1 lần) — mọi vòng chỉ là "Vòng N", KHÔNG có tứ/bán/chung kết. */
+const LEAGUE_STAGE_TYPES = ["GROUP", "PROGRESSIVE_ROUND"];
+
+function getRoundStyle(roundNo, totalRounds, stageType) {
+  if (LEAGUE_STAGE_TYPES.includes(stageType)) {
+    return { ...ROUND_STYLE.round, label: `Vòng ${roundNo}` };
+  }
   const diff = totalRounds - roundNo;
   if (diff === 0) return { ...ROUND_STYLE.final,   label: ROUND_STYLE.final.label };
   if (diff === 1) return { ...ROUND_STYLE.semi,    label: ROUND_STYLE.semi.label };
@@ -84,6 +90,19 @@ function fromDatetimeLocalValue(value) {
   if (!value) return null;
   const d = new Date(value);
   return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/* Ước lượng thời lượng 1 trận (phút) — PHẢI khớp hằng số BE (MatchSchedulingServiceImpl). */
+const MINUTES_PER_RACK = { "9_BALL": 6, "10_BALL": 7, "8_BALL": 8 };
+function estMatchMinutes(raceTo, gameType) {
+  const mpr = MINUTES_PER_RACK[gameType] ?? 7;
+  return Math.ceil((1.5 * (raceTo || 5) * mpr) / 5) * 5;
+}
+/** Giờ kết thúc dự kiến (ms) của 1 trận, ưu tiên estimatedEndAt, fallback start + ước lượng. */
+function matchEndMs(m, gameType) {
+  if (m.estimatedEndAt) return new Date(m.estimatedEndAt).getTime();
+  if (m.scheduledAt) return new Date(m.scheduledAt).getTime() + estMatchMinutes(m.raceTo, gameType) * 60000;
+  return null;
 }
 
 function matchPassesFilter(m, statusFilter, query) {
@@ -191,12 +210,16 @@ const DrawPage = ({ api, basePath }) => {
   const [startingId,   setStartingId]   = useState(null);
 
   /* ── Gán bàn & giờ thi đấu (đơn + bulk) ── */
-  const [tables,       setTables]       = useState([]);
   const [bulkMode,     setBulkMode]     = useState(false);
   const [selectedIds,  setSelectedIds]  = useState(() => new Set());
   const [assignModal,  setAssignModal]  = useState(null);  // { matchIds: number[] }
-  const [assignForm,   setAssignForm]   = useState({ tableId: "", scheduledAt: "", clearTable: false, clearScheduledAt: false });
+  const [assignForm,   setAssignForm]   = useState({ tableNo: "", scheduledAt: "", clearTable: false, clearScheduledAt: false });
   const [assigning,    setAssigning]    = useState(false);
+  const [referees,     setReferees]     = useState([]);
+  /* ── Gán trọng tài (tách riêng) ── */
+  const [refereeModal, setRefereeModal] = useState(null);  // { match }
+  const [refereeStaffId, setRefereeStaffId] = useState("");
+  const [savingReferee, setSavingReferee]   = useState(false);
 
   /* ── Tìm kiếm / lọc trận đấu (giúp quản lý dễ hơn khi nhiều trận) ── */
   const [matchQuery,   setMatchQuery]   = useState("");
@@ -209,12 +232,32 @@ const DrawPage = ({ api, basePath }) => {
   const [elimModal,      setElimModal]      = useState(false);
   const [keepCount,      setKeepCount]      = useState("");
   const [eliminating,    setEliminating]    = useState(false);
+  const [advancing,      setAdvancing]      = useState(false);
+  const [progStandings,  setProgStandings]  = useState(null); // { stageName, rows } | null
+  const [loadingProgStd, setLoadingProgStd] = useState(false);
+  const [activeStageId,  setActiveStageId]  = useState(null); // tab giai đoạn đang xem
 
   const isPreview          = tournament?.status === "DRAW_PREVIEW";
   const isFinalBracketReady= tournament?.status === "FINAL_BRACKET_READY";
   const isGroupPlayoff     = tournament?.format === "GROUP_PLAYOFF";
+  const isProgressive      = tournament?.format === "PROGRESSIVE_ROUND_ROBIN";
   const isDoubleElim       = tournament?.format === "DOUBLE_ELIMINATION";
   const hasFinalBracket    = stages.some(s => s.stageType === "FINAL_BRACKET");
+
+  /* ── PROGRESSIVE_ROUND_ROBIN: giai đoạn hiện tại + có thể chuyển tiếp ──
+     Toàn bộ khung (mọi GĐ + playoff) đã tạo sẵn từ draw. GĐ "hiện tại" = GĐ League chưa
+     COMPLETED có orderNo NHỎ NHẤT (đang thi đấu, đã có người thật). GĐ sau còn placeholder. */
+  const FINISHED_STATUSES = ["COMPLETED", "WALKOVER", "BYE"];
+  const currentProgressiveStage = stages
+    .filter(s => s.stageType === "PROGRESSIVE_ROUND" && s.status !== "COMPLETED")
+    .sort((a, b) => (a.orderNo ?? 0) - (b.orderNo ?? 0))[0] || null;
+  // "Đã thi đấu" = có ít nhất 1 trận đã gán người (không phải toàn placeholder trống)
+  const currentStageMatches = currentProgressiveStage?.matches || [];
+  const currentStageHasPlayers = currentStageMatches.some(m => m.player1 || m.player2);
+  const currentStageComplete = currentStageHasPlayers
+    && currentStageMatches.length > 0
+    && currentStageMatches.every(m => FINISHED_STATUSES.includes(m.status));
+  const canAdvanceStage = isProgressive && currentStageComplete;
 
   /* ══ Load data ══════════════════════════════════════════ */
   const load = useCallback(async () => {
@@ -237,11 +280,18 @@ const DrawPage = ({ api, basePath }) => {
 
   useEffect(() => { load(); }, [load]);
 
+  // Giữ tab giai đoạn đang chọn hợp lệ; mặc định chọn giai đoạn đầu tiên khi mới tải
   useEffect(() => {
-    api.listActiveTables()
-      .then(data => setTables(Array.isArray(data) ? data : []))
-      .catch(() => setTables([]));
-  }, [api]);
+    if (!stages.length) { setActiveStageId(null); return; }
+    setActiveStageId(prev => (stages.some(s => s.id === prev) ? prev : stages[0].id));
+  }, [stages]);
+
+  // Danh sách trọng tài của chi nhánh giải (để gán cho trận)
+  useEffect(() => {
+    api.getReferees(tournamentId)
+      .then(data => setReferees(Array.isArray(data) ? data : []))
+      .catch(() => setReferees([]));
+  }, [api, tournamentId]);
 
   useEffect(() => {
     if (!isPreview) { setEditMode(false); setSwapFirst(null); }
@@ -526,6 +576,37 @@ const DrawPage = ({ api, basePath }) => {
     );
   };
 
+  /* ══ PROGRESSIVE_ROUND_ROBIN: xem standings GĐ + chuyển giai đoạn ══ */
+  const openProgStandings = async (stage) => {
+    if (!stage) return;
+    setLoadingProgStd(true);
+    setProgStandings({ stageName: stage.name, rows: [] });
+    try {
+      const rows = await api.getStageStandings(tournamentId, stage.id);
+      setProgStandings({ stageName: stage.name, rows: Array.isArray(rows) ? rows : [] });
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      setProgStandings(null);
+    } finally { setLoadingProgStd(false); }
+  };
+
+  const handleAdvanceStage = () => {
+    showConfirm(
+      "Chuyển giai đoạn tiếp theo",
+      "Hệ thống tính bảng xếp hạng giai đoạn hiện tại, loại người ngoài nhóm đi tiếp (chuyển INACTIVE), rồi sinh giai đoạn kế tiếp — vòng tròn mới hoặc bracket Playoff. Thao tác này không thể hoàn tác.",
+      async () => {
+        setAdvancing(true);
+        try {
+          await api.advanceStage(tournamentId);
+          toast.success("Đã chuyển giai đoạn!");
+          load();
+        } catch (err) { toast.error(getApiErrorMessage(err)); }
+        finally { setAdvancing(false); }
+      },
+      { okLabel: "Chuyển giai đoạn", okVariant: "primary" }
+    );
+  };
+
   /* ══ Match lifecycle — patch tại chỗ, không reload cả trang ══ */
   const handleStart = async (matchId) => {
     if (startingId) return;
@@ -589,7 +670,7 @@ const DrawPage = ({ api, basePath }) => {
   const openAssignSingle = useCallback((match) => {
     setAssignModal({ matchIds: [match.id] });
     setAssignForm({
-      tableId: match.tableId != null ? String(match.tableId) : "",
+      tableNo: match.tableNo != null ? String(match.tableNo) : "",
       scheduledAt: toDatetimeLocalValue(match.scheduledAt),
       clearTable: false,
       clearScheduledAt: false,
@@ -599,70 +680,188 @@ const DrawPage = ({ api, basePath }) => {
   const openAssignBulk = useCallback(() => {
     if (selectedIds.size === 0) return;
     setAssignModal({ matchIds: Array.from(selectedIds) });
-    setAssignForm({ tableId: "", scheduledAt: "", clearTable: false, clearScheduledAt: false });
+    setAssignForm({ tableNo: "", scheduledAt: "", clearTable: false, clearScheduledAt: false });
   }, [selectedIds]);
 
-  /** Soft-warn: tìm trận khác (đã load) cùng bàn + giờ lệch nhau < 60 phút. Chỉ trong tournament hiện tại. */
-  const findTableConflict = useCallback((excludeIds, tableId, scheduledAtIso) => {
-    if (!tableId || !scheduledAtIso) return null;
-    const target = new Date(scheduledAtIso).getTime();
-    const WINDOW_MS = 60 * 60 * 1000;
-    for (const stage of stages) {
-      for (const m of stage.matches || []) {
-        if (excludeIds.includes(m.id)) continue;
-        if (m.status === "BYE") continue;
-        if (String(m.tableId ?? "") !== String(tableId)) continue;
-        if (!m.scheduledAt) continue;
-        if (Math.abs(new Date(m.scheduledAt).getTime() - target) < WINDOW_MS) return m;
+  const allMatches = useCallback(() => stages.flatMap(s => s.matches || []), [stages]);
+  const findMatchById = useCallback((id) => allMatches().find(m => m.id === id) || null, [allMatches]);
+
+  /** Trùng bàn + khung giờ: cùng số bàn, [start,end) giao [oStart,oEnd) với trận chưa kết thúc. */
+  const findTableConflict = useCallback((excludeIds, tableNo, scheduledAtIso, target) => {
+    if (!tableNo || !scheduledAtIso || !target) return null;
+    const gameType = tournament?.gameType;
+    const start = new Date(scheduledAtIso).getTime();
+    const end = start + estMatchMinutes(target.raceTo, gameType) * 60000;
+    for (const m of allMatches()) {
+      if (excludeIds.includes(m.id)) continue;
+      if (["BYE", "COMPLETED", "WALKOVER"].includes(m.status)) continue;
+      if (String(m.tableNo ?? "") !== String(tableNo)) continue;
+      if (!m.scheduledAt) continue;
+      const oStart = new Date(m.scheduledAt).getTime();
+      const oEnd = matchEndMs(m, gameType);
+      if (oEnd == null) continue;
+      if (start < oEnd && oStart < end) return m; // giao khung giờ
+    }
+    return null;
+  }, [allMatches, tournament]);
+
+  /** Phụ thuộc: trận không được bắt đầu trước khi các trận nguồn (feeder) kết thúc. Trả về feeder vi phạm sớm nhất. */
+  const findFeederViolation = useCallback((targetId, scheduledAtIso) => {
+    if (!scheduledAtIso) return null;
+    const gameType = tournament?.gameType;
+    const start = new Date(scheduledAtIso).getTime();
+    let worst = null;
+    for (const m of allMatches()) {
+      if (m.id === targetId) continue;
+      const feeds = m.nextMatchWinId === targetId || m.nextMatchLoseId === targetId;
+      if (!feeds) continue;
+      const fEnd = matchEndMs(m, gameType);
+      if (fEnd != null && start < fEnd) {
+        if (!worst || fEnd > worst.end) worst = { match: m, end: fEnd };
+      }
+    }
+    return worst;
+  }, [allMatches, tournament]);
+
+  /**
+   * Trọng tài `staffId` có đang BẬN với trận khác (ngoài `targetMatch`) không?
+   * Bận nếu: đang IN_PROGRESS ở trận khác, HOẶC trùng khung giờ với target (nếu target có giờ).
+   * Chỉ xét trong giải hiện tại (best-effort) — BE chốt chặn toàn cục.
+   */
+  const refereeBusyInfo = useCallback((staffId, targetMatch) => {
+    if (!staffId || !targetMatch) return null;
+    const gameType = tournament?.gameType;
+    const tStart = targetMatch.scheduledAt ? new Date(targetMatch.scheduledAt).getTime() : null;
+    const tEnd = tStart != null ? tStart + estMatchMinutes(targetMatch.raceTo, gameType) * 60000 : null;
+    for (const m of allMatches()) {
+      if (m.id === targetMatch.id) continue;
+      if (["BYE", "COMPLETED", "WALKOVER"].includes(m.status)) continue;
+      if (String(m.assignedStaff?.id ?? "") !== String(staffId)) continue;
+      if (m.status === "IN_PROGRESS") return { match: m, reason: "ongoing" };
+      if (tStart != null && tEnd != null && m.scheduledAt) {
+        const oStart = new Date(m.scheduledAt).getTime();
+        const oEnd = matchEndMs(m, gameType);
+        if (oEnd != null && tStart < oEnd && oStart < tEnd) return { match: m, reason: "overlap" };
       }
     }
     return null;
-  }, [stages]);
+  }, [allMatches, tournament]);
 
-  const doSaveAssign = useCallback(async () => {
+  const doSaveAssign = useCallback(async (opts = {}) => {
     if (!assignModal) return;
     const { matchIds } = assignModal;
     const body = {
-      tableId: assignForm.clearTable || !assignForm.tableId ? null : Number(assignForm.tableId),
+      tableNo: assignForm.clearTable || !assignForm.tableNo ? null : Number(assignForm.tableNo),
       clearTable: assignForm.clearTable,
       scheduledAt: assignForm.clearScheduledAt ? null : fromDatetimeLocalValue(assignForm.scheduledAt),
       clearScheduledAt: assignForm.clearScheduledAt,
+      ignoreTableConflict: !!opts.ignoreTableConflict,
     };
     setAssigning(true);
     try {
       if (matchIds.length === 1) {
-        const updated = await api.assignMatch(matchIds[0], body);
-        applyMatchToStages(updated);
+        await api.assignMatch(matchIds[0], body);
       } else {
-        const updatedList = await api.bulkAssignMatches({ matchIds, ...body });
-        (Array.isArray(updatedList) ? updatedList : []).forEach(applyMatchToStages);
+        await api.bulkAssignMatches({ matchIds, ...body });
       }
-      toast.success("Đã lưu bàn/giờ thi đấu");
+      toast.success("Đã lưu bàn & giờ thi đấu");
       setAssignModal(null);
       setBulkMode(false);
+      load(); // reschedule ở BE có thể đổi giờ nhiều trận → tải lại
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
       setAssigning(false);
     }
-  }, [assignModal, assignForm, api, applyMatchToStages]);
+  }, [assignModal, assignForm, api, load]);
+
+  const handleResetAuto = useCallback(async () => {
+    if (!assignModal) return;
+    setAssigning(true);
+    try {
+      const { matchIds } = assignModal;
+      if (matchIds.length === 1) {
+        await api.assignMatch(matchIds[0], { resetToAuto: true });
+      } else {
+        await api.bulkAssignMatches({ matchIds, resetToAuto: true });
+      }
+      toast.success("Đã trả về tự động xếp lịch");
+      setAssignModal(null);
+      setBulkMode(false);
+      load();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setAssigning(false);
+    }
+  }, [assignModal, api, load]);
 
   const handleSaveAssign = useCallback(() => {
     if (!assignModal) return;
-    const tableId = assignForm.clearTable || !assignForm.tableId ? null : assignForm.tableId;
+    const tableNo = assignForm.clearTable || !assignForm.tableNo ? null : assignForm.tableNo;
     const scheduledAtIso = assignForm.clearScheduledAt ? null : fromDatetimeLocalValue(assignForm.scheduledAt);
-    const conflict = findTableConflict(assignModal.matchIds, tableId, scheduledAtIso);
-    if (conflict) {
-      showConfirm(
-        "Trùng bàn & giờ?",
-        `Bàn này đã được xếp cho trận ${conflict.matchCode} lúc ${formatScheduledAt(conflict.scheduledAt)} — vẫn lưu?`,
-        doSaveAssign,
-        { okLabel: "Vẫn lưu", okVariant: "primary" }
-      );
+
+    // Không cho xếp trước giờ bắt đầu giải (áp dụng cả gán đơn lẫn bulk)
+    if (scheduledAtIso && tournament?.startAt
+        && new Date(scheduledAtIso).getTime() < new Date(tournament.startAt).getTime()) {
+      toast.error(`Giờ thi đấu không được trước giờ bắt đầu giải (${formatScheduledAt(tournament.startAt)}).`);
       return;
     }
+
+    // Chỉ validate cho gán 1 trận có set giờ (bulk bỏ qua để tránh tự trùng với nhau)
+    const single = assignModal.matchIds.length === 1;
+    if (single && scheduledAtIso) {
+      const target = findMatchById(assignModal.matchIds[0]);
+      // 1) Phụ thuộc — CHẶN cứng, không cho lưu
+      const violation = target ? findFeederViolation(target.id, scheduledAtIso) : null;
+      if (violation) {
+        toast.error(
+          `Không thể xếp trước trận nguồn "${violation.match.matchCode}" (dự kiến kết thúc ${formatScheduledAt(new Date(violation.end).toISOString())}).`
+        );
+        return;
+      }
+      // 2) Trùng bàn & giờ — cảnh báo, cho phép vẫn lưu
+      const conflict = findTableConflict(assignModal.matchIds, tableNo, scheduledAtIso, target);
+      if (conflict) {
+        showConfirm(
+          "Trùng bàn & giờ?",
+          `Bàn ${tableNo} đã có trận ${conflict.matchCode} lúc ${formatScheduledAt(conflict.scheduledAt)} trong khung giờ này — vẫn lưu?`,
+          () => doSaveAssign({ ignoreTableConflict: true }),
+          { okLabel: "Vẫn lưu", okVariant: "primary" }
+        );
+        return;
+      }
+    }
     doSaveAssign();
-  }, [assignModal, assignForm, findTableConflict, doSaveAssign, showConfirm]);
+  }, [assignModal, assignForm, tournament, findMatchById, findFeederViolation, findTableConflict, doSaveAssign, showConfirm]);
+
+  /* ── Gán trọng tài (tách riêng) ── */
+  const openReferee = useCallback((match) => {
+    setRefereeModal({ match });
+    setRefereeStaffId(match.assignedStaff?.id != null ? String(match.assignedStaff.id) : "");
+  }, []);
+
+  const saveReferee = useCallback(async (clear = false) => {
+    if (!refereeModal) return;
+    const matchId = refereeModal.match.id;
+    setSavingReferee(true);
+    try {
+      if (clear) {
+        await api.assignMatch(matchId, { clearAssignedStaff: true });
+        toast.success("Đã bỏ gán trọng tài");
+      } else {
+        if (!refereeStaffId) { toast.warn("Chọn trọng tài trước"); setSavingReferee(false); return; }
+        await api.assignMatch(matchId, { assignedStaffId: Number(refereeStaffId) });
+        toast.success("Đã gán trọng tài");
+      }
+      setRefereeModal(null);
+      load();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setSavingReferee(false);
+    }
+  }, [refereeModal, refereeStaffId, api, load]);
 
   const loadEvents = async (matchId, matchCode) => {
     setEventsModal({ matchId, matchCode }); setEvents([]);
@@ -779,6 +978,24 @@ const DrawPage = ({ api, basePath }) => {
                                className="flex items-center gap-2">
                     <Trophy size={14} />
                     {generatingPO ? "Đang tạo..." : "Tạo bracket Playoff"}
+                  </AdminButton>
+                </>
+              )}
+
+              {/* PROGRESSIVE_ROUND_ROBIN: standings từng GĐ + chuyển giai đoạn */}
+              {isProgressive && currentProgressiveStage && (
+                <>
+                  <AdminButton variant="secondary"
+                               onClick={() => openProgStandings(currentProgressiveStage)}
+                               className="flex items-center gap-2">
+                    <BarChart2 size={14} /> Xếp hạng giai đoạn
+                  </AdminButton>
+                  <AdminButton variant="primary" disabled={advancing || !canAdvanceStage}
+                               onClick={handleAdvanceStage}
+                               className="flex items-center gap-2"
+                               title={canAdvanceStage ? "" : "Hoàn thành tất cả trận của giai đoạn hiện tại trước"}>
+                    <ChevronRight size={14} />
+                    {advancing ? "Đang chuyển..." : "Chuyển giai đoạn tiếp theo"}
                   </AdminButton>
                 </>
               )}
@@ -930,7 +1147,43 @@ const DrawPage = ({ api, basePath }) => {
           </div>
         </AdminCard>
       ) : (
-        stages.map(stage => (
+        <>
+          {/* Thanh tab giai đoạn — mỗi giai đoạn là 1 trang, click để chuyển */}
+          {stages.length > 1 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {stages.map(stage => {
+                const ms = stage.matches || [];
+                const done = ms.filter(m => ["COMPLETED","WALKOVER","BYE"].includes(m.status)).length;
+                const total = ms.length;
+                const active = stage.id === activeStageId;
+                const isDone = total > 0 && done === total;
+                return (
+                  <button
+                    key={stage.id}
+                    onClick={() => setActiveStageId(stage.id)}
+                    className={[
+                      "shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all",
+                      active
+                        ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                    ].join(" ")}
+                  >
+                    <span className="truncate max-w-[180px]">{stage.name}</span>
+                    <span className={[
+                      "text-[11px] font-medium px-1.5 py-0.5 rounded-md",
+                      active ? "bg-white/15 text-white"
+                        : isDone ? "bg-emerald-100 text-emerald-700"
+                        : "bg-slate-100 text-slate-500",
+                    ].join(" ")}>
+                      {done}/{total}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {stages.filter(stage => stages.length === 1 || stage.id === activeStageId).map(stage => (
           <StageSection
             key={stage.id}
             stage={stage}
@@ -958,9 +1211,11 @@ const DrawPage = ({ api, basePath }) => {
             onEvents={loadEvents}
             onToggleSelect={toggleSelect}
             onOpenAssign={openAssignSingle}
+            onOpenReferee={openReferee}
             flashIds={flashIds}
           />
-        ))
+          ))}
+        </>
       )}
 
       {/* ══ Modals ═══════════════════════════════════════════════ */}
@@ -1049,6 +1304,57 @@ const DrawPage = ({ api, basePath }) => {
             </p>
           </div>
         </div>
+      </AdminModal>
+
+      {/* PROGRESSIVE: standings từng giai đoạn (read-only) */}
+      <AdminModal
+        open={!!progStandings}
+        onClose={() => setProgStandings(null)}
+        title={`Bảng xếp hạng — ${progStandings?.stageName || ""}`}
+        size="lg"
+        footer={<AdminButton variant="secondary" onClick={() => setProgStandings(null)}>Đóng</AdminButton>}
+      >
+        <div className="max-h-72 overflow-y-auto border border-slate-100 rounded-xl">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
+              <tr>
+                <th className="px-3 py-2 text-left">#</th>
+                <th className="px-3 py-2 text-left">Cơ thủ</th>
+                <th className="px-3 py-2 text-center">Thắng</th>
+                <th className="px-3 py-2 text-center">Hiệu số</th>
+                <th className="px-3 py-2 text-center">Frame</th>
+                <th className="px-3 py-2 text-center">Đi tiếp</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {loadingProgStd ? (
+                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 text-xs">Đang tải...</td></tr>
+              ) : (progStandings?.rows || []).length === 0 ? (
+                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 text-xs">Chưa có kết quả</td></tr>
+              ) : progStandings.rows.map(s => (
+                <tr key={s.participantId} className={s.advancesToPlayoff ? "bg-emerald-50" : (s.advancesToPlayoff === false ? "bg-red-50/40" : "")}>
+                  <td className="px-3 py-2 font-mono text-slate-500">{s.rank}</td>
+                  <td className="px-3 py-2 font-medium text-slate-800">{s.displayName}</td>
+                  <td className="px-3 py-2 text-center text-slate-700">{s.wins}</td>
+                  <td className={`px-3 py-2 text-center font-medium ${s.frameDiff >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                    {s.frameDiff >= 0 ? "+" : ""}{s.frameDiff}
+                  </td>
+                  <td className="px-3 py-2 text-center text-slate-500">{s.framesWon}</td>
+                  <td className="px-3 py-2 text-center">
+                    {s.advancesToPlayoff === true ? (
+                      <span className="text-emerald-600 text-xs font-semibold">Đi tiếp</span>
+                    ) : s.advancesToPlayoff === false ? (
+                      <span className="text-red-500 text-xs">Bị loại</span>
+                    ) : <span className="text-slate-300">—</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-3 text-xs text-slate-400">
+          Tiêu chí: Điểm (thắng) → Hiệu số rack → Rack thắng → Đối đầu trực tiếp. Hàng xanh = nhóm đi tiếp.
+        </p>
       </AdminModal>
 
       {/* Swap confirm */}
@@ -1269,6 +1575,9 @@ const DrawPage = ({ api, basePath }) => {
         }
         footer={
           <>
+            <AdminButton variant="secondary" onClick={handleResetAuto} disabled={assigning}>
+              Trả về tự động
+            </AdminButton>
             <AdminButton variant="secondary" onClick={() => setAssignModal(null)} disabled={assigning}>
               Hủy
             </AdminButton>
@@ -1280,25 +1589,22 @@ const DrawPage = ({ api, basePath }) => {
       >
         <div className="space-y-4">
           <div>
-            <label className="admin-label">Bàn</label>
-            <select
-              className="admin-select mt-1 w-full"
-              value={assignForm.clearTable ? "" : assignForm.tableId}
+            <label className="admin-label">Số bàn (1 – {tournament?.tableCount ?? 1})</label>
+            <input
+              type="number"
+              min={1}
+              max={tournament?.tableCount ?? 1}
+              className="admin-input mt-1 w-full"
+              placeholder="Không đổi / chưa chọn"
+              value={assignForm.clearTable ? "" : assignForm.tableNo}
               disabled={assignForm.clearTable}
-              onChange={(e) => setAssignForm(f => ({ ...f, tableId: e.target.value }))}
-            >
-              <option value="">— Không đổi / chưa chọn —</option>
-              {tables.map(t => (
-                <option key={t.id} value={t.id}>
-                  {t.name}{t.tableNumber != null ? ` (#${t.tableNumber})` : ""}
-                </option>
-              ))}
-            </select>
+              onChange={(e) => setAssignForm(f => ({ ...f, tableNo: e.target.value }))}
+            />
             <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500">
               <input
                 type="checkbox"
                 checked={assignForm.clearTable}
-                onChange={(e) => setAssignForm(f => ({ ...f, clearTable: e.target.checked, tableId: e.target.checked ? "" : f.tableId }))}
+                onChange={(e) => setAssignForm(f => ({ ...f, clearTable: e.target.checked, tableNo: e.target.checked ? "" : f.tableNo }))}
               />
               Bỏ gán bàn
             </label>
@@ -1309,10 +1615,16 @@ const DrawPage = ({ api, basePath }) => {
             <input
               type="datetime-local"
               className="admin-input mt-1 w-full"
+              min={tournament?.startAt ? toDatetimeLocalValue(tournament.startAt) : undefined}
               value={assignForm.clearScheduledAt ? "" : assignForm.scheduledAt}
               disabled={assignForm.clearScheduledAt}
               onChange={(e) => setAssignForm(f => ({ ...f, scheduledAt: e.target.value }))}
             />
+            {tournament?.startAt && (
+              <p className="mt-1 text-[11px] text-slate-400">
+                Không sớm hơn giờ bắt đầu giải: {formatScheduledAt(tournament.startAt)}
+              </p>
+            )}
             <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500">
               <input
                 type="checkbox"
@@ -1329,6 +1641,72 @@ const DrawPage = ({ api, basePath }) => {
             </p>
           )}
         </div>
+      </AdminModal>
+
+      {/* Gán trọng tài (riêng) */}
+      <AdminModal
+        open={!!refereeModal}
+        onClose={() => !savingReferee && setRefereeModal(null)}
+        title="Gán trọng tài điều hành"
+        footer={
+          <>
+            {refereeModal?.match?.assignedStaff && (
+              <AdminButton variant="secondary" onClick={() => saveReferee(true)} disabled={savingReferee}>
+                Bỏ trọng tài
+              </AdminButton>
+            )}
+            <AdminButton variant="secondary" onClick={() => setRefereeModal(null)} disabled={savingReferee}>
+              Hủy
+            </AdminButton>
+            <AdminButton variant="primary" onClick={() => saveReferee(false)} disabled={savingReferee || !refereeStaffId}>
+              {savingReferee ? "Đang lưu…" : "Gán"}
+            </AdminButton>
+          </>
+        }
+      >
+        {(() => {
+          if (!refereeModal) return null;
+          const target = refereeModal.match;
+          const currentId = target.assignedStaff?.id ?? null;
+          // Ẩn trọng tài đang bận (đang điều hành trận khác / trùng giờ) — trừ người đang gán cho chính trận này
+          const available = referees.filter(r => {
+            if (String(r.id) === String(currentId)) return true;
+            return !refereeBusyInfo(r.id, target);
+          });
+          const hiddenCount = referees.length - available.length;
+          return (
+            <div className="space-y-3">
+              <p className="text-xs text-slate-500">
+                Trận <span className="font-mono font-semibold">{target.matchCode}</span>
+                {target.tableNo != null && <> · Bàn {target.tableNo}</>}
+                {target.scheduledAt && <> · {formatScheduledAt(target.scheduledAt)}</>}
+              </p>
+              <div>
+                <label className="admin-label">Chọn trọng tài</label>
+                <select
+                  className="admin-select mt-1 w-full"
+                  value={refereeStaffId}
+                  onChange={(e) => setRefereeStaffId(e.target.value)}
+                >
+                  <option value="">— Chọn trọng tài —</option>
+                  {available.map(r => (
+                    <option key={r.id} value={r.id}>{r.displayName}</option>
+                  ))}
+                </select>
+              </div>
+              {referees.length === 0 ? (
+                <p className="text-[11px] text-amber-600">
+                  Chi nhánh của giải chưa có nhân viên (staff) nào để làm trọng tài.
+                </p>
+              ) : (
+                <p className="text-[11px] text-slate-400">
+                  Chỉ hiện trọng tài đang rảnh. {hiddenCount > 0 && <>({hiddenCount} người đang bận đã bị ẩn.)</>}
+                  {" "}Một trọng tài không thể phụ trách 2 trận cùng lúc.
+                </p>
+              )}
+            </div>
+          );
+        })()}
       </AdminModal>
     </div>
   );
@@ -1348,7 +1726,7 @@ const StageSection = ({
   stage, editMode, swapFirst, dragSrc, dropTarget, swapping, isPreview,
   matchQuery, statusFilter, startingId, bulkMode, selectedIds,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
-  onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, flashIds,
+  onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, onOpenReferee, flashIds,
 }) => {
   const rounds = {};
   (stage.matches || []).forEach(m => {
@@ -1404,7 +1782,7 @@ const StageSection = ({
       {!isSearching && totalRounds > 1 && (
         <div className="flex items-center gap-1.5 px-5 py-2.5 border-b border-slate-50 overflow-x-auto">
           {sortedRounds.map(([roundNo, matches]) => {
-            const rStyle = getRoundStyle(Number(roundNo), totalRounds);
+            const rStyle = getRoundStyle(Number(roundNo), totalRounds, stage.stageType);
             const rDone = matches.filter(m => ["COMPLETED","WALKOVER","BYE"].includes(m.status)).length;
             const active = Number(roundNo) === activeRound;
             return (
@@ -1434,7 +1812,7 @@ const StageSection = ({
           Không có trận nào khớp bộ lọc.
         </p>
       ) : filteredRounds.map(([roundNo, matches]) => {
-        const rStyle = getRoundStyle(Number(roundNo), totalRounds);
+        const rStyle = getRoundStyle(Number(roundNo), totalRounds, stage.stageType);
         return (
           <div key={roundNo} className="border-b border-slate-50 last:border-0">
             {/* Round label — chỉ hiện khi đang tìm kiếm/lọc (round tab đã thay thế vai trò này) */}
@@ -1476,6 +1854,7 @@ const StageSection = ({
                   onEvents={onEvents}
                   onToggleSelect={onToggleSelect}
                   onOpenAssign={onOpenAssign}
+                  onOpenReferee={onOpenReferee}
                   flashIds={flashIds}
                 />
               ))}
@@ -1494,7 +1873,7 @@ const MatchRow = ({
   match, stageType, editMode, isPreview, swapFirst, dragSrc, dropTarget, swapping, starting,
   bulkMode, isSelected,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
-  onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, flashIds,
+  onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, onOpenReferee, flashIds,
 }) => {
   const canEdit    = editMode && match.roundNo === 1 && !["LOSERS","GRAND_FINAL"].includes(stageType);
   const sCfg       = STATUS_CFG[match.status] || STATUS_CFG.PENDING;
@@ -1502,7 +1881,9 @@ const MatchRow = ({
   const isFlashing = flashIds?.has(Number(match.id));
   const assignable = canAssignTable(match);
   const scheduledLabel = formatScheduledAt(match.scheduledAt);
-  const tableLabel = match.tableName || (match.tableNo != null ? `Bàn ${match.tableNo}` : null);
+  const tableLabel = match.tableNo != null ? `Bàn ${match.tableNo}` : null;
+  const isScheduleLocked = !!match.scheduleLocked;
+  const refereeName = match.assignedStaff?.displayName || null;
 
   return (
     <div className={`rounded-xl my-1 transition-all ${isBye ? "opacity-60" : ""} ${
@@ -1577,6 +1958,19 @@ const MatchRow = ({
               <span className={scheduledLabel ? "text-slate-500 font-medium" : "text-slate-300"}>
                 {scheduledLabel || "Chưa xếp giờ"}
               </span>
+              {isScheduleLocked && (
+                <span className="ml-1 inline-flex items-center gap-0.5 text-[10px] text-amber-600" title="Đã chỉnh tay — auto không đổi">
+                  <Lock size={9} /> khóa
+                </span>
+              )}
+              {refereeName && (
+                <>
+                  <span className="text-slate-300">·</span>
+                  <span className="inline-flex items-center gap-0.5 text-indigo-600 font-medium" title="Trọng tài điều hành">
+                    <UserCheck size={10} /> {refereeName}
+                  </span>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -1614,6 +2008,11 @@ const MatchRow = ({
               <ActionBtn icon={<MapPin size={13} />} title="Gán bàn & giờ thi đấu"
                          cls="text-indigo-600 hover:bg-indigo-50"
                          onClick={() => onOpenAssign(match)} />
+            )}
+            {assignable && (
+              <ActionBtn icon={<UserCheck size={13} />} title="Gán trọng tài"
+                         cls={match.assignedStaff ? "text-indigo-700 bg-indigo-50 hover:bg-indigo-100" : "text-slate-400 hover:bg-slate-100"}
+                         onClick={() => onOpenReferee(match)} />
             )}
             <ActionBtn icon={<Trophy size={12} />} title="Lịch sử tỷ số"
                        cls="text-slate-400 hover:bg-slate-100"

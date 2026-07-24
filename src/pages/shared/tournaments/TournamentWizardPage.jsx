@@ -26,6 +26,7 @@ const defaultBasic = {
   branchId: "",
   participantType: "SINGLE",
   maxParticipants: 16,
+  tableCount: 4,
   entryFee: "",
   prizePool: "",
   prizeDescription: "",
@@ -105,6 +106,27 @@ const buildRaceToOverrides = (rules) =>
   (rules || [])
     .filter((r) => r.isOverridden || r.raceTo !== r.defaultRaceTo)
     .map((r) => ({ roundKey: r.roundKey, raceTo: r.raceTo }));
+
+/* Bảng preset cố định số người đi tiếp mỗi giai đoạn (PROGRESSIVE_ROUND_ROBIN) theo số người tham gia. */
+const PROGRESSIVE_PRESETS = {
+  6: "4", 8: "6,4", 10: "6,4", 12: "8,4", 16: "10,6,4", 24: "16,10,6,4", 32: "20,12,8,4",
+};
+const roundEven = (x) => { const r = Math.round(x); return r % 2 === 0 ? r : r + 1; };
+/** Suy ra chuỗi survivors từ số người tham gia: dùng bảng cố định, nếu không có thì theo công thức S×0.6. */
+const progressiveSurvivorsPreset = (max, playoffSize = 4) => {
+  if (PROGRESSIVE_PRESETS[max]) return PROGRESSIVE_PRESETS[max];
+  const out = [];
+  let s = max;
+  while (true) {
+    const next = Math.max(playoffSize, roundEven(s * 0.6));
+    if (next >= s) break;
+    out.push(next);
+    s = next;
+    if (next === playoffSize) break;
+  }
+  if (out.length === 0 || out[out.length - 1] !== playoffSize) out.push(playoffSize);
+  return out.join(",");
+};
 
 /** Ô tìm kiếm + chọn 1 chi nhánh tổ chức giải — cùng kiểu giao diện với phần phân quyền
  * chi nhánh của Manager/Staff (ô tìm kiếm + danh sách cuộn), nhưng chỉ chọn được 1. */
@@ -256,6 +278,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
         branchId: detail.venue?.branchId ? String(detail.venue.branchId) : "",
         participantType: detail.participantType || "SINGLE",
         maxParticipants: detail.maxParticipants ?? 16,
+        tableCount: detail.tableCount ?? 4,
         entryFee: detail.entryFee ?? "",
         prizePool: detail.prizePool ?? "",
         prizeDescription: detail.prizeDescription || "",
@@ -360,6 +383,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     branchId: Number(basic.branchId) || null,
     participantType: basic.participantType,
     maxParticipants: Number(basic.maxParticipants),
+    tableCount: Number(basic.tableCount) > 0 ? Number(basic.tableCount) : 1,
     entryFee: basic.entryFee === "" ? 0 : Number(basic.entryFee),
     prizePool: basic.prizePool === "" ? null : Number(basic.prizePool),
     prizeDescription: basic.prizeDescription?.trim() || null,
@@ -648,6 +672,21 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
             </div>
 
             <div>
+              <label className="admin-label">Số bàn thi đấu</label>
+              <input
+                type="number"
+                min={1}
+                className="admin-input w-full"
+                placeholder="VD: 4"
+                value={basic.tableCount}
+                onChange={(e) => setBasic((b) => ({ ...b, tableCount: e.target.value }))}
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                Trận đấu sẽ được tự động gán bàn (1 → {basic.tableCount || "N"}) và ước lượng giờ thi đấu.
+              </p>
+            </div>
+
+            <div>
               <label className="admin-label">Phí đăng ký (VNĐ)</label>
               <input
                 type="number"
@@ -883,6 +922,26 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               </div>
 
               <h3 className="text-sm font-semibold text-slate-700 mb-3">Trường cấu hình giải</h3>
+              {basic.format === "PROGRESSIVE_ROUND_ROBIN" && (
+                <div className="mb-4 rounded-xl border border-indigo-200 bg-indigo-50/60 px-4 py-3">
+                  <p className="text-xs text-indigo-700 mb-2">
+                    <strong>Vòng tròn loại dần:</strong> nhập "Số người đi tiếp mỗi giai đoạn" dạng danh sách
+                    giảm dần, cách nhau dấu phẩy (vd <code>10,6,4</code>). Phần tử cuối = số người vào Playoff.
+                    Mọi phần tử phải là số chẵn.
+                  </p>
+                  <AdminButton
+                    variant="secondary"
+                    onClick={() => {
+                      const preset = progressiveSurvivorsPreset(Number(basic.maxParticipants) || 16);
+                      setConfigFields((prev) => prev.map((f) =>
+                        f.fieldKey === "pe_survivors_per_stage" ? { ...f, value: preset } : f));
+                      toast.success(`Đã dùng preset: ${preset}`);
+                    }}
+                  >
+                    Dùng preset theo {basic.maxParticipants} người
+                  </AdminButton>
+                </div>
+              )}
               <TournamentConfigFieldForm fields={configFields} onChange={setConfigFields} />
 
               <h3 className="text-sm font-semibold text-slate-700 mt-8 mb-3">Race-to theo vòng đấu</h3>

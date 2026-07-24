@@ -31,6 +31,9 @@ const ParticipantListPage = ({ api, basePath }) => {
   const [loading, setLoading] = useState(true);
   const [addModal, setAddModal] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [previewData, setPreviewData] = useState(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [form, setForm] = useState({ displayName: "", phone: "", partnerFullName: "", partnerPhone: "", seedNo: "" });
   const [withdrawModal, setWithdrawModal] = useState(null);
@@ -101,14 +104,41 @@ const ParticipantListPage = ({ api, basePath }) => {
     if (!file) return;
     setActionLoading(true);
     try {
-      const result = await api.importExcel(tournamentId, file);
-      setImportResult(result);
-      load();
+      const result = await api.previewImportExcel(tournamentId, file);
+      setPreviewData(result);
+      setPreviewModalOpen(true);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
       setActionLoading(false);
       fileInputRef.current.value = "";
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewModalOpen(false);
+    setPreviewData(null);
+  };
+
+  const confirmPreview = async () => {
+    if (!previewData?.rows?.length) return;
+    setConfirming(true);
+    try {
+      const rows = previewData.rows.map((r) => ({
+        name1: r.name1,
+        phone1: r.phone1,
+        name2: r.name2,
+        phone2: r.phone2,
+        seedNo: r.seedNo,
+      }));
+      const result = await api.confirmImportExcel(tournamentId, rows);
+      setImportResult(result);
+      closePreview();
+      load();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setConfirming(false);
     }
   };
 
@@ -293,6 +323,72 @@ const ParticipantListPage = ({ api, basePath }) => {
           </div>
         </AdminCard>
       )}
+
+      {/* Import preview / confirm modal */}
+      <AdminModal
+        open={previewModalOpen}
+        onClose={closePreview}
+        title="Xem trước import"
+        size="lg"
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={closePreview} disabled={confirming}>
+              Hủy
+            </AdminButton>
+            <AdminButton
+              variant="primary"
+              onClick={confirmPreview}
+              disabled={confirming || !previewData?.validCount}
+            >
+              {confirming ? "Đang xác nhận..." : `Xác nhận (${previewData?.validCount ?? 0} hợp lệ)`}
+            </AdminButton>
+          </>
+        }
+      >
+        {previewData && (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600">
+              Tổng <strong>{previewData.totalRows}</strong> dòng ·{" "}
+              <span className="text-emerald-600">{previewData.validCount} hợp lệ</span> ·{" "}
+              <span className="text-red-600">{previewData.invalidCount} lỗi</span>
+            </p>
+            <div className="admin-table-wrap max-h-[50vh] overflow-y-auto">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Hàng</th>
+                    <th>{isDouble ? "Tên VĐV 1" : "Tên hiển thị"}</th>
+                    <th>SĐT{isDouble ? " VĐV 1" : ""}</th>
+                    {isDouble && <th>Tên VĐV 2</th>}
+                    {isDouble && <th>SĐT VĐV 2</th>}
+                    <th>Hạt giống</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {previewData.rows.map((r) => (
+                    <tr key={r.rowNo} className={r.valid ? "" : "bg-red-50"}>
+                      <td className="text-slate-400">{r.rowNo}</td>
+                      <td>{r.name1 || "—"}</td>
+                      <td>{r.phone1 || "—"}</td>
+                      {isDouble && <td>{r.name2 || "—"}</td>}
+                      {isDouble && <td>{r.phone2 || "—"}</td>}
+                      <td>{r.seedNo ?? "—"}</td>
+                      <td>
+                        {r.valid ? (
+                          <span className="text-emerald-600 text-xs font-medium">✓ Hợp lệ</span>
+                        ) : (
+                          <span className="text-red-600 text-xs">{r.error}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </AdminModal>
 
       {/* Add manual modal */}
       <AdminModal
