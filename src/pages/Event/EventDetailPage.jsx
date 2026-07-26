@@ -523,6 +523,7 @@ const PlayersTab = ({ participants }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 mx-2 mb-4">
               {filtered.map((p) => {
                 const { first, last } = splitName(p.displayName);
+                const eliminated = p.status === "INACTIVE";
 
                 return (
                   <button
@@ -539,18 +540,28 @@ const PlayersTab = ({ participants }) => {
                       style={{
                         width: "56px", height: "72px", objectFit: "cover",
                         objectPosition: "top center", flexShrink: 0, borderRadius: "8px",
+                        opacity: eliminated ? 0.5 : 1, filter: eliminated ? "grayscale(1)" : "none",
                       }}
                     />
 
                     {/* Name + country */}
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--evt-name)", lineHeight: 1.3 }}>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: eliminated ? "var(--evt-text-4)" : "var(--evt-name)", lineHeight: 1.3, display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
                         {first && (
                           <span style={{ fontWeight: 400, fontStyle: "normal" }}>{first} </span>
                         )}
                         <span style={{ fontWeight: 800, fontStyle: "normal", textTransform: "uppercase" }}>
                           {last}
                         </span>
+                        {eliminated && (
+                          <span style={{
+                            fontSize: "0.55rem", fontWeight: 700, padding: "0.1rem 0.4rem",
+                            borderRadius: "999px", background: "var(--evt-box-bg)", color: "var(--evt-text-4)",
+                            textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0,
+                          }}>
+                            Bị loại
+                          </span>
+                        )}
                       </p>
                       <p style={{
                         margin: "0.35rem 0 0", fontSize: "0.65rem", color: "var(--evt-text-4)",
@@ -712,7 +723,9 @@ const EventDetailPage = () => {
         listPublicParticipants(Number(id)).catch(() => []),
       ]);
       setTournament(data);
-      setParticipants(Array.isArray(parts) ? parts.filter((p) => p.status === "ACTIVE") : []);
+      // Hiện toàn bộ cơ thủ đã tham gia (kể cả những người đã bị loại ở các giai đoạn vòng tròn
+      // loại dần — status INACTIVE), chỉ ẩn người đã rút lui đăng ký (WITHDRAWN).
+      setParticipants(Array.isArray(parts) ? parts.filter((p) => p.status !== "WITHDRAWN") : []);
       if (isPlayer) {
         const allMyRegs = await getMyRegistrations({ page: 0, size: 100 }).catch(() => ({ content: [] }));
         const found = allMyRegs.content?.find((r) => r.tournamentId === Number(id)) ?? null;
