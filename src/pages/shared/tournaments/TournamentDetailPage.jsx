@@ -12,7 +12,12 @@ import {
   TOURNAMENT_STATUS_LABELS,
   TOURNAMENT_STATUS_STYLES,
 } from "../../../constants/tournamentConfig";
-import { getApiErrorMessage } from "../../../utils/apiError";
+import { getApiErrorCode, getApiErrorMessage } from "../../../utils/apiError";
+
+/** Backend trả mã này khi pe_survivors_per_stage không còn khớp số người tham gia thực tế
+ * lúc đóng đăng ký (xem PROGRESSIVE_CONFIG_INVALID / TOURNAMENT_010 ở ErrorCode.java) — hiện lỗi
+ * trong popup và cho owner nút tắt để sang thẳng bước sửa config. */
+const PROGRESSIVE_CONFIG_INVALID_CODE = "TOURNAMENT_010";
 
 const fmtDate = (iso) => {
   if (!iso) return "—";
@@ -113,6 +118,8 @@ const TournamentDetailPage = ({ api, basePath }) => {
   const [configForm, setConfigForm] = useState(null);
   const [statusChanging, setStatusChanging] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
+  const [confirmError, setConfirmError] = useState(null);
+  const [confirmErrorCode, setConfirmErrorCode] = useState(null);
   const [auditOpen, setAuditOpen] = useState(false);
   const [raceToOpen, setRaceToOpen] = useState(true);
   const [auditLogs, setAuditLogs] = useState(null);
@@ -150,6 +157,8 @@ const TournamentDetailPage = ({ api, basePath }) => {
   }, [basePath, location.search, navigate, tournamentId]);
 
   const handleStatusChange = async (newStatus, confirmMsg) => {
+    setConfirmError(null);
+    setConfirmErrorCode(null);
     setConfirmState({ newStatus, confirmMsg });
   };
 
@@ -174,13 +183,16 @@ const TournamentDetailPage = ({ api, basePath }) => {
   const confirmStatusChange = async () => {
     if (!confirmState) return;
     setStatusChanging(true);
+    setConfirmError(null);
+    setConfirmErrorCode(null);
     try {
       await api.patchStatus(tournamentId, { status: confirmState.newStatus });
       toast.success("Đã cập nhật trạng thái giải");
       setConfirmState(null);
       load();
     } catch (err) {
-      toast.error(getApiErrorMessage(err));
+      setConfirmError(getApiErrorMessage(err));
+      setConfirmErrorCode(getApiErrorCode(err));
     } finally {
       setStatusChanging(false);
     }
@@ -634,10 +646,30 @@ const TournamentDetailPage = ({ api, basePath }) => {
 
       <ConfirmModal
         open={!!confirmState}
-        onCancel={() => setConfirmState(null)}
+        onCancel={() => {
+          setConfirmState(null);
+          setConfirmError(null);
+          setConfirmErrorCode(null);
+        }}
         onConfirm={confirmStatusChange}
         title="Xác nhận thao tác"
         message={confirmState?.confirmMsg || ""}
+        errorMessage={confirmError}
+        extraAction={
+          confirmErrorCode === PROGRESSIVE_CONFIG_INVALID_CODE
+            ? {
+                label: "Chỉnh sửa cấu hình",
+                onClick: () => {
+                  setConfirmState(null);
+                  setConfirmError(null);
+                  setConfirmErrorCode(null);
+                  // intent=close-registration: wizard hiện nút "Lưu và đóng đăng ký"
+                  // thay vì quay về luồng mở đăng ký như lúc setup ban đầu.
+                  navigate(`${basePath}/${id}/edit?step=2&intent=close-registration`);
+                },
+              }
+            : null
+        }
         confirmText="Xác nhận"
         confirmVariant={confirmState?.newStatus === "CANCELLED" ? "danger" : "primary"}
         loading={statusChanging}

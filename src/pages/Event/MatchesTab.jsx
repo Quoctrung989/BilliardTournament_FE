@@ -370,12 +370,13 @@ const StandingTable = ({ rows }) => {
         ) : rows.map((r, idx) => {
           const eliminated = !!r.eliminated;
           const isFirst = r.rank === 1 && !eliminated;
-          const cutHere = eliminated && idx > 0 && !rows[idx - 1].eliminated;
+          // Đường cắt nằm TRÊN người bị loại đầu tiên (ranh giới còn lại / bị loại)
+          const cutAbove = eliminated && idx > 0 && !rows[idx - 1].eliminated;
           return (
             <tr key={r.id}
                  className={`transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.03] ${
-                   cutHere ? "border-b-2 border-dashed border-slate-300 dark:border-white/20"
-                           : "border-b border-slate-100 dark:border-white/[0.04] last:border-0"} ${
+                   cutAbove ? "border-t-2 border-dashed border-slate-300 dark:border-white/20"
+                           : "border-t border-slate-100 dark:border-white/[0.04] first:border-t-0"} ${
                    eliminated ? "bg-slate-100/70 dark:bg-white/[0.03] opacity-60"
                              : isFirst ? "bg-amber-50/50 dark:bg-yellow-400/[0.04]" : ""}`}>
               <td className="py-3 text-center">
@@ -765,16 +766,20 @@ const MatchesTab = ({ tournament }) => {
   const views = VIEWS[format] || VIEWS.single_elimination;
   const validView = views.find(v=>v.id===view) ? view : views[0].id;
 
-  /* Flatten all matches into component format */
+  /* Flatten all matches into component format — gồm cả Playoff để "Tất cả giai đoạn" đủ trận */
   const { allMatches, rounds } = useMemo(() => {
     if (!stages.length) return { allMatches: [], rounds: [] };
 
-    // Giải nhiều giai đoạn vòng tròn (loại dần) → gắn tên giai đoạn vào nhãn vòng để xem theo giai đoạn
-    const multiLeague = stages.filter(s => s.stageType === "PROGRESSIVE_ROUND").length > 1;
+    const PLAYOFF_TYPES = ["PROGRESSIVE_PLAYOFF", "PLAYOFF", "KNOCKOUT"];
+    // Nhiều giai đoạn (vòng tròn + playoff) → gắn tên giai đoạn vào nhãn vòng
+    const multiStage = stages.filter(s =>
+      s.stageType === "PROGRESSIVE_ROUND"
+      || s.stageType === "GROUP"
+      || PLAYOFF_TYPES.includes(s.stageType)
+    ).length > 1;
 
     let allM = [], allR = [];
-    // Playoff có tab riêng ("Playoff" — bracket view) → không lặp lại trong "Lịch đấu"
-    stages.filter(stage => stage.stageType !== "PROGRESSIVE_PLAYOFF").forEach(stage => {
+    stages.forEach(stage => {
       const compMatches = (stage.matches||[]).map(m => ({
         ...apiMatchToComp(m),
         stageId: stage.id,
@@ -788,8 +793,10 @@ const MatchesTab = ({ tournament }) => {
       compMatches.forEach(m => { m.roundId = `${key}_r${m.roundNo}`; });
       stageRounds.forEach(r => {
         r.id = `${key}_${r.id}`;
-        if (multiLeague && stage.stageType === "PROGRESSIVE_ROUND" && stage.name) {
+        if (multiStage && stage.name) {
           r.label = `${stage.name} · ${r.label}`;
+        } else if (multiStage && PLAYOFF_TYPES.includes(stage.stageType)) {
+          r.label = `Playoff · ${r.label}`;
         }
       });
       allM = [...allM, ...compMatches];
@@ -798,8 +805,9 @@ const MatchesTab = ({ tournament }) => {
     return { allMatches: allM, rounds: allR };
   }, [stages]);
 
-  /* Matches for KNOCKOUT / PROGRESSIVE_PLAYOFF stage (single elim / playoff) */
-  const koStage   = stages.find(s => s.stageType === "KNOCKOUT" || s.stageType === "PROGRESSIVE_PLAYOFF");
+  /* Matches for KNOCKOUT / PROGRESSIVE_PLAYOFF / PLAYOFF stage (single elim / playoff) */
+  const PLAYOFF_STAGE_TYPES = ["KNOCKOUT", "PROGRESSIVE_PLAYOFF", "PLAYOFF"];
+  const koStage   = stages.find(s => PLAYOFF_STAGE_TYPES.includes(s.stageType));
   const koMatches = useMemo(
     () => (koStage?.matches||[]).map(m => ({...apiMatchToComp(m), raceTo:m.raceTo})),
     [koStage]
@@ -811,50 +819,93 @@ const MatchesTab = ({ tournament }) => {
 
   /**
    * Bảng điểm GỘP — 1 bảng duy nhất cho toàn giải, không tách theo giai đoạn.
-   * Người trụ lại giai đoạn càng muộn thì xếp hạng càng cao (giống cách tính rankings cuối giải
-   * ở BE — fromProgressiveRankings). Người bị loại ở 1 giai đoạn nào đó vẫn nằm trong CÙNG bảng,
-   * chỉ đánh dấu `eliminated: true` để FE tô xám, không tạo bảng riêng.
+   * Người trụ lại giai đoạn càng muộn thì xếp hạng càng cao. Ai không còn trong giai đoạn
+   * kế tiếp (GĐ sau hoặc Playoff đã điền người) → eliminated=true để FE tô xám "BỊ LOẠI".
    *
-   * Duyệt các giai đoạn vòng tròn từ CUỐI về ĐẦU: standings của giai đoạn cuối cùng (đang đấu
-   * hoặc vừa xong) lên đầu bảng; ai không có mặt ở giai đoạn kế tiếp (đã bị cắt lúc advance) thì
-   * được thêm vào danh sách với eliminated=true, thấp dần theo giai đoạn bị loại sớm hơn.
-   * Tự suy biến về đúng 1 bảng phẳng bình thường khi giải chỉ có 1 giai đoạn (GROUP_PLAYOFF...).
+   * Duyệt League từ CUỐI về ĐẦU; tập "còn lại" = người ở stage kế tiếp (league i+1,
+   * hoặc Playoff nếu GĐ League cuối đã chuyển tiếp).
    */
   const mergedStanding = useMemo(() => {
     const league = stages.filter(s => s.stageType === "PROGRESSIVE_ROUND" || s.stageType === "GROUP")
                           .slice().sort((a,b) => (a.orderNo??0) - (b.orderNo??0));
     if (!league.length) return [];
 
+    const playoffStage = stages.find(s =>
+      s.stageType === "PROGRESSIVE_PLAYOFF" || s.stageType === "PLAYOFF"
+    );
+    const playoffPlayerIds = new Set(
+      (playoffStage?.matches || [])
+        .flatMap(m => [m.player1?.id, m.player2?.id])
+        .filter(Boolean)
+    );
+    // Playoff đã được điền người sau bước "chuyển giai đoạn" → dùng làm mốc cắt GĐ League cuối
+    const playoffFilled = playoffPlayerIds.size > 0;
+
     const perStage = league.map(s => ({
       stage: s,
       standings: computeStandings(s.matches || []),
-      playerIds: new Set((s.matches||[]).flatMap(m => [m.p1?.id, m.p2?.id]).filter(Boolean)),
+      playerIds: new Set(
+        (s.matches || []).flatMap(m => [m.player1?.id, m.player2?.id]).filter(Boolean)
+      ),
     }));
 
     const rows = [];
     const seen = new Set();
     for (let i = perStage.length - 1; i >= 0; i--) {
-      const { stage, standings } = perStage[i];
-      const isLastLeagueStage = i === perStage.length - 1;
+      const { standings } = perStage[i];
+      // Tập người còn trụ ở bước sau giai đoạn này
+      let nextPlayerIds = null;
+      if (i < perStage.length - 1) {
+        nextPlayerIds = perStage[i + 1].playerIds;
+      } else if (playoffFilled) {
+        nextPlayerIds = playoffPlayerIds;
+      }
+
       for (const row of standings) {
         if (seen.has(row.id)) continue;
         seen.add(row.id);
-        const eliminated = !isLastLeagueStage && stage.status === "COMPLETED";
+        const eliminated = nextPlayerIds != null && !nextPlayerIds.has(row.id);
         rows.push({ ...row, eliminated });
       }
     }
     return rows.map((r, idx) => ({ ...r, rank: idx + 1 }));
   }, [stages]);
 
-  /* Danh sách giai đoạn vòng tròn (PROGRESSIVE_ROUND_ROBIN) — dùng làm tab điều hướng trong "Lịch đấu" */
-  const leagueStages = useMemo(
-    () => stages.filter(s => s.stageType === "PROGRESSIVE_ROUND")
-                .slice().sort((a,b) => (a.orderNo??0) - (b.orderNo??0)),
+  /* Tab giai đoạn: vòng tròn/bảng (GĐ1, GĐ2...) + Playoff — player cần thấy đủ chuỗi giai đoạn */
+  const navStages = useMemo(
+    () => stages
+      .filter(s =>
+        s.stageType === "PROGRESSIVE_ROUND"
+        || s.stageType === "GROUP"
+        || s.stageType === "PROGRESSIVE_PLAYOFF"
+        || s.stageType === "PLAYOFF"
+      )
+      .slice()
+      .sort((a, b) => (a.orderNo ?? 0) - (b.orderNo ?? 0)),
     [stages]
   );
+  const playoffStageId = koStage?.id ?? null;
+  const isPlayoffStageSelected = stageFilter != null && stageFilter === playoffStageId;
+
   useEffect(() => {
-    if (stageFilter != null && !leagueStages.some(s => s.id === stageFilter)) setStageFilter(null);
-  }, [leagueStages, stageFilter]);
+    if (stageFilter != null && !navStages.some(s => s.id === stageFilter)) setStageFilter(null);
+  }, [navStages, stageFilter]);
+
+  const selectStageTab = (stageId) => {
+    if (stageId == null) {
+      setStageFilter(null);
+      setView("list");
+      return;
+    }
+    const stage = navStages.find(s => s.id === stageId);
+    if (stage && PLAYOFF_STAGE_TYPES.includes(stage.stageType)) {
+      setStageFilter(stageId);
+      setView("bracket");
+      return;
+    }
+    setStageFilter(stageId);
+    setView("list");
+  };
 
   /* Filtered for list view */
   const filteredMatches = useMemo(() => {
@@ -885,6 +936,7 @@ const MatchesTab = ({ tournament }) => {
   if (!stages.length) return <NoBracket/>;
 
   const showFilters = validView === "list";
+  const showStageTabs = navStages.length > 1;
 
   return (
     <div className="space-y-4">
@@ -892,7 +944,12 @@ const MatchesTab = ({ tournament }) => {
       <div className="flex items-center justify-end flex-wrap gap-2">
         <div className="flex gap-1.5">
           {views.map(({id,label,Icon})=>(
-            <button key={id} onClick={()=>setView(id)}
+            <button key={id} onClick={()=>{
+              setView(id);
+              // Vào tab Playoff (bracket) → highlight tab giai đoạn Playoff nếu có
+              if (id === "bracket" && playoffStageId != null) setStageFilter(playoffStageId);
+              if (id === "list" && isPlayoffStageSelected) setStageFilter(null);
+            }}
                     className={`flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-200 ${
                       validView===id
                         ?"bg-[#0d1b2e] text-white shadow-sm dark:bg-white dark:text-[#0d1b2e]"
@@ -904,30 +961,34 @@ const MatchesTab = ({ tournament }) => {
         </div>
       </div>
 
-      {/* Tab chọn giai đoạn — vòng tròn loại dần có nhiều giai đoạn (GĐ1, GĐ2...) */}
-      {showFilters && leagueStages.length > 1 && (
+      {/* Tab chọn giai đoạn — GĐ1, GĐ2... và Playoff */}
+      {showStageTabs && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <button onClick={()=>setStageFilter(null)}
+          <button onClick={() => selectStageTab(null)}
                   className={`shrink-0 px-4 py-2 rounded-2xl text-sm font-medium transition-all ${
-                    stageFilter==null
+                    stageFilter == null && validView === "list"
                       ? "bg-[#9b1c1c] text-white shadow-sm"
                       : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
                   }`}>
             Tất cả giai đoạn
           </button>
-          {leagueStages.map(s => {
+          {navStages.map(s => {
+            const isPlayoff = PLAYOFF_STAGE_TYPES.includes(s.stageType);
             const total = (s.matches||[]).length;
             const done = (s.matches||[]).filter(m=>["COMPLETED","WALKOVER","BYE"].includes(m.status)).length;
+            const active = isPlayoff
+              ? validView === "bracket"
+              : (validView === "list" && stageFilter === s.id);
             return (
-              <button key={s.id} onClick={()=>setStageFilter(s.id)}
+              <button key={s.id} onClick={() => selectStageTab(s.id)}
                       className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium transition-all ${
-                        stageFilter===s.id
+                        active
                           ? "bg-[#9b1c1c] text-white shadow-sm"
                           : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
                       }`}>
-                {s.name || `Giai đoạn ${s.orderNo}`}
+                {isPlayoff ? (s.name || "Playoff") : (s.name || `Giai đoạn ${s.orderNo}`)}
                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
-                  stageFilter===s.id ? "bg-white/20" : "bg-slate-100 dark:bg-white/10"
+                  active ? "bg-white/20" : "bg-slate-100 dark:bg-white/10"
                 }`}>{done}/{total}</span>
               </button>
             );
@@ -1001,7 +1062,7 @@ const MatchesTab = ({ tournament }) => {
       {/* Group stage: Playoff (bracket từ vòng knockout) */}
       {format === "group_stage" && validView === "bracket" && (
         koMatches.length > 0
-          ? <BracketView matches={koMatches} rounds={koRounds}/>
+          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds}/>
           : <NoBracket/>
       )}
     </div>

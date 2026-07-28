@@ -456,7 +456,7 @@ const PlayerModal = ({ player, onClose }) => {
   );
 };
 
-/* ── Players tab (WNT style) ── */
+/* ── Players tab ── */
 const PlayersTab = ({ participants }) => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -465,9 +465,7 @@ const PlayersTab = ({ participants }) => {
   );
 
   return (
-    <>
-      <div style={{ position: "relative", paddingTop: "1.25rem" }}>
-        {/* Floating PLAYER LIST badge */}
+    <div className="evt-surface" style={{ position: "relative", paddingTop: "1.25rem" }}>
         <div style={{
           position: "absolute", top: 0, left: "50%",
           transform: "translateX(-50%)", zIndex: 10,
@@ -479,21 +477,20 @@ const PlayersTab = ({ participants }) => {
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <span style={{
-            color: "#fff", fontWeight: 900, fontStyle: "italic",
-            fontSize: "0.8rem", letterSpacing: "0.14em", textTransform: "uppercase",
+            fontFamily: "var(--evt-font)",
+            color: "#fff", fontWeight: 700,
+            fontSize: "0.78rem", letterSpacing: "0.1em", textTransform: "uppercase",
             whiteSpace: "nowrap",
           }}>
             Danh sách cơ thủ tham gia
           </span>
         </div>
 
-        {/* Card */}
         <div style={{
           background: "var(--evt-card-bg)", borderRadius: "1rem", overflow: "hidden",
           border: "1px solid var(--evt-card-border)",
           boxShadow: "0 6px 28px rgba(10,22,40,0.07)",
         }}>
-          {/* Search bar */}
           <div style={{ padding: "2.75rem 1.5rem 0.75rem", display: "flex", justifyContent: "flex-end" }}>
             <div style={{ position: "relative", width: "100%", maxWidth: "220px" }}>
               <input
@@ -503,8 +500,9 @@ const PlayersTab = ({ participants }) => {
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
                   width: "100%", background: "var(--evt-box-bg)", border: "1px solid var(--evt-card-border)",
-                  borderRadius: "999px", padding: "0.45rem 0.9rem 0.45rem 2rem",
-                  fontSize: "0.8rem", outline: "none", boxSizing: "border-box", color: "var(--evt-text)",
+                  borderRadius: "999px", padding: "0.5rem 0.9rem 0.5rem 2rem",
+                  fontFamily: "var(--evt-font)", fontSize: "0.8125rem", outline: "none",
+                  boxSizing: "border-box", color: "var(--evt-text)",
                 }}
               />
               <Search
@@ -514,25 +512,23 @@ const PlayersTab = ({ participants }) => {
             </div>
           </div>
 
-          {/* Player grid */}
           {filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3.5rem 1.5rem 4rem", color: "var(--evt-text-4)", fontSize: "0.875rem" }}>
+            <div style={{
+              textAlign: "center", padding: "3.5rem 1.5rem 4rem",
+              color: "var(--evt-text-4)", fontSize: "0.875rem", fontFamily: "var(--evt-font)",
+            }}>
               {participants.length === 0 ? "Danh sách cơ thủ chưa được công bố" : "Không tìm thấy cơ thủ"}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 mx-2 mb-4">
-              {filtered.map((p) => {
-                const { first, last } = splitName(p.displayName);
-                const eliminated = p.status === "INACTIVE";
-
-                return (
+              {filtered.map((p) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => navigate(p.userId ? `/event/players/user/${p.userId}` : `/event/players/${p.id}`)}
                     className="flex items-center gap-3.5 px-4 py-5 cursor-pointer bg-transparent border-none text-left transition-colors rounded-2xl hover:bg-[#f8f9fb] dark:hover:bg-white/5"
+                    style={{ fontFamily: "var(--evt-font)" }}
                   >
-                    {/* Avatar — ảnh thật hoặc ảnh mặc định (silhouette) khi chưa cập nhật */}
                     <img
                       src={p.avatarUrl || p.avtarUrl || DEFAULT_AVATAR}
                       alt={p.displayName}
@@ -540,64 +536,37 @@ const PlayersTab = ({ participants }) => {
                       style={{
                         width: "56px", height: "72px", objectFit: "cover",
                         objectPosition: "top center", flexShrink: 0, borderRadius: "8px",
-                        opacity: eliminated ? 0.5 : 1, filter: eliminated ? "grayscale(1)" : "none",
                       }}
                     />
 
-                    {/* Name + country */}
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <p style={{ margin: 0, fontSize: "0.9rem", color: eliminated ? "var(--evt-text-4)" : "var(--evt-name)", lineHeight: 1.3, display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
-                        {first && (
-                          <span style={{ fontWeight: 400, fontStyle: "normal" }}>{first} </span>
-                        )}
-                        <span style={{ fontWeight: 800, fontStyle: "normal", textTransform: "uppercase" }}>
-                          {last}
-                        </span>
-                        {eliminated && (
-                          <span style={{
-                            fontSize: "0.55rem", fontWeight: 700, padding: "0.1rem 0.4rem",
-                            borderRadius: "999px", background: "var(--evt-box-bg)", color: "var(--evt-text-4)",
-                            textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0,
-                          }}>
-                            Bị loại
-                          </span>
-                        )}
-                      </p>
-                      <p style={{
-                        margin: "0.35rem 0 0", fontSize: "0.65rem", color: "var(--evt-text-4)",
-                        fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em",
-                        display: "flex", alignItems: "center", gap: "0.35rem",
-                      }}>
+                      <p className="evt-player-name" title={p.displayName}>{p.displayName}</p>
+                      <p className="evt-meta">
                         <span style={{ fontSize: "0.75rem", lineHeight: 1 }}>🇻🇳</span>
                         Việt Nam
                       </p>
                       {p.seedNo && (
-                        <p style={{
-                          margin: "0.2rem 0 0", fontSize: "0.6rem", color: "var(--evt-text-4)",
-                          fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em",
-                        }}>
+                        <p className="evt-meta" style={{ marginTop: "0.2rem", letterSpacing: "0.05em" }}>
                           Hạt #{p.seedNo}
                         </p>
                       )}
                     </div>
                   </button>
-                );
-              })}
+              ))}
             </div>
           )}
 
           {filtered.length > 0 && (
             <div style={{
               padding: "0.5rem 1.5rem 1rem", textAlign: "right",
-              fontSize: "0.7rem", color: "var(--evt-text-4)",
+              fontSize: "0.75rem", fontWeight: 500, color: "var(--evt-text-4)",
+              fontFamily: "var(--evt-font)",
             }}>
               {filtered.length} / {participants.length} cơ thủ
             </div>
           )}
         </div>
-      </div>
-
-    </>
+    </div>
   );
 };
 
