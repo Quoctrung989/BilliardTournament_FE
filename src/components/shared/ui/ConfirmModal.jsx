@@ -6,6 +6,8 @@ const ConfirmModal = ({
     title,
     message,
     details,
+    errorMessage,
+    extraAction,
     confirmText = "Xác nhận",
     cancelText = "Hủy",
     onConfirm,
@@ -29,6 +31,11 @@ const ConfirmModal = ({
                     <AdminButton variant="secondary" onClick={onCancel} disabled={loading}>
                         {cancelText}
                     </AdminButton>
+                    {extraAction && (
+                        <AdminButton variant="secondary" onClick={extraAction.onClick} disabled={loading}>
+                            {extraAction.label}
+                        </AdminButton>
+                    )}
                     <AdminButton variant={confirmVariant} onClick={onConfirm} disabled={loading}>
                         {loading ? "Đang xử lý..." : confirmText}
                     </AdminButton>
@@ -38,6 +45,11 @@ const ConfirmModal = ({
             <div className="space-y-2">
                 {message && <p className="text-slate-700">{message}</p>}
                 {details && <p className="text-sm text-slate-500">{details}</p>}
+                {errorMessage && (
+                    <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                        <p className="text-sm text-red-700">{errorMessage}</p>
+                    </div>
+                )}
             </div>
         </AdminModal>
     );

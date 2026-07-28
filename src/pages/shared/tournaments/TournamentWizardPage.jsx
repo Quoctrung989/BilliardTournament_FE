@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Search, X } from "lucide-react";
 import { toast } from "react-toastify";
@@ -15,6 +15,9 @@ import {
   getApiErrorMessage,
   getApiValidationDetails,
 } from "../../../utils/apiError";
+
+/** Query intent khi vào wizard từ lỗi đóng đăng ký (TOURNAMENT_010). */
+const INTENT_CLOSE_REGISTRATION = "close-registration";
 
 const defaultBasic = {
   name: "",
@@ -223,6 +226,12 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const [branches, setBranches] = useState([]);
   const [basic, setBasic] = useState(defaultBasic);
   const [tournamentStatus, setTournamentStatus] = useState("DRAFT");
+  const [approvedCount, setApprovedCount] = useState(0);
+  /** Vào từ lỗi đóng ĐK (TOURNAMENT_010) → chỉnh survivors rồi lưu + đóng luôn. */
+  const closeRegistrationIntent = searchParams.get("intent") === INTENT_CLOSE_REGISTRATION;
+  const isCloseRegistrationMode =
+    closeRegistrationIntent && tournamentStatus === "OPEN_FOR_REGISTRATION";
+  const closePresetAppliedRef = useRef(false);
 
   const branchScope = basePath.startsWith("/owner") ? "owner" : "manager";
 
@@ -293,6 +302,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
           : "",
       });
       setTournamentStatus(detail.status || "DRAFT");
+      setApprovedCount(Number(detail.approvedCount ?? 0));
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -353,6 +363,32 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   useEffect(() => { if (!isNew) loadTournament(); }, [isNew, loadTournament]);
   useEffect(() => { if (step === 2 && tournamentId) loadConfigForm(); }, [step, tournamentId, loadConfigForm]);
   useEffect(() => { if (step === 3 && tournamentId) loadReview(); }, [step, tournamentId, loadReview]);
+
+  // Khi vào từ lỗi đóng ĐK: gợi ý preset theo số người thực tế (approvedCount), không giữ chuỗi cũ theo maxSlots.
+  useEffect(() => {
+    if (!isCloseRegistrationMode || step !== 2) return;
+    if (basic.format !== "PROGRESSIVE_ROUND_ROBIN") return;
+    if (!approvedCount || approvedCount < 2) return;
+    if (configFields.length === 0) return;
+    if (closePresetAppliedRef.current) return;
+
+    const survivorsField = configFields.find((f) => f.fieldKey === "pe_survivors_per_stage");
+    if (!survivorsField) return;
+
+    const preset = progressiveSurvivorsPreset(approvedCount);
+    const current = String(survivorsField.value ?? survivorsField.defaultValue ?? "");
+    closePresetAppliedRef.current = true;
+    if (current === preset) return;
+
+    setConfigFields((prev) =>
+      prev.map((f) => (f.fieldKey === "pe_survivors_per_stage" ? { ...f, value: preset } : f))
+    );
+    toast.info(`Đã gợi ý cấu hình theo ${approvedCount} người đã đăng ký: ${preset}`);
+  }, [isCloseRegistrationMode, step, basic.format, approvedCount, configFields]);
+
+  useEffect(() => {
+    if (!closeRegistrationIntent) closePresetAppliedRef.current = false;
+  }, [closeRegistrationIntent]);
 
   useEffect(() => {
     if (!basic.isRegister || !basic.registrationFormTemplateId || !api.getRegistrationFormTemplatePreview) {
@@ -458,17 +494,13 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     }
   };
 
-  const handleSaveStep2 = async () => {
-    if (!tournamentId) return;
+  const buildConfigPayload = () => {
     const usesSeeding = seedingMethod !== "RANDOM";
     const seedCountNum = seedCount.trim() ? Number(seedCount) : null;
-    if (usesSeeding && (!seedCountNum || seedCountNum < 1)) {
-      toast.warn("Nhập số lượng hạt giống (từ 1 trở lên) khi chọn phương thức xếp hạt giống");
-      return;
-    }
-    setSaving(true);
-    try {
-      await api.saveConfig(tournamentId, {
+    return {
+      usesSeeding,
+      seedCountNum,
+      body: {
         seedingMethod,
         seedCount: usesSeeding ? seedCountNum : null,
         fields: configFields.map((f) => ({
@@ -476,9 +508,43 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
           value: String(f.value ?? f.defaultValue ?? ""),
         })),
         raceToOverrides: buildRaceToOverrides(raceToRules),
-      });
+      },
+    };
+  };
+
+  const handleSaveStep2 = async () => {
+    if (!tournamentId) return;
+    const { usesSeeding, seedCountNum, body } = buildConfigPayload();
+    if (usesSeeding && (!seedCountNum || seedCountNum < 1)) {
+      toast.warn("Nhập số lượng hạt giống (từ 1 trở lên) khi chọn phương thức xếp hạt giống");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.saveConfig(tournamentId, body);
       toast.success("Đã lưu cấu hình giải");
       setStep(3);
+    } catch (err) {
+      showValidationToast(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /** Lưu pe_survivors (và config khác) rồi đóng đăng ký ngay — dùng khi số người thực tế < slot. */
+  const handleSaveAndCloseRegistration = async () => {
+    if (!tournamentId) return;
+    const { usesSeeding, seedCountNum, body } = buildConfigPayload();
+    if (usesSeeding && (!seedCountNum || seedCountNum < 1)) {
+      toast.warn("Nhập số lượng hạt giống (từ 1 trở lên) khi chọn phương thức xếp hạt giống");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.saveConfig(tournamentId, body);
+      await api.patchStatus(tournamentId, { status: "REGISTRATION_CLOSED" });
+      toast.success("Đã lưu cấu hình và đóng đăng ký");
+      navigate(`${basePath}/${tournamentId}`);
     } catch (err) {
       showValidationToast(err);
     } finally {
@@ -506,6 +572,27 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     }
   };
 
+  /** Step 3 khi giải đã mở ĐK: đóng đăng ký sau khi đã lưu/validate config. */
+  const handleCloseRegistrationFromReview = async () => {
+    if (!tournamentId) return;
+    setSaving(true);
+    try {
+      const validation = await api.validateConfig(tournamentId);
+      if (!validation.isValid) {
+        setValidateResult(validation);
+        toast.error("Config chưa hợp lệ — kiểm tra lỗi bên dưới");
+        return;
+      }
+      await api.patchStatus(tournamentId, { status: "REGISTRATION_CLOSED" });
+      toast.success("Đã đóng đăng ký giải đấu");
+      navigate(`${basePath}/${tournamentId}`);
+    } catch (err) {
+      showValidationToast(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const selectedGameTypeName = gameTypes.find((g) => g.code === basic.gameType)?.name || basic.gameType;
   const selectedFormatName = formats.find((f) => f.code === basic.format)?.name || basic.format;
   const selectedTemplateName = registrationTemplates.find(
@@ -518,7 +605,10 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
   return (
     <div>
-      <TournamentWizardStepper currentStep={step} />
+      <TournamentWizardStepper
+        currentStep={step}
+        closeRegistrationMode={isCloseRegistrationMode || tournamentStatus === "OPEN_FOR_REGISTRATION"}
+      />
 
       {/* ── STEP 1: Basic info ── */}
       {step === 1 && (
@@ -881,14 +971,28 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
       {/* ── STEP 2: Config ── */}
       {step === 2 && (
-        <AdminCard title="Bước 2 — Cấu hình thi đấu">
+        <AdminCard title={isCloseRegistrationMode
+          ? "Chỉnh cấu hình trước khi đóng đăng ký"
+          : "Bước 2 — Cấu hình thi đấu"}>
           {loading ? (
             <p className="text-slate-500 py-8 text-center">Đang tải form cấu hình...</p>
           ) : (
             <>
-              <p className="text-sm text-slate-500 mb-6">
-                Các giá trị mặc định do Admin thiết lập. {roleLabel} có thể chỉnh theo yêu cầu giải.
-              </p>
+              {isCloseRegistrationMode ? (
+                <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  <p className="font-semibold mb-1">Không thể đóng đăng ký với cấu hình hiện tại</p>
+                  <p>
+                    Số người đã đăng ký thực tế là <strong>{approvedCount}</strong>, trong khi
+                    "Số người đi tiếp mỗi giai đoạn" đang theo giả định tối đa{" "}
+                    <strong>{basic.maxParticipants}</strong> người. Hệ thống đã gợi ý preset theo số
+                    người thực tế — kiểm tra lại rồi bấm <strong>Lưu và đóng đăng ký</strong>.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500 mb-6">
+                  Các giá trị mặc định do Admin thiết lập. {roleLabel} có thể chỉnh theo yêu cầu giải.
+                </p>
+              )}
 
               <div className="mb-6 max-w-md">
                 <label className="admin-label">Phương thức xếp hạt giống *</label>
@@ -929,17 +1033,42 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                     giảm dần, cách nhau dấu phẩy (vd <code>10,6,4</code>). Phần tử cuối = số người vào Playoff.
                     Mọi phần tử phải là số chẵn.
                   </p>
-                  <AdminButton
-                    variant="secondary"
-                    onClick={() => {
-                      const preset = progressiveSurvivorsPreset(Number(basic.maxParticipants) || 16);
-                      setConfigFields((prev) => prev.map((f) =>
-                        f.fieldKey === "pe_survivors_per_stage" ? { ...f, value: preset } : f));
-                      toast.success(`Đã dùng preset: ${preset}`);
-                    }}
-                  >
-                    Dùng preset theo {basic.maxParticipants} người
-                  </AdminButton>
+                  <div className="flex flex-wrap gap-2">
+                    {!isCloseRegistrationMode && (
+                      <AdminButton
+                        variant="secondary"
+                        onClick={() => {
+                          const preset = progressiveSurvivorsPreset(Number(basic.maxParticipants) || 16);
+                          setConfigFields((prev) => prev.map((f) =>
+                            f.fieldKey === "pe_survivors_per_stage" ? { ...f, value: preset } : f));
+                          toast.success(`Đã dùng preset: ${preset}`);
+                        }}
+                      >
+                        Dùng preset theo {basic.maxParticipants} người (tối đa)
+                      </AdminButton>
+                    )}
+                    {!isNew && approvedCount > 0 && (
+                      <AdminButton
+                        variant={isCloseRegistrationMode ? "primary" : "secondary"}
+                        onClick={() => {
+                          const preset = progressiveSurvivorsPreset(approvedCount);
+                          setConfigFields((prev) => prev.map((f) =>
+                            f.fieldKey === "pe_survivors_per_stage" ? { ...f, value: preset } : f));
+                          toast.success(`Đã dùng preset: ${preset}`);
+                        }}
+                      >
+                        Dùng preset theo {approvedCount} người (đã đăng ký thực tế)
+                      </AdminButton>
+                    )}
+                  </div>
+                  {!isNew && approvedCount > 0 && approvedCount !== Number(basic.maxParticipants) && (
+                    <p className="text-xs text-amber-700 mt-2">
+                      Hiện có <strong>{approvedCount}</strong> người đã đăng ký (được duyệt), trong khi giải
+                      đang mở cho tối đa <strong>{basic.maxParticipants}</strong> người. Nếu chốt sổ với số
+                      người ít hơn giả định, hãy dùng preset theo số người thực tế ở trên hoặc tự nhập lại
+                      "Số người đi tiếp mỗi giai đoạn" cho khớp.
+                    </p>
+                  )}
                 </div>
               )}
               <TournamentConfigFieldForm fields={configFields} onChange={setConfigFields} />
@@ -948,12 +1077,40 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               <TournamentRaceToOverrides rules={raceToRules} onChange={setRaceToRules} />
 
               <div className="flex justify-between gap-2 mt-6 pt-4 border-t border-slate-100">
-                <AdminButton variant="secondary" onClick={() => setStep(1)}>
-                  <ArrowLeft size={14} /> Bước 1
-                </AdminButton>
-                <AdminButton variant="primary" onClick={handleSaveStep2} disabled={saving}>
-                  {saving ? "Đang lưu..." : "Lưu config & xem lại →"}
-                </AdminButton>
+                {isCloseRegistrationMode ? (
+                  <AdminButton
+                    variant="secondary"
+                    onClick={() => navigate(`${basePath}/${tournamentId}`)}
+                  >
+                    <ArrowLeft size={14} /> Quay lại chi tiết
+                  </AdminButton>
+                ) : (
+                  <AdminButton variant="secondary" onClick={() => setStep(1)}>
+                    <ArrowLeft size={14} /> Bước 1
+                  </AdminButton>
+                )}
+                {isCloseRegistrationMode ? (
+                  <div className="flex flex-wrap gap-2">
+                    <AdminButton
+                      variant="secondary"
+                      onClick={handleSaveStep2}
+                      disabled={saving}
+                    >
+                      {saving ? "Đang lưu..." : "Chỉ lưu config"}
+                    </AdminButton>
+                    <AdminButton
+                      variant="primary"
+                      onClick={handleSaveAndCloseRegistration}
+                      disabled={saving}
+                    >
+                      {saving ? "Đang xử lý..." : "Lưu và đóng đăng ký"}
+                    </AdminButton>
+                  </div>
+                ) : (
+                  <AdminButton variant="primary" onClick={handleSaveStep2} disabled={saving}>
+                    {saving ? "Đang lưu..." : "Lưu config & xem lại →"}
+                  </AdminButton>
+                )}
               </div>
             </>
           )}
@@ -963,7 +1120,9 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
       {/* ── STEP 3: Review ── */}
       {step === 3 && (
         <div className="space-y-4">
-          <AdminCard title="Bước 3 — Xem lại & mở đăng ký">
+          <AdminCard title={tournamentStatus === "OPEN_FOR_REGISTRATION"
+            ? "Bước 3 — Xem lại & đóng đăng ký"
+            : "Bước 3 — Xem lại & mở đăng ký"}>
             {loading ? (
               <p className="text-slate-500 py-8 text-center">Đang tải...</p>
             ) : (
@@ -972,7 +1131,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 {validateResult && !validateResult.isValid && (
                   <div className="mb-5 p-4 rounded-lg bg-red-50 border border-red-200">
                     <p className="text-sm font-semibold text-red-800 mb-2">
-                      ⚠ Cấu hình chưa hợp lệ — không thể mở đăng ký
+                      ⚠ Cấu hình chưa hợp lệ — không thể{" "}
+                      {tournamentStatus === "OPEN_FOR_REGISTRATION" ? "đóng đăng ký" : "mở đăng ký"}
                     </p>
                     <ul className="text-sm text-red-700 list-disc pl-5 space-y-1">
                       {(validateResult.errors || []).map((e, i) => (
@@ -986,7 +1146,15 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
                 {validateResult?.isValid && (
                   <div className="mb-5 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-800">
-                    ✓ Cấu hình hợp lệ — sẵn sàng mở đăng ký
+                    ✓ Cấu hình hợp lệ — sẵn sàng{" "}
+                    {tournamentStatus === "OPEN_FOR_REGISTRATION" ? "đóng đăng ký" : "mở đăng ký"}
+                  </div>
+                )}
+
+                {tournamentStatus === "OPEN_FOR_REGISTRATION" && approvedCount > 0 && (
+                  <div className="mb-5 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-900">
+                    Giải đang mở đăng ký với <strong>{approvedCount}</strong> người đã duyệt
+                    (tối đa {basic.maxParticipants}). Đóng đăng ký sẽ chốt sổ với số người thực tế này.
                   </div>
                 )}
 
@@ -1126,15 +1294,25 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                       variant="secondary"
                       onClick={() => navigate(`${basePath}/${tournamentId}`)}
                     >
-                      Lưu nháp
+                      {tournamentStatus === "OPEN_FOR_REGISTRATION" ? "Quay lại" : "Lưu nháp"}
                     </AdminButton>
-                    <AdminButton
-                      variant="primary"
-                      onClick={handleOpenRegistration}
-                      disabled={saving || (validateResult && !validateResult.isValid)}
-                    >
-                      {saving ? "Đang xử lý..." : "Mở đăng ký →"}
-                    </AdminButton>
+                    {tournamentStatus === "OPEN_FOR_REGISTRATION" ? (
+                      <AdminButton
+                        variant="primary"
+                        onClick={handleCloseRegistrationFromReview}
+                        disabled={saving || (validateResult && !validateResult.isValid)}
+                      >
+                        {saving ? "Đang xử lý..." : "Đóng đăng ký →"}
+                      </AdminButton>
+                    ) : (
+                      <AdminButton
+                        variant="primary"
+                        onClick={handleOpenRegistration}
+                        disabled={saving || (validateResult && !validateResult.isValid)}
+                      >
+                        {saving ? "Đang xử lý..." : "Mở đăng ký →"}
+                      </AdminButton>
+                    )}
                   </div>
                 </div>
               </>

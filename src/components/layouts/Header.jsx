@@ -23,12 +23,10 @@ const DASHBOARD_PATH_BY_ROLE = {
 
 const NAV_ITEMS = [
   { label: "Tin Mới Nhất",     path: "/news" },
-  { label: "Tỷ Số Trực Tiếp", path: null },
   { label: "Giải Đấu",        path: "/event" },
   { label: "Cơ Sở",           path: "/branches" },
   // { label: "Vé",               path: null },
   { label: "Bảng Xếp Hạng",   path: null },
-  { label: "Cơ Thủ",          path: null },
   // { label: "Cửa Hàng",        path: null },
 ];
 

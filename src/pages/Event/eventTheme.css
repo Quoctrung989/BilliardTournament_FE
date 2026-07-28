@@ -18,6 +18,9 @@
   --evt-filter-bg: #f7f7f7;
   --evt-card-footer: #e8eaed;
   --evt-bracket-line: rgba(15, 23, 42, 0.18);
+  --evt-gold: #c9a227;
+  --evt-gold-soft: #e8c65a;
+  --evt-font: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 :root.dark {
@@ -37,4 +40,322 @@
   --evt-filter-bg: #0d1b2e;
   --evt-card-footer: #14202f;
   --evt-bracket-line: rgba(255, 255, 255, 0.16);
+}
+
+/* ── Typography dùng chung Event (Cơ thủ + Xếp hạng) ── */
+.evt-surface {
+  font-family: var(--evt-font);
+  color: var(--evt-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.evt-player-name {
+  margin: 0;
+  font-family: var(--evt-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--evt-name);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evt-player-name--hero {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: normal;
+  color: #f5e6a8;
+}
+
+.evt-meta {
+  margin: 0.3rem 0 0;
+  font-family: var(--evt-font);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--evt-text-4);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.evt-meta--hero {
+  color: rgba(232, 198, 90, 0.75);
+}
+
+/* ── Ranking tab ── */
+.evt-rank-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  font-family: var(--evt-font);
+}
+
+.evt-rank-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.15rem;
+}
+
+.evt-rank-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.evt-rank-badge--official {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.evt-rank-badge--provisional {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.evt-rank-search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 280px;
+  margin-left: auto;
+}
+
+.evt-rank-search input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--evt-font);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--evt-name);
+  background: var(--evt-card-bg);
+  border: 1px solid var(--evt-card-border);
+  border-radius: 999px;
+  padding: 0.5rem 0.95rem 0.5rem 2.15rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.evt-rank-search input:focus {
+  border-color: rgba(13, 27, 46, 0.28);
+  box-shadow: 0 0 0 3px rgba(13, 27, 46, 0.06);
+}
+
+.evt-rank-count {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--evt-text-4);
+}
+
+.evt-rank-champion {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 132px;
+  border-radius: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+  background:
+    radial-gradient(120% 140% at 0% 50%, rgba(201, 162, 39, 0.22), transparent 55%),
+    linear-gradient(115deg, #07101c 0%, #12253f 48%, #0a1628 100%);
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  box-shadow: 0 12px 36px rgba(10, 22, 40, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.evt-rank-champion:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 40px rgba(10, 22, 40, 0.34);
+}
+
+.evt-rank-champion__avatar {
+  width: 112px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(201, 162, 39, 0.16), transparent);
+}
+
+.evt-rank-champion__avatar img {
+  height: 128px;
+  width: 100%;
+  object-fit: cover;
+  object-position: top;
+  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+}
+
+.evt-rank-champion__initials {
+  width: 100%;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--evt-gold-soft);
+  font-family: var(--evt-font);
+  font-weight: 700;
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+}
+
+.evt-rank-champion__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 1.15rem 1.35rem;
+}
+
+.evt-rank-champion__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.evt-rank-champion__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--evt-gold-soft);
+}
+
+.evt-rank-champion__note {
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem 0 0.5rem;
+  flex-shrink: 0;
+  font-family: var(--evt-font);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--evt-gold);
+}
+
+.evt-rank-list {
+  background: var(--evt-card-bg);
+  border-radius: 1rem;
+  border: 1px solid var(--evt-card-border);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(10, 22, 40, 0.06);
+}
+
+.evt-rank-row {
+  display: grid;
+  grid-template-columns: 4.25rem 2.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.95rem 1.35rem;
+  border-bottom: 1px solid var(--evt-card-border);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-family: var(--evt-font);
+}
+
+.evt-rank-row:last-child {
+  border-bottom: none;
+}
+
+.evt-rank-row:hover {
+  background: var(--evt-row-hover);
+}
+
+.evt-rank-row__label {
+  font-family: var(--evt-font);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--evt-text-2);
+  text-align: center;
+}
+
+.evt-rank-row__label--top {
+  color: var(--evt-name);
+}
+
+.evt-rank-row__avatar,
+.evt-rank-row__avatar-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--evt-card-border);
+  background: var(--evt-subtle);
+}
+
+.evt-rank-row__avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border: none;
+}
+
+.evt-rank-row__note {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--evt-text-3);
+  white-space: nowrap;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: var(--evt-box-bg);
+  border: 1px solid var(--evt-card-border);
+}
+
+@media (max-width: 640px) {
+  .evt-rank-champion {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .evt-rank-champion__avatar {
+    width: 100%;
+    height: 140px;
+  }
+
+  .evt-rank-champion__avatar img,
+  .evt-rank-champion__initials {
+    height: 140px;
+  }
+
+  .evt-rank-champion__note {
+    padding: 0 1.15rem 1.15rem;
+  }
+
+  .evt-rank-row {
+    grid-template-columns: 3.25rem 2.5rem minmax(0, 1fr);
+    gap: 0.7rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .evt-rank-row__note {
+    grid-column: 3;
+    justify-self: start;
+    margin-top: -0.15rem;
+  }
 }
