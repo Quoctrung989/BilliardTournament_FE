@@ -1,5 +1,10 @@
-/** Tối đa số card trận trên một màn. */
-export const MAX_CELLS_PER_PAGE = 4;
+/** Lưới luôn tối thiểu 3×3 — kể cả khi chỉ có 1 trận. */
+export const MIN_GRID_COLUMNS = 3;
+export const MIN_GRID_ROWS = 3;
+/** Trần lưới: quá 4 cột thì tỉ số không còn đọc được từ xa. */
+export const MAX_GRID_COLUMNS = 4;
+/** Tối đa số card trận trên một màn (4×4); vượt ngưỡng này thì xoay trang. */
+export const MAX_CELLS_PER_PAGE = MAX_GRID_COLUMNS * MAX_GRID_COLUMNS;
 
 export const FINISHED_RETAIN_MS = 15_000;
 export const PAGE_ROTATE_MS = 15_000;
@@ -9,44 +14,34 @@ export const LAYOUT_TRANSITION_MS = 400;
 export const TV_BG = "#0A0D14";
 
 /**
- * Bảng tra cỡ chữ.
- * | Số trận | Layout      | Điểm |
- * |---------|-------------|------|
- * | 1       | toàn màn    | 200  |
- * | 2       | trên/dưới   | 130  |
- * | 3       | 3 cột ngang | 84   |
- * | 4       | 2×2         | 96   |
- * | >4      | 2×2 / trang | 96   |
+ * Màu theo vị trí cơ thủ — trùng với màn chấm điểm của trọng tài để khán giả
+ * và trọng tài nhìn cùng một quy ước màu.
  */
-export const TYPO = {
-  full: {
-    score: "clamp(6rem, 16vmin, 12.5rem)",
-    name: "1.25rem",
-    header: "clamp(0.75rem, 1.6vmin, 0.9375rem)",
-  },
-  stack2: {
-    score: "clamp(4rem, 11vmin, 8.125rem)",
-    name: "1.25rem",
-    header: "clamp(0.7rem, 1.5vmin, 0.875rem)",
-  },
-  row3: {
-    score: "clamp(2.5rem, 7.5vmin, 5.25rem)",
-    name: "1.25rem",
-    header: "clamp(0.65rem, 1.4vmin, 0.8125rem)",
-  },
-  grid4: {
-    score: "clamp(3rem, 8.5vmin, 6rem)",
-    name: "1.25rem",
-    header: "clamp(0.65rem, 1.4vmin, 0.8125rem)",
-  },
+export const SLOT_COLORS = {
+  1: "#378add",
+  2: "#ef4444",
 };
 
-const GRID4_POSITIONS = [
-  { col: "1", row: "1" },
-  { col: "2", row: "1" },
-  { col: "1", row: "2" },
-  { col: "2", row: "2" },
-];
+/**
+ * Cỡ chữ theo số cột của lưới — càng nhiều cột, ô càng hẹp.
+ * | Số trận | Lưới | Điểm |
+ * |---------|------|------|
+ * | 1–9     | 3×3  | 80   |
+ * | 10–12   | 4×3  | 58   |
+ * | 13–16   | 4×4  | 58   |
+ */
+export const TYPO = {
+  cols3: {
+    score: "clamp(2.6rem, 7vmin, 5rem)",
+    name: "clamp(1.05rem, 2.15vmin, 1.4rem)",
+    header: "clamp(0.7rem, 1.45vmin, 0.9rem)",
+  },
+  cols4: {
+    score: "clamp(2rem, 5.4vmin, 3.6rem)",
+    name: "clamp(0.92rem, 1.9vmin, 1.2rem)",
+    header: "clamp(0.6rem, 1.25vmin, 0.78rem)",
+  },
+};
 
 export function sortByTable(matches) {
   return [...matches].sort((a, b) => {
@@ -72,17 +67,49 @@ export function getCurrentInning(match) {
 }
 
 export function getCellTypography(layout) {
-  const key = layout.typoKey ?? "grid4";
-  return TYPO[key] ?? TYPO.grid4;
+  const key = layout.typoKey ?? "cols3";
+  return TYPO[key] ?? TYPO.cols3;
 }
 
-function buildGrid4MatchSlots(matches) {
-  return matches.slice(0, MAX_CELLS_PER_PAGE).map((match, i) => ({
-    type: "match",
-    match,
-    gridColumn: GRID4_POSITIONS[i].col,
-    gridRow: GRID4_POSITIONS[i].row,
-  }));
+/**
+ * Kích thước lưới cho n trận: vuông nhất có thể, không bao giờ nhỏ hơn 3×3 và
+ * không quá 4 cột.
+ * @returns {{ columns: number, rows: number }}
+ */
+export function getGridSize(count) {
+  const n = Math.max(1, count);
+  const columns = Math.min(
+    MAX_GRID_COLUMNS,
+    Math.max(MIN_GRID_COLUMNS, Math.ceil(Math.sqrt(n)))
+  );
+  const rows = Math.max(MIN_GRID_ROWS, Math.ceil(n / columns));
+  return { columns, rows };
+}
+
+/**
+ * Ô trận + ô trống lấp cho đủ lưới. Trận điền theo thứ tự trái→phải,
+ * trên→dưới; ô trống đầu tiên mang nhận diện giải, phần còn lại để mờ.
+ */
+function buildSlots(matches, columns, rows) {
+  const cells = columns * rows;
+  const slots = [];
+  for (let i = 0; i < cells; i += 1) {
+    const gridColumn = String((i % columns) + 1);
+    const gridRow = String(Math.floor(i / columns) + 1);
+    const match = matches[i];
+    if (match) {
+      slots.push({ type: "match", key: `m-${match.id}`, match, gridColumn, gridRow });
+    } else {
+      const isFirstEmpty = i === matches.length;
+      slots.push({
+        type: isFirstEmpty ? "branding" : "empty",
+        key: `e-${i}`,
+        gridColumn,
+        gridRow,
+      });
+    }
+  }
+  return slots;
 }
 
 /**
@@ -99,9 +126,9 @@ export function getLayout(displayMatches, options = {}) {
     pageSize: MAX_CELLS_PER_PAGE,
     totalPages: 0,
     pageIndex: 0,
-    typoKey: "grid4",
-    gridTemplateColumns: "1fr 1fr",
-    gridTemplateRows: "1fr 1fr",
+    typoKey: "cols3",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gridTemplateRows: "1fr 1fr 1fr",
     gap: "clamp(0.5rem, 1.2vmin, 0.875rem)",
     slots: [],
   };
@@ -112,85 +139,31 @@ export function getLayout(displayMatches, options = {}) {
 
   const sorted = sortByTable(displayMatches);
 
-  if (total > MAX_CELLS_PER_PAGE) {
-    const totalPages = Math.ceil(total / MAX_CELLS_PER_PAGE);
-    const safePage = ((pageIndex % totalPages) + totalPages) % totalPages;
-    const pageMatches = sorted.slice(
-      safePage * MAX_CELLS_PER_PAGE,
-      safePage * MAX_CELLS_PER_PAGE + MAX_CELLS_PER_PAGE
-    );
+  // Quá sức một màn 4×4 thì xoay trang, mỗi trang vẫn là lưới 4×4.
+  const paginated = total > MAX_CELLS_PER_PAGE;
+  const totalPages = paginated ? Math.ceil(total / MAX_CELLS_PER_PAGE) : 1;
+  const safePage = paginated
+    ? ((pageIndex % totalPages) + totalPages) % totalPages
+    : 0;
+  const pageMatches = paginated
+    ? sorted.slice(
+        safePage * MAX_CELLS_PER_PAGE,
+        safePage * MAX_CELLS_PER_PAGE + MAX_CELLS_PER_PAGE
+      )
+    : sorted;
 
-    return {
-      ...base,
-      mode: "paged",
-      typoKey: "grid4",
-      paginated: true,
-      totalPages,
-      pageIndex: safePage,
-      slots: buildGrid4MatchSlots(pageMatches),
-    };
-  }
-
-  if (total === 1) {
-    return {
-      ...base,
-      mode: "full",
-      typoKey: "full",
-      gridTemplateColumns: "1fr",
-      gridTemplateRows: "1fr",
-      gap: "0",
-      slots: [
-        {
-          type: "match",
-          match: sorted[0],
-          gridColumn: "1",
-          gridRow: "1",
-        },
-      ],
-      totalPages: 1,
-    };
-  }
-
-  if (total === 2) {
-    return {
-      ...base,
-      mode: "stack2",
-      typoKey: "stack2",
-      gridTemplateColumns: "1fr",
-      gridTemplateRows: "1fr 1fr",
-      slots: sorted.map((match, i) => ({
-        type: "match",
-        match,
-        gridColumn: "1",
-        gridRow: String(i + 1),
-      })),
-      totalPages: 1,
-    };
-  }
-
-  if (total === 3) {
-    return {
-      ...base,
-      mode: "row3",
-      typoKey: "row3",
-      gridTemplateColumns: "1fr 1fr 1fr",
-      gridTemplateRows: "1fr",
-      slots: sorted.map((match, i) => ({
-        type: "match",
-        match,
-        gridColumn: String(i + 1),
-        gridRow: "1",
-      })),
-      totalPages: 1,
-    };
-  }
+  const { columns, rows } = getGridSize(pageMatches.length);
 
   return {
     ...base,
-    mode: "grid4",
-    typoKey: "grid4",
-    slots: buildGrid4MatchSlots(sorted),
-    totalPages: 1,
+    mode: paginated ? "paged" : `grid${columns}x${rows}`,
+    typoKey: `cols${columns}`,
+    paginated,
+    totalPages,
+    pageIndex: safePage,
+    gridTemplateColumns: `repeat(${columns}, 1fr)`,
+    gridTemplateRows: `repeat(${rows}, 1fr)`,
+    slots: buildSlots(pageMatches, columns, rows),
   };
 }
 

@@ -1,8 +1,17 @@
 # Staff Public Profile + Public Staff/Referee List
 
+> ⚠️ **PHẦN LỚN ĐÃ LỖI THỜI — đối chiếu 2026-07-28:**
+> - Backend **đã sửa**: `config/PublicEndpoints.java` nay cho `/tournaments/**`, `/news/**`,
+>   `/branches/**`, `/matches/**`, `/ws/**` chạy KHÔNG cần JWT → mục "Backend auth model" bên dưới SAI.
+>   (`/participants/**` vẫn cần JWT.)
+> - Route public `/staffs` **không còn** trong `src/constants/routes.js`; `src/pages/Public/StaffList/`
+>   và `src/api/publicEmployeeApi.js` vẫn còn trên đĩa nhưng không được route tới → tính năng chưa lên `prod`.
+> - Nhánh `thanh/feat/fixEventUI` không còn dùng; FE hiện ở `prod`. Trọng tâm hiện tại là app mobile.
+> Giữ file này vì phần mô tả `StaffProfile` (các bug cố ý chưa sửa) vẫn còn giá trị.
+
 Branch: `thanh/feat/fixEventUI`. Session 2026-07-09. **Chỉ sửa FE — user KHÔNG có quyền sửa backend.**
 
-## Backend auth model (đã kiểm chứng qua fetch trực tiếp)
+## Backend auth model (đã kiểm chứng qua fetch trực tiếp — ĐÃ LỖI THỜI, xem cảnh báo đầu file)
 - Mọi endpoint `/api/v1/**` **bắt buộc JWT hợp lệ**; không token → **401** (kể cả `/tournaments`, `/news`).
 - `GET /manager/accounts/staffs` — list staff, **chỉ MANAGER** (STAFF/OWNER → 403). Paged (Spring Page trong `data`).
 - `GET /manager/employees/{id}` — chi tiết, **chỉ MANAGER** (200 với manager; 403 với staff/owner).
