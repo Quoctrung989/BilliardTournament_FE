@@ -6,6 +6,8 @@ import { listPublishedPosts, listPublicCategories } from "../../api/newsApi";
 import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../utils/pagination";
+import { useReveal } from "../../hooks/useReveal";
+import { DEMO_CATEGORIES, DEMO_POSTS, withDemo } from "../../constants/demoData";
 
 const FALLBACK = "/images/tournaments/vn-player-1.jpg";
 
@@ -14,8 +16,27 @@ const fmtDate = (iso) => {
   return new Date(iso).toLocaleDateString("vi-VN", { day: "2-digit", month: "long", year: "numeric" });
 };
 
+/**
+ * Khi đang chạy dữ liệu mẫu, việc lọc phải làm ngay tại client: bấm chuyên mục
+ * sẽ gọi API kèm categoryId, API vẫn trả rỗng, rồi lại rơi về mẫu đầy đủ — bộ
+ * lọc trông như hỏng. Lọc ở đây để UI mẫu hành xử đúng như khi có dữ liệu thật.
+ */
+const filterDemoPosts = (list, categoryId, search) => {
+  let out = list;
+  if (categoryId) {
+    const cat = DEMO_CATEGORIES.find((c) => String(c.id) === String(categoryId));
+    if (cat) out = out.filter((p) => p.categoryName === cat.name);
+  }
+  if (search) {
+    const q = search.trim().toLowerCase();
+    out = out.filter((p) => p.title.toLowerCase().includes(q));
+  }
+  return out;
+};
+
 const NewsListPage = () => {
   const navigate = useNavigate();
+  const gridRef = useReveal({ threshold: 0.05 });
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,11 +48,25 @@ const NewsListPage = () => {
   const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
-    listPublicCategories().then(setCategories).catch(() => {});
+    listPublicCategories()
+      .then((list) => setCategories(withDemo(list, DEMO_CATEGORIES, "Chuyên mục tin")))
+      .catch(() => setCategories(withDemo(null, DEMO_CATEGORIES, "Chuyên mục tin")));
   }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
+
+    const showDemoPosts = () => {
+      const list = filterDemoPosts(
+        withDemo(null, DEMO_POSTS, "Tin tức"),
+        categoryId,
+        search
+      );
+      setPosts(list);
+      setTotalElements(list.length);
+      setTotalPages(1);
+    };
+
     try {
       const params = buildListParams({
         page, size: DEFAULT_PAGE_SIZE,
@@ -39,11 +74,16 @@ const NewsListPage = () => {
         ...(search ? { search } : {}),
       });
       const result = await listPublishedPosts(params);
-      setPosts(result.content);
-      setTotalPages(result.totalPages);
-      setTotalElements(result.totalElements);
+      if (result.content?.length) {
+        setPosts(result.content);
+        setTotalPages(result.totalPages);
+        setTotalElements(result.totalElements);
+      } else {
+        showDemoPosts();
+      }
     } catch (err) {
       toast.error(getApiErrorMessage(err));
+      showDemoPosts();
     } finally {
       setLoading(false);
     }
@@ -63,7 +103,7 @@ const NewsListPage = () => {
         <button
           type="button"
           onClick={() => { setCategoryId(""); setPage(0); }}
-          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${!categoryId ? "bg-[#010851] text-white" : "text-[#010851] border border-[#010851]/20 hover:border-[#010851]"}`}
+          className={`ui-press px-4 py-1.5 rounded-full text-sm font-semibold ${!categoryId ? "bg-[#010851] text-white" : "text-[#010851] border border-[#010851]/20 hover:border-[#010851]"}`}
         >
           Tất cả
         </button>
@@ -72,7 +112,7 @@ const NewsListPage = () => {
             key={c.id}
             type="button"
             onClick={() => { setCategoryId(String(c.id)); setPage(0); }}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${String(categoryId) === String(c.id) ? "bg-[#010851] text-white" : "text-[#010851] border border-[#010851]/20 hover:border-[#010851]"}`}
+            className={`ui-press px-4 py-1.5 rounded-full text-sm font-semibold ${String(categoryId) === String(c.id) ? "bg-[#010851] text-white" : "text-[#010851] border border-[#010851]/20 hover:border-[#010851]"}`}
           >
             {c.name}
           </button>
@@ -100,18 +140,20 @@ const NewsListPage = () => {
       ) : posts.length === 0 ? (
         <div className="text-center py-20 text-slate-400">Chưa có bài viết nào.</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {posts.map((post) => (
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {posts.map((post, index) => (
+            // Stagger ở lớp ngoài, hover ở lớp trong — gộp chung thì
+            // transition-delay của stagger rò sang hover.
+            <div key={post.id} className="ui-stagger flex" style={{ "--i": Math.min(index, 11) }}>
             <article
-              key={post.id}
               onClick={() => navigate(`/news/${post.slug}`)}
-              className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+              className="ui-card group w-full bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer"
             >
               <div className="h-48 overflow-hidden bg-slate-100">
                 <img
                   src={post.thumbnailUrl || FALLBACK}
                   alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
                   onError={(e) => { e.target.src = FALLBACK; }}
                 />
               </div>
@@ -127,6 +169,7 @@ const NewsListPage = () => {
                 <p className="text-xs text-slate-400 mt-2">{fmtDate(post.publishedAt)}</p>
               </div>
             </article>
+            </div>
           ))}
         </div>
       )}

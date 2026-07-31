@@ -6,6 +6,8 @@ import { listPublicTournaments } from "../../api/publicTournamentApi";
 import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../utils/pagination";
+import { useReveal } from "../../hooks/useReveal";
+import { TOURNAMENT_STATUS_LABELS } from "../../constants/tournamentConfig";
 import "./eventTheme.css";
 
 const BANNER_POOL = [
@@ -29,14 +31,22 @@ const TIME_FILTERS = [
   { value: "COMPLETED", label: "Hoàn thành" },
 ];
 
-/* badge style per status – solid pill, WNT-inspired */
-const STATUS_BADGE = {
-  OPEN_FOR_REGISTRATION: { label: "Mở đăng ký",  bg: "#16a34a", color: "#fff" },
-  REGISTRATION_CLOSED:   { label: "Đóng đăng ký", bg: "#1e293b", color: "#fff" },
-  DRAW_DONE:             { label: "Đã bốc thăm",  bg: "#7c3aed", color: "#fff" },
-  IN_PROGRESS:           { label: "Đang diễn ra", bg: "#ef342a", color: "#fff" },
-  COMPLETED:             { label: "Kết quả",       bg: "#0f172a", color: "#fff" },
-  CANCELLED:             { label: "Đã hủy",        bg: "#64748b", color: "#fff" },
+/**
+ * Màu chấm cho từng trạng thái. Nhãn chữ KHÔNG khai báo ở đây — lấy từ
+ * `TOURNAMENT_STATUS_LABELS` để chỉ có một nguồn nhãn tiếng Việt trong toàn dự
+ * án. Bảng tự viết trước đây thiếu DRAFT / DRAW_PREVIEW / FINAL_BRACKET_READY
+ * nên card rơi vào nhánh dự phòng và in ra thẳng tên enum.
+ */
+const STATUS_DOT = {
+  DRAFT:                 "#94a3b8",
+  OPEN_FOR_REGISTRATION: "#22c55e",
+  REGISTRATION_CLOSED:   "#f59e0b",
+  DRAW_PREVIEW:          "#eab308",
+  DRAW_DONE:             "#a855f7",
+  FINAL_BRACKET_READY:   "#22d3ee",
+  IN_PROGRESS:           "#ef4444",
+  COMPLETED:             "#38bdf8",
+  CANCELLED:             "#64748b",
 };
 
 const fmtDateShort = (iso) => {
@@ -50,10 +60,27 @@ const isFull = (t) =>
   t.approvedCount != null && t.maxParticipants > 0 && t.approvedCount >= t.maxParticipants;
 
 const getBadge = (t) => {
+  // Còn mở đăng ký nhưng đã kín chỗ — thông tin hữu ích hơn chính trạng thái.
   if (t.status === "OPEN_FOR_REGISTRATION" && isFull(t))
-    return { label: "Hết slot", bg: "#dc2626", color: "#fff" };
-  return STATUS_BADGE[t.status] || { label: t.status, bg: "#64748b", color: "#fff" };
+    return { label: "Hết slot", dot: "#dc2626", live: false };
+
+  return {
+    label: TOURNAMENT_STATUS_LABELS[t.status] || "Chưa xác định",
+    dot: STATUS_DOT[t.status] || "#94a3b8",
+    live: t.status === "IN_PROGRESS",
+  };
 };
+
+/** Pill kính mờ đặt đè lên ảnh — chấm màu mang thông tin, chữ giữ tương phản. */
+const StatusPill = ({ badge }) => (
+  <span
+    className={`evt-status${badge.live ? " evt-status--live" : ""}`}
+    style={{ "--evt-dot": badge.dot }}
+  >
+    <span className="evt-status__dot" aria-hidden />
+    {badge.label}
+  </span>
+);
 
 /* ── WNT-style card ── */
 const TournamentCard = ({ tournament, index }) => {
@@ -65,9 +92,11 @@ const TournamentCard = ({ tournament, index }) => {
   const isCompleted = tournament.status === "COMPLETED" || tournament.status === "DRAW_DONE";
 
   return (
+    // Stagger ở lớp ngoài, hover ở lớp trong — gộp chung thì transition-delay
+    // của stagger rò sang hover, card càng ở sau càng chậm nhấc lên.
+    <div className="ui-stagger flex" style={{ "--i": Math.min(index, 11) }}>
     <div
-      className="tournament-card-stream flex flex-col cursor-pointer group"
-      style={{ animationDelay: `${index * 0.15}s` }}
+      className="ui-card flex flex-col w-full cursor-pointer group rounded-2xl border border-transparent"
       onClick={() => navigate(`/event/${tournament.id}`)}
       role="button"
       tabIndex={0}
@@ -78,7 +107,7 @@ const TournamentCard = ({ tournament, index }) => {
         <img
           src={tournament.thumbnailUrl || bannerFor(tournament.id)}
           alt={tournament.name}
-          className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
+          className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
           onError={(e) => { e.currentTarget.src = bannerFor(tournament.id); }}
         />
 
@@ -115,19 +144,12 @@ const TournamentCard = ({ tournament, index }) => {
 
         {/* Status badge – bottom-right only */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 flex justify-end">
-          <span style={{
-            background: badge.bg, color: badge.color,
-            fontSize: "0.65rem", fontWeight: 700,
-            padding: "0.3rem 0.65rem", borderRadius: "6px",
-            letterSpacing: "0.03em",
-          }}>
-            {badge.label}
-          </span>
+          <StatusPill badge={badge} />
         </div>
       </div>
 
       {/* Below card: date + action button — grey background */}
-      <div className="flex items-center justify-between px-3 py-2 rounded-b-2xl"
+      <div className="flex items-center justify-between px-3 py-2.5 rounded-b-2xl"
         style={{ background: "var(--evt-card-footer)" }}>
         <span style={{ fontSize: "0.78rem", color: "var(--evt-text-2)", fontWeight: 500 }}>
           {dateStr}
@@ -135,24 +157,20 @@ const TournamentCard = ({ tournament, index }) => {
 
         <button
           type="button"
+          className="evt-cta"
           onClick={(e) => { e.stopPropagation(); navigate(`/event/${tournament.id}`); }}
-          style={{
-            background: "#0f172a", color: "#fff",
-            fontSize: "0.65rem", fontWeight: 700,
-            padding: "0.35rem 0.9rem", borderRadius: "100px",
-            letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: "0.4rem",
-            border: "none", cursor: "pointer",
-          }}
         >
-          🎱 {isCompleted ? "KẾT QUẢ" : "XEM"}
+          🎱 {isCompleted ? "Kết quả" : "Xem"}
         </button>
       </div>
+    </div>
     </div>
   );
 };
 
 /* ── Page ── */
 const EventPage = () => {
+  const gridRef = useReveal({ threshold: 0.05 });
   const [statusFilter, setStatusFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [searchApplied, setSearchApplied] = useState("");
@@ -228,7 +246,7 @@ const EventPage = () => {
                 <button
                   key={f.value || "all"}
                   onClick={() => handleStatusChange(f.value)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  className={`ui-press px-4 py-1.5 rounded-full text-sm font-semibold ${
                     statusFilter === f.value
                       ? "bg-[#0c1527] text-white dark:bg-white dark:text-[#0d1b2e]"
                       : "text-[#333] border border-gray-300 hover:border-[#0c1527] dark:text-white/70 dark:border-white/20 dark:hover:border-white/60"
@@ -281,7 +299,7 @@ const EventPage = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {items.map((t, i) => (
               <TournamentCard key={t.id} tournament={t} index={i} />
             ))}

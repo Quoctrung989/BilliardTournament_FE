@@ -9,6 +9,7 @@ import {
 import { createCheckout } from "../../api/paymentApi";
 import RegistrationDynamicForm from "../../components/registration-form/RegistrationDynamicForm";
 import { getApiErrorMessage } from "../../utils/apiError";
+import { useReveal } from "../../hooks/useReveal";
 
 const fmtMoney = (v) => {
   if (!v || Number(v) === 0) return "Miễn phí";
@@ -18,6 +19,7 @@ const fmtMoney = (v) => {
 const TournamentRegisterPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const pageRef = useReveal({ threshold: 0 });
   const tournamentId = Number(id);
 
   const [loading, setLoading] = useState(true);
@@ -208,17 +210,20 @@ const TournamentRegisterPage = () => {
 
   /* ── Form đăng ký ── */
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 content-dark">
+    // Các khối vào tuần tự lúc mount. Cố ý KHÔNG stagger từng ô nhập bên trong
+    // form — người dùng vào đây để điền, ô nhảy vào lần lượt sẽ cản việc điền.
+    <div ref={pageRef} className="max-w-2xl mx-auto px-4 py-8 content-dark">
       <button
         type="button"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors mb-5"
+        className="ui-stagger group inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors mb-5"
+        style={{ "--i": 0 }}
         onClick={() => navigate(`/player/tournaments/${tournamentId}`)}
       >
-        <ArrowLeft size={14} /> Quay lại chi tiết giải
+        <ArrowLeft size={14} className="transition-transform duration-200 group-hover:-translate-x-1" /> Quay lại chi tiết giải
       </button>
 
       {/* Tournament header */}
-      <div className="mb-5 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
+      <div className="ui-stagger mb-5 p-4 rounded-xl bg-indigo-50 border border-indigo-100" style={{ "--i": 1 }}>
         <h1 className="text-lg font-bold text-indigo-900">{formPreview.tournamentName}</h1>
         {formPreview.templateDescription && (
           <p className="text-sm text-indigo-700 mt-1">{formPreview.templateDescription}</p>
@@ -238,7 +243,7 @@ const TournamentRegisterPage = () => {
 
       {/* Thông báo quy trình rõ ràng */}
       {hasFee ? (
-        <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200 flex gap-3">
+        <div className="ui-stagger mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200 flex gap-3" style={{ "--i": 2 }}>
           <CreditCard size={20} className="text-amber-600 shrink-0 mt-0.5" />
           <div className="text-sm">
             <p className="font-semibold text-amber-800">Quy trình đăng ký có phí</p>
@@ -249,7 +254,7 @@ const TournamentRegisterPage = () => {
           </div>
         </div>
       ) : (
-        <div className="mb-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex gap-3">
+        <div className="ui-stagger mb-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex gap-3" style={{ "--i": 2 }}>
           <CheckCircle size={20} className="text-emerald-600 shrink-0 mt-0.5" />
           <div className="text-sm">
             <p className="font-semibold text-emerald-800">Giải đấu miễn phí</p>
@@ -258,7 +263,7 @@ const TournamentRegisterPage = () => {
         </div>
       )}
 
-      <div className="admin-card p-6">
+      <div className="ui-stagger admin-card p-6" style={{ "--i": 3 }}>
         <h2 className="text-base font-semibold text-slate-900 mb-5">Thông tin đăng ký</h2>
         <form onSubmit={handleSubmit} className="space-y-5">
           <RegistrationDynamicForm
@@ -280,7 +285,7 @@ const TournamentRegisterPage = () => {
           <div className="pt-2 border-t border-slate-100">
             <button
               type="submit"
-              className={`w-full py-3 text-base font-bold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-60 ${
+              className={`ui-press w-full py-3 text-base font-bold rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 ${
                 hasFee
                   ? "bg-[#ef342a] hover:bg-[#d42a22] text-white"
                   : "bg-emerald-600 hover:bg-emerald-700 text-white"

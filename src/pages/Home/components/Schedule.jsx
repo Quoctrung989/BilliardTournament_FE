@@ -1,119 +1,202 @@
-const newsData = [
-  {
-    id: 1,
-    title:
-      "ĐỪNG BỎ LỠ CƠ HỘI XEM TRỰC TIẾP UK OPEN — ĐẶT VÉ NGAY HÔM NAY!",
-    image: "/images/tournaments/vn-player-1.jpg",
-    large: true,
-  },
-  {
-    id: 2,
-    title:
-      "TALKSPORT PHÁT SÓNG GIẢI UK OPEN POOL CHAMPIONSHIP CÙNG CAPSTONE TV VÀ TOÀN CẦU ...",
-    image: "/images/tournaments/action-1.jpg",
-  },
-  {
-    id: 3,
-    title:
-      "WORLD NINEBALL TOUR RA MẮT NHÓM HẠT GIỐNG TRẺ ĐẦU TIÊN TẠI CAPSTONE NXT G...",
-    image: "/images/tournaments/pool-4.jpg",
-  },
-  {
-    id: 4,
-    title:
-      "YAPP BẢO VỆ NGÔI VƯƠNG, GORST TRỞ LẠI VÀ CÁC NHÀ VÔ ĐỊCH SO TÀI TẠI GIẢI BOM TẤN 2026 U...",
-    image: "/images/tournaments/action-2.jpg",
-  },
-];
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useReveal } from "../../../hooks/useReveal";
+import { listPublicTournaments } from "../../../api/publicTournamentApi";
+import { TOURNAMENT_STATUS_LABELS } from "../../../constants/tournamentConfig";
+import { DEMO_TOURNAMENTS, withDemo } from "../../../constants/demoData";
+
+const FALLBACK = "/images/tournaments/pool-2.jpg";
+
+const fmtDate = (iso) => {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+/** "26 thg 5, 2026 – 31 thg 5, 2026", hoặc chỉ một đầu nếu thiếu đầu kia. */
+const dateRange = (startAt, endAt) => {
+  const start = fmtDate(startAt);
+  const end = fmtDate(endAt);
+  if (start && end) return `${start} – ${end}`;
+  return start || end || "Chưa có lịch";
+};
+
+const statusLabel = (status) => TOURNAMENT_STATUS_LABELS[status] || status || "";
+
+/** Dòng phụ: loại bi + thể thức, bỏ qua phần nào BE không trả. */
+const subtitle = (t) => [t.gameType, t.formatName].filter(Boolean).join(" • ");
+
+const SectionHeader = () => (
+  <div
+    className="hm-stagger bg-[var(--wnt25-color-light)] dark:bg-[#161a22] p-4 rounded-md flex justify-between items-center"
+    style={{ "--i": 0 }}
+  >
+    <h2 className="text-lg font-bold dark:text-gray-100">Lịch thi đấu</h2>
+    <Link
+      to="/event"
+      className="ui-underline flex h-10 w-wrapper items-center justify-center rounded-md border border-gray-300 dark:border-white/20 px-3 text-sm dark:text-gray-200 transition hover:bg-gray-100 dark:hover:bg-white/10 italic"
+    >
+      Toàn bộ lịch
+    </Link>
+  </div>
+);
+
+const Meta = ({ tournament, compact }) => (
+  <div className="flex w-full flex-wrap items-center justify-between gap-2">
+    <div className="flex flex-wrap items-center gap-2">
+      <span
+        className={`font-bold border-[1px] rounded-lg border-[var(--wnt25-color-red)] text-[var(--wnt25-color-red)] ${
+          compact ? "p-1 text-xs" : "px-2 py-1 text-xs"
+        }`}
+      >
+        {dateRange(tournament.startAt, tournament.endAt)}
+      </span>
+      {tournament.gameType && (
+        <span
+          className={`font-bold text-[var(--wnt25-color-dark)] dark:!text-gray-200 ${
+            compact ? "text-sm" : "text-sm"
+          }`}
+        >
+          {tournament.gameType}
+        </span>
+      )}
+    </div>
+
+    <span className="text-xs font-bold text-[var(--wnt25-color-dark)] dark:!text-gray-200 opacity-[90%]">
+      {statusLabel(tournament.status)}
+    </span>
+  </div>
+);
+
+/** Số suất đã duyệt / tổng — chỉ hiện khi BE trả đủ cả hai. */
+const Slots = ({ tournament }) => {
+  if (tournament.approvedCount == null || !tournament.maxParticipants) return null;
+  return (
+    <p className="text-sm font-italic font-bold opacity-[80%]">
+      Đã đăng ký: {tournament.approvedCount}/{tournament.maxParticipants}
+    </p>
+  );
+};
 
 const Schedule = () => {
-  return (
-    <div className="w-full flex flex-col gap-6 p-6 max-w-[1600px] mx-auto">
-      <div className="bg-[var(--wnt25-color-light)] dark:bg-[#161a22] p-4 rounded-md flex justify-between items-center">
-        <h2 className="text-lg font-bold dark:text-gray-100">Lịch thi đấu</h2>
-        <button className="flex h-10 w-wrapper items-center justify-center rounded-md border border-gray-300 dark:border-white/20 text-sm dark:text-gray-200 transition hover:bg-gray-100 dark:hover:bg-white/10 italic">
-          Toàn bộ lịch
-        </button>
+  const revealRef = useReveal();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    // 4 giải: 1 giải lớn bên trái + 3 giải nhỏ bên phải.
+    listPublicTournaments({ page: 0, size: 4 })
+      .then((paged) => {
+        if (!cancelled)
+          setItems(withDemo(paged.content, DEMO_TOURNAMENTS, "Lịch thi đấu"));
+      })
+      .catch(() => {
+        if (!cancelled) setItems(withDemo(null, DEMO_TOURNAMENTS, "Lịch thi đấu"));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const [lead, ...rest] = items;
+
+  if (loading) {
+    return (
+      <div className="w-full flex flex-col gap-6 px-6 py-8 md:px-16 max-w-[1600px] mx-auto">
+        <div className="hm-skeleton h-[60px]" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1fr]">
+          <div className="hm-skeleton h-[520px]" />
+          <div className="flex flex-col gap-6">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="hm-skeleton h-[160px]" />
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="mx-auto grid grid-cols-1 gap-6 p-4 lg:grid-cols-[1fr_1fr] items-stretch">
-        <div className="h-full">
-          <div className="group flex h-full flex-col overflow-hidden rounded-l-[24px] border border-gray-300 dark:border-white/10 bg-white dark:bg-[#161a22] dark:text-gray-200 shadow-sm cursor-pointer">
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="w-full flex flex-col gap-6 px-6 py-8 md:px-16 max-w-[1600px] mx-auto">
+        <SectionHeader />
+        <p className="rounded-md border border-dashed border-gray-300 dark:border-white/15 p-10 text-center text-sm text-gray-500 dark:text-gray-400">
+          Chưa có giải đấu nào được công bố.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={revealRef}
+      className="w-full flex flex-col gap-6 px-6 py-8 md:px-16 max-w-[1600px] mx-auto"
+    >
+      <SectionHeader />
+
+      <div className="w-full grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1fr] items-stretch">
+        <div className="hm-stagger h-full" style={{ "--i": 1 }}>
+          <Link
+            to={`/event/${lead.id}`}
+            className="hm-card hm-sheen group flex h-full flex-col overflow-hidden rounded-l-[24px] border border-gray-300 dark:border-white/10 bg-white dark:bg-[#161a22] dark:text-gray-200 shadow-sm"
+          >
             <img
-              src={newsData[0].image}
+              src={lead.thumbnailUrl || FALLBACK}
               alt=""
-              className="h-full min-h-[100px] max-h-[400px] w-full flex-1 object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105"
+              className="h-full min-h-[100px] max-h-[400px] w-full flex-1 object-cover transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110"
             />
 
             <div className="flex flex-col p-6 gap-4">
-              <div className="flex w-full justify-between">
-                <div className="flex justify-between gap-2 items-center">
-                  <span className="text-[14px] font-bold px-2 py-1 border-[1px] rounded-lg border-[var(--wnt25-color-red)] text-[var(--wnt25-color-red)] text-xs">
-                    26 - 31 Tháng 5, 2026
-                  </span>
-                  <span className="text-[22px] font-bold  text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-sm">
-                    CAPSTONE
-                  </span>
-                </div>
-
-                <span className="font-italic text-[12px] text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-sm font-bold ">
-                  Giải lớn
-                </span>
-              </div>
+              <Meta tournament={lead} />
               <div className="flex flex-col gap-2">
-                <h3 className="text-lg font-bold ">
-                  UK Open Pool Championship
-                </h3>
-                <span className="text-sm font-bold">Brentwood, Essex, Anh</span>
-                <p className="text-sm font-italic font-bold opacity-[80%]">
-                  Tổng giải thưởng: $225.000
-                </p>
+                <h3 className="hm-title text-lg font-bold">{lead.name}</h3>
+                {subtitle(lead) && (
+                  <span className="text-sm font-bold">{subtitle(lead)}</span>
+                )}
+                <Slots tournament={lead} />
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
-        <div className="flex h-full flex-col gap-6 ">
-          {newsData.slice(1).map((item) => (
+        <div className="flex h-full flex-col gap-6">
+          {rest.map((item, index) => (
             <div
               key={item.id}
-              className="group flex-1 overflow-hidden flex rounded-r-[22px] border border-l-transparent border-gray-300 dark:border-white/10 bg-white dark:bg-[#161a22] dark:text-gray-200 shadow-sm cursor-pointer"
+              style={{ "--i": index + 2 }}
+              className="hm-stagger flex-1 flex"
             >
-              <div className="flex justify-center items-center p-4  max-w-[30%]">
-                <img
-                  src={item.image}
-                  alt=""
-                  className="h-[150px]  object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105"
-                />
-              </div>
-              <div className="h-[84%] my-auto py-4 w-[1px] bg-gray-300 dark:bg-white/10"></div>
+              <Link
+                to={`/event/${item.id}`}
+                className="hm-card hm-sheen group w-full overflow-hidden flex rounded-r-[22px] border border-l-transparent border-gray-300 dark:border-white/10 bg-white dark:bg-[#161a22] dark:text-gray-200 shadow-sm"
+              >
+                <div className="flex justify-center items-center p-4 max-w-[30%]">
+                  <img
+                    src={item.thumbnailUrl || FALLBACK}
+                    alt=""
+                    className="h-[150px] object-cover transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110"
+                  />
+                </div>
+                <div className="h-[84%] my-auto py-4 w-[1px] bg-gray-300 dark:bg-white/10" />
 
-              <div className="flex flex-col p-4 gap-4 min-w-[70%]">
-                <div className="flex w-full justify-between items-center">
-                  <div className="flex justify-between gap-2 items-center">
-                    <span className="text-[14px] p-1 font-bold border-[1px] rounded-lg border-[var(--wnt25-color-red)] text-[var(--wnt25-color-red)] text-xs">
-                      26 - 31 Tháng 5, 2026
-                    </span>
-                    <span className="text-[14px] font-bold  text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-sm">
-                      CAPSTONE
-                    </span>
+                <div className="flex flex-col p-4 gap-4 min-w-[70%]">
+                  <Meta tournament={item} compact />
+                  <div className="flex flex-col gap-2">
+                    <h3 className="hm-title text-lg font-bold">{item.name}</h3>
+                    {subtitle(item) && (
+                      <span className="text-sm font-bold">{subtitle(item)}</span>
+                    )}
+                    <Slots tournament={item} />
                   </div>
-
-                  <span className="font-italic text-[12px] text-[var(--wnt25-color-dark)] dark:!text-gray-200 text-xs font-bold opacity-[90%]">
-                    Xếp hạng
-                  </span>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-lg font-bold ">
-                    UK Open Pool Championship
-                  </h3>
-                  <span className="text-sm font-bold">
-                    Brentwood, Essex, Anh
-                  </span>
-                  <p className="text-sm font-italic font-bold opacity-[80%]">
-                    Tổng giải thưởng: $225.000
-                  </p>
-                </div>
-              </div>
+              </Link>
             </div>
           ))}
         </div>

@@ -13,6 +13,7 @@ import ConfirmModal from "../../components/shared/ui/ConfirmModal";
 import { REGISTRATION_STATUS_LABELS } from "../../constants/registrationFormConfig";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../utils/pagination";
+import { useReveal } from "../../hooks/useReveal";
 import "../Profile/profile.scss";
 
 const STATUS_STYLES = {
@@ -44,6 +45,7 @@ const StatusBadge = ({ status }) => {
 
 const MyRegistrationsPage = () => {
   const navigate = useNavigate();
+  const gridRef = useReveal({ threshold: 0.08 });
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -139,11 +141,14 @@ const MyRegistrationsPage = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                  {items.map((row) => {
+                <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  {items.map((row, index) => {
                     const s = STATUS_STYLES[row.status] || STATUS_STYLES.CANCELLED;
                     return (
-                      <div key={row.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col"
+                      // Stagger ở lớp ngoài, hover ở lớp trong — gộp chung thì
+                      // transition-delay của stagger sẽ rò sang hover.
+                      <div key={row.id} className="ui-stagger flex" style={{ "--i": Math.min(index, 11) }}>
+                      <div className="ui-card group bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col w-full"
                         style={{ boxShadow: "0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(15,23,42,0.04)" }}>
                         <div style={{ height: "4px", background: s.bar }} />
                         <div className="p-4 flex flex-col gap-2.5 flex-1">
@@ -173,7 +178,7 @@ const MyRegistrationsPage = () => {
                           {row.status === "PENDING_PAYMENT" && (
                             <button type="button" disabled={payingId === row.id}
                               onClick={() => handlePayNow(row.id)}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity disabled:opacity-60"
+                              className="ui-press flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-60"
                               style={{ background: "#EF342A" }}>
                               <CreditCard size={11} />
                               {payingId === row.id ? "..." : "Thanh toán"}
@@ -181,9 +186,10 @@ const MyRegistrationsPage = () => {
                           )}
                           <button type="button" onClick={() => openDetail(row.id)}
                             className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
-                            Chi tiết <ChevronRight size={12} />
+                            Chi tiết <ChevronRight size={12} className="ui-arrow-x" />
                           </button>
                         </div>
+                      </div>
                       </div>
                     );
                   })}
@@ -204,9 +210,9 @@ const MyRegistrationsPage = () => {
       {/* ── Detail Modal — giống AdminModal ── */}
       {detail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={closeDetail} role="presentation" />
+          <div className="ui-modal-backdrop absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={closeDetail} role="presentation" />
 
-          <div className="relative bg-white border border-slate-200 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+          <div className="ui-modal-panel relative bg-white border border-slate-200 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-200 shrink-0 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-slate-900">Chi tiết đăng ký</h3>
