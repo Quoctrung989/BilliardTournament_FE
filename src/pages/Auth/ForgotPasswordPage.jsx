@@ -49,10 +49,29 @@ const ForgotPasswordPage = () => {
     }
   };
 
-  const handleResetPassword = async (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     const newErrors = {};
     if (!otp) newErrors.otp = "OTP là bắt buộc";
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
+    setErrors({});
+    setIsLoading(true);
+    try {
+      const { data } = await authApi.verifyOtp({ email, otp });
+      if (!data.success) throw new Error(data.message || "Mã OTP không hợp lệ.");
+      setSuccessMessage("");
+      setSuccessType("");
+      setStep(3);
+    } catch (err) {
+      setErrors({ server: err.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    const newErrors = {};
     if (!newPassword) newErrors.newPassword = "Mật khẩu là bắt buộc";
     else if (newPassword.length < 6) newErrors.newPassword = "Mật khẩu phải có ít nhất 6 ký tự";
     if (!confirmPassword) newErrors.confirmPassword = "Vui lòng xác nhận mật khẩu";
@@ -161,14 +180,13 @@ const ForgotPasswordPage = () => {
             </form>
           )}
 
-          {/* Step 2: OTP + New Password */}
+          {/* Step 2: OTP only — phải xác thực đúng OTP mới được sang bước đổi mật khẩu */}
           {step === 2 && (
-            <form onSubmit={handleResetPassword} noValidate className="space-y-3">
+            <form onSubmit={handleVerifyOtp} noValidate className="space-y-3">
               <p className="text-xs text-gray-500 mb-3">
-                Nhập mã OTP đã được gửi đến <strong>{email}</strong> và mật khẩu mới của bạn.
+                Nhập mã OTP đã được gửi đến <strong>{email}</strong>.
               </p>
 
-              {/* OTP */}
               <div>
                 <label className="block text-xs text-gray-600 mb-1">Mã OTP</label>
                 <input
@@ -177,9 +195,43 @@ const ForgotPasswordPage = () => {
                   onChange={(e) => setOtp(e.target.value)}
                   className={inputClass("otp")}
                   placeholder="Nhập mã OTP từ email"
+                  autoFocus
                 />
                 {errors.otp && <p className="text-red-500 text-xs mt-1">{errors.otp}</p>}
               </div>
+
+              {errors.server && (
+                <div className="p-2 bg-red-50 border border-red-200 rounded text-red-600 text-xs">
+                  {errors.server}
+                </div>
+              )}
+              {successType === "otp_sent" && (
+                <div className="p-2 bg-green-50 border border-green-200 rounded text-green-600 text-xs">
+                  ✓ {successMessage}
+                </div>
+              )}
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-6 py-2 rounded-full text-sm font-semibold text-white transition-colors"
+                  style={{ background: isLoading ? "#9ca3af" : "#1a2a4a" }}
+                >
+                  {isLoading ? (
+                    <><AiOutlineLoading3Quarters className="animate-spin" size={14} /> Đang xác thực...</>
+                  ) : "Xác nhận OTP"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Step 3: New Password — chỉ hiện sau khi OTP đã được xác thực đúng ở bước 2 */}
+          {step === 3 && (
+            <form onSubmit={handleResetPassword} noValidate className="space-y-3">
+              <p className="text-xs text-gray-500 mb-3">
+                Mã OTP hợp lệ. Nhập mật khẩu mới của bạn.
+              </p>
 
               {/* New Password */}
               <div>
@@ -191,6 +243,7 @@ const ForgotPasswordPage = () => {
                     onChange={(e) => setNewPassword(e.target.value)}
                     className={`${inputClass("newPassword")} pr-9`}
                     placeholder="Ít nhất 6 ký tự"
+                    autoFocus
                   />
                   <button
                     type="button"
