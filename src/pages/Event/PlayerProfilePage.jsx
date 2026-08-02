@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Trophy, Award, Star } from "lucide-react";
 import { getParticipantProfile, getPlayerProfileByUserId } from "../../api/publicTournamentApi";
+import { RANKING_NOTE_LABELS } from "../../constants/tournamentConfig";
 
 const DEFAULT_AVATAR = "/player-default.webp";
+const noteLabel = (note) => (note ? RANKING_NOTE_LABELS[note] ?? note : note);
 
 const splitName = (full = "") => {
   const parts = full.trim().split(/\s+/).filter(Boolean);
@@ -71,7 +73,7 @@ const AchievementCard = ({ entry }) => {
               fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase",
               letterSpacing: "0.1em", color: "#c9a227",
             }}>
-              {entry.note}
+              {noteLabel(entry.note)}
             </span>
           )}
           {entry.pointsEarned > 0 && (

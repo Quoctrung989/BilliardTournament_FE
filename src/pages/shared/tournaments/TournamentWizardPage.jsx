@@ -227,6 +227,9 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const [basic, setBasic] = useState(defaultBasic);
   const [tournamentStatus, setTournamentStatus] = useState("DRAFT");
   const [approvedCount, setApprovedCount] = useState(0);
+  /** Optimistic lock: version đọc lúc load form, gửi lại khi lưu để backend phát hiện xung đột
+   * (2 người cùng sửa 1 giải). null = bỏ qua kiểm tra (chưa load hoặc giải mới tạo). */
+  const [tournamentVersion, setTournamentVersion] = useState(null);
   /** Vào từ lỗi đóng ĐK (TOURNAMENT_010) → chỉnh survivors rồi lưu + đóng luôn. */
   const closeRegistrationIntent = searchParams.get("intent") === INTENT_CLOSE_REGISTRATION;
   const isCloseRegistrationMode =
@@ -303,6 +306,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
       });
       setTournamentStatus(detail.status || "DRAFT");
       setApprovedCount(Number(detail.approvedCount ?? 0));
+      setTournamentVersion(detail.version ?? null);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -410,6 +414,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   }, [api, basic.isRegister, basic.registrationFormTemplateId]);
 
   const buildBasicPayload = () => ({
+    version: tournamentVersion,
     name: basic.name.trim(),
     description: basic.description?.trim() || null,
     thumbnailUrl: basic.thumbnailUrl?.trim() || "",
@@ -482,7 +487,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
         toast.success("Đã tạo giải đấu");
         navigate(`${basePath}/${created.id}?step=2`, { replace: true });
       } else {
-        await api.updateTournament(tournamentId, buildBasicPayload());
+        const updated = await api.updateTournament(tournamentId, buildBasicPayload());
+        setTournamentVersion(updated?.version ?? tournamentVersion);
         setFieldErrors({});
         toast.success("Đã cập nhật thông tin giải");
         setStep(2);

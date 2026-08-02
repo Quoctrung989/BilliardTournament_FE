@@ -50,6 +50,18 @@ export const TOURNAMENT_STATUS_STYLES = {
   CANCELLED:            "bg-rose-50    text-rose-700   ring-1 ring-rose-200",
 };
 
+/** tournament_results.note / ranking entry note — BE lưu enum.name() (English), dịch sang VN ở
+ * đây. Dùng `RANKING_NOTE_LABELS[note] ?? note` khi render: dòng dữ liệu cũ (lưu sẵn text tiếng
+ * Việt trước khi BE đổi sang name()) không khớp key thì fallback hiển thị nguyên văn. */
+export const RANKING_NOTE_LABELS = {
+  CHAMPION: "Vô địch",
+  RUNNER_UP: "Á quân",
+  THIRD_PLACE: "Hạng 3",
+  FOURTH_PLACE: "Hạng 4",
+  SEMI_FINAL: "Bán kết",
+  GROUP_LEADER: "Dẫn đầu bảng",
+};
+
 export const BRACKET_PHASES = [
   { value: "KNOCKOUT", label: "Knockout" },
   { value: "WINNERS", label: "Winners" },
