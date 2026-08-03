@@ -25,6 +25,8 @@ const EmailLayoutSettingsPage = () => {
   const [focusedField, setFocusedField] = useState("headerHtml");
   const headerRef = useRef(null);
   const footerRef = useRef(null);
+  const [testEmail, setTestEmail] = useState("");
+  const [sendingTest, setSendingTest] = useState(false);
 
   useEffect(() => {
     adminEmailApi
@@ -70,6 +72,26 @@ const EmailLayoutSettingsPage = () => {
       toast.error(getApiErrorMessage(err));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSendTest = async () => {
+    if (!testEmail.trim()) {
+      toast.error("Vui lòng nhập email nhận thử");
+      return;
+    }
+    setSendingTest(true);
+    try {
+      await adminEmailApi.sendLayoutTest({
+        email: testEmail.trim(),
+        headerHtml: form.headerHtml,
+        footerHtml: form.footerHtml,
+      });
+      toast.success(`Đã gửi email thử tới ${testEmail.trim()}`);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setSendingTest(false);
     }
   };
 
@@ -166,6 +188,26 @@ const EmailLayoutSettingsPage = () => {
           Bản xem trước dùng giá trị mẫu cho các biến {"{{system.*}}"} — nội dung thật sẽ lấy từ cấu
           hình hệ thống lúc gửi.
         </p>
+
+        <div className="mt-4 pt-4 border-t border-slate-100">
+          <label className="admin-label">Gửi thử tới hộp thư thật</label>
+          <p className="text-xs text-slate-500 mt-1 mb-2">
+            Gửi email mẫu dùng đúng nội dung header/footer đang soạn ở trên (chưa cần bấm Lưu) để
+            kiểm tra hiển thị thực tế trên Gmail/Outlook...
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="email"
+              className="admin-input flex-1"
+              placeholder="email-nhan-thu@example.com"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+            />
+            <AdminButton type="button" variant="secondary" disabled={sendingTest} onClick={handleSendTest}>
+              {sendingTest ? "Đang gửi..." : "Gửi thử"}
+            </AdminButton>
+          </div>
+        </div>
       </AdminCard>
     </div>
   );
