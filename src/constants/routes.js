@@ -71,6 +71,7 @@ import {
 import { ownerEmailApi, managerEmailApi } from "../api/emailApi";
 import { getOwnerStats, getManagerStats } from "../api/dashboardApi";
 import { ownerAnalyticsApi, managerAnalyticsApi } from "../api/analyticsApi";
+import { ownerBranchApi, managerBranchApi } from "../api/branchApi";
 import StatisticsPage from "../pages/shared/StatisticsPage";
 import TransactionsPage from "../pages/shared/TransactionsPage";
 import { ownerMatchApi, managerMatchApi } from "../api/matchApi";
@@ -149,7 +150,7 @@ const OwnerDashboard = () => (
   <DashboardPage statsLoader={getOwnerStats} basePath="/owner" title="Owner — Tổng quan" />
 );
 const OwnerStatistics = () => (
-  <StatisticsPage analyticsApi={ownerAnalyticsApi} title="Owner — Thống kê & Phân tích" />
+  <StatisticsPage analyticsApi={ownerAnalyticsApi} branchApi={ownerBranchApi} title="Owner — Thống kê & Phân tích" />
 );
 const OwnerTransactions = () => (
   <TransactionsPage analyticsApi={ownerAnalyticsApi} title="Owner — Quản lý giao dịch" />
@@ -158,7 +159,7 @@ const ManagerDashboard = () => (
   <DashboardPage statsLoader={getManagerStats} basePath="/manager" title="Manager — Tổng quan" />
 );
 const ManagerStatistics = () => (
-  <StatisticsPage analyticsApi={managerAnalyticsApi} title="Manager — Thống kê & Phân tích" />
+  <StatisticsPage analyticsApi={managerAnalyticsApi} branchApi={managerBranchApi} title="Manager — Thống kê & Phân tích" />
 );
 const ManagerTransactions = () => (
   <TransactionsPage analyticsApi={managerAnalyticsApi} title="Manager — Quản lý giao dịch" />

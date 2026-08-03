@@ -5,7 +5,7 @@ import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
   ArrowLeft, ArrowLeftRight, Eye, Lock, Search, GripVertical,
   ChevronRight, Users, Swords, Zap, BarChart2, Scissors,
-  Loader2, X, MapPin, CheckSquare,
+  Loader2, X, MapPin, CheckSquare, List, GitBranch,
 } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
@@ -14,6 +14,7 @@ import SocketConnectionBadge from "../../../components/shared/SocketConnectionBa
 import SocketReconnectBanner from "../../../components/shared/SocketReconnectBanner";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { useTournamentSocket } from "../../../hooks/useTournamentSocket";
+import BracketDiagram from "./BracketDiagram";
 
 /* ══════════════════════════════════════════════════════════
    Constants & helpers
@@ -157,6 +158,9 @@ const DrawPage = ({ api, basePath }) => {
   const [confirming,   setConfirming]   = useState(false);
   const [swapping,     setSwapping]     = useState(false);
   const [saving,       setSaving]       = useState(false);
+
+  /* ── View mode: danh sách (mặc định) hoặc sơ đồ cây bracket ── */
+  const [viewMode,     setViewMode]     = useState("list"); // "list" | "diagram"
 
   /* ── Edit / swap mode ── */
   const [editMode,     setEditMode]     = useState(false);
@@ -693,6 +697,26 @@ const DrawPage = ({ api, basePath }) => {
           {!noDrawYet && (
             <SocketConnectionBadge connectionState={connectionState} compact />
           )}
+          {!noDrawYet && (
+            <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white p-0.5 text-sm">
+              <button
+                onClick={() => setViewMode("list")}
+                className={[
+                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-semibold transition-colors",
+                  viewMode === "list" ? "bg-indigo-600 text-white" : "text-slate-500 hover:text-slate-700",
+                ].join(" ")}>
+                <List size={14} /> Danh sách
+              </button>
+              <button
+                onClick={() => setViewMode("diagram")}
+                className={[
+                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-semibold transition-colors",
+                  viewMode === "diagram" ? "bg-indigo-600 text-white" : "text-slate-500 hover:text-slate-700",
+                ].join(" ")}>
+                <GitBranch size={14} /> Sơ đồ
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -929,6 +953,25 @@ const DrawPage = ({ api, basePath }) => {
             </AdminButton>
           </div>
         </AdminCard>
+      ) : viewMode === "diagram" ? (
+        <BracketDiagram
+          stages={stages}
+          startingId={startingId}
+          flashIds={flashIds}
+          onStart={handleStart}
+          onScore={(m) => { setScoreModal(m); setScoreForm({ p1: String(m.player1Score??0), p2: String(m.player2Score??0) }); }}
+          onComplete={setCompleteModal}
+          ListStageSection={StageSection}
+          listProps={{
+            editMode, swapFirst, dragSrc, dropTarget, swapping, isPreview,
+            matchQuery, statusFilter, startingId, bulkMode, selectedIds,
+            onSlotClick: handleSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
+            onOpenSearch: openSearch, onStart: handleStart,
+            onScore: (m) => { setScoreModal(m); setScoreForm({ p1: String(m.player1Score??0), p2: String(m.player2Score??0) }); },
+            onComplete: setCompleteModal, onEvents: loadEvents,
+            onToggleSelect: toggleSelect, onOpenAssign: openAssignSingle, flashIds,
+          }}
+        />
       ) : (
         stages.map(stage => (
           <StageSection
@@ -1344,7 +1387,7 @@ const STAGE_ICON = {
   GRAND_FINAL: <Trophy size={14} className="text-amber-500" />,
 };
 
-const StageSection = ({
+export const StageSection = ({
   stage, editMode, swapFirst, dragSrc, dropTarget, swapping, isPreview,
   matchQuery, statusFilter, startingId, bulkMode, selectedIds,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
