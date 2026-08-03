@@ -23,6 +23,19 @@ const PARTICIPANT_LABELS = {
   TEAM: "Đội",
 };
 
+const PARTICIPANT_TYPE_OPTIONS = [
+  { value: "", label: "Tất cả hình thức" },
+  { value: "SINGLE", label: "Đơn" },
+  { value: "DOUBLE", label: "Đôi" },
+  { value: "TEAM", label: "Đội" },
+];
+
+const IS_REGISTER_OPTIONS = [
+  { value: "", label: "Tất cả đăng ký" },
+  { value: "true", label: "Online" },
+  { value: "false", label: "Không" },
+];
+
 const fmtDate = (iso) => {
   if (!iso) return null;
   try {
@@ -124,7 +137,7 @@ const RowMenu = ({ row, basePath, navigate }) => {
 };
 
 /* ── Main page ───────────────────────────────────────── */
-const TournamentListPage = ({ api, basePath }) => {
+const TournamentListPage = ({ api, branchApi, basePath }) => {
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -135,6 +148,27 @@ const TournamentListPage = ({ api, basePath }) => {
   const [statusFilter, setStatusFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [searchApplied, setSearchApplied] = useState("");
+  const [gameTypeFilter, setGameTypeFilter] = useState("");
+  const [participantTypeFilter, setParticipantTypeFilter] = useState("");
+  const [isRegisterFilter, setIsRegisterFilter] = useState("");
+  const [branchIdFilter, setBranchIdFilter] = useState("");
+  const [gameTypes, setGameTypes] = useState([]);
+  const [branches, setBranches] = useState([]);
+
+  useEffect(() => {
+    api
+      .listGameTypes()
+      .then((r) => setGameTypes(r.items || []))
+      .catch(() => {});
+  }, [api]);
+
+  useEffect(() => {
+    if (!branchApi) return;
+    branchApi
+      .listBranches(buildListParams({ page: 0, size: 100, status: "ACTIVE" }))
+      .then((r) => setBranches(r.content))
+      .catch(() => {});
+  }, [branchApi]);
 
   const loadTournaments = useCallback(async () => {
     setLoading(true);
@@ -144,6 +178,10 @@ const TournamentListPage = ({ api, basePath }) => {
         size: pageSize,
         ...(statusFilter ? { status: statusFilter } : {}),
         ...(searchApplied ? { search: searchApplied } : {}),
+        ...(gameTypeFilter ? { gameType: gameTypeFilter } : {}),
+        ...(participantTypeFilter ? { participantType: participantTypeFilter } : {}),
+        ...(isRegisterFilter ? { isRegister: isRegisterFilter } : {}),
+        ...(branchIdFilter ? { branchId: branchIdFilter } : {}),
       });
       const result = await api.listTournaments(params);
       setTournaments(result.content);
@@ -155,7 +193,17 @@ const TournamentListPage = ({ api, basePath }) => {
     } finally {
       setLoading(false);
     }
-  }, [api, page, pageSize, statusFilter, searchApplied]);
+  }, [
+    api,
+    page,
+    pageSize,
+    statusFilter,
+    searchApplied,
+    gameTypeFilter,
+    participantTypeFilter,
+    isRegisterFilter,
+    branchIdFilter,
+  ]);
 
   useEffect(() => {
     loadTournaments();
@@ -165,6 +213,17 @@ const TournamentListPage = ({ api, basePath }) => {
     e.preventDefault();
     setSearchApplied(searchInput.trim());
     setPage(0);
+  };
+
+  const resetFilters = () => {
+    setPage(0);
+    setStatusFilter("");
+    setSearchInput("");
+    setSearchApplied("");
+    setGameTypeFilter("");
+    setParticipantTypeFilter("");
+    setIsRegisterFilter("");
+    setBranchIdFilter("");
   };
 
   return (
@@ -198,6 +257,63 @@ const TournamentListPage = ({ api, basePath }) => {
                   <option key={o.value || "all"} value={o.value}>{o.label}</option>
                 ))}
               </select>
+            </div>
+            <div className="w-full sm:w-44 shrink-0">
+              <label className="admin-label">Loại bi</label>
+              <select
+                className="admin-select w-full"
+                value={gameTypeFilter}
+                onChange={(e) => { setGameTypeFilter(e.target.value); setPage(0); }}
+              >
+                <option value="">Tất cả loại bi</option>
+                {gameTypes.map((g) => (
+                  <option key={g.code} value={g.code}>{g.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="w-full sm:w-44 shrink-0">
+              <label className="admin-label">Hình thức</label>
+              <select
+                className="admin-select w-full"
+                value={participantTypeFilter}
+                onChange={(e) => { setParticipantTypeFilter(e.target.value); setPage(0); }}
+              >
+                {PARTICIPANT_TYPE_OPTIONS.map((o) => (
+                  <option key={o.value || "all"} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="w-full sm:w-40 shrink-0">
+              <label className="admin-label">Đăng ký</label>
+              <select
+                className="admin-select w-full"
+                value={isRegisterFilter}
+                onChange={(e) => { setIsRegisterFilter(e.target.value); setPage(0); }}
+              >
+                {IS_REGISTER_OPTIONS.map((o) => (
+                  <option key={o.value || "all"} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            {branchApi && (
+              <div className="w-full sm:w-52 shrink-0">
+                <label className="admin-label">Chi nhánh</label>
+                <select
+                  className="admin-select w-full"
+                  value={branchIdFilter}
+                  onChange={(e) => { setBranchIdFilter(e.target.value); setPage(0); }}
+                >
+                  <option value="">Tất cả chi nhánh</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="shrink-0 flex items-end">
+              <AdminButton variant="secondary" onClick={resetFilters}>
+                Xóa lọc
+              </AdminButton>
             </div>
           </div>
           <AdminButton onClick={() => navigate(`${basePath}/new`)} className="shrink-0">
@@ -247,9 +363,14 @@ const TournamentListPage = ({ api, basePath }) => {
                 {tournaments.map((row) => (
                   <tr key={row.id}>
                     <td>
-                      <span className="admin-table-name" title={row.name}>
+                      <button
+                        type="button"
+                        className="admin-table-name text-left hover:text-indigo-700 hover:underline bg-transparent border-0 p-0 cursor-pointer w-full"
+                        title={row.name}
+                        onClick={() => navigate(`${basePath}/${row.id}`)}
+                      >
                         {row.name}
-                      </span>
+                      </button>
                       <span className="block text-xs text-slate-400">#{row.id}</span>
                     </td>
                     <td>

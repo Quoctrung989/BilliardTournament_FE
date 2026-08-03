@@ -83,6 +83,7 @@ import { withManagerPage } from "../components/manager/withManagerPage";
 const OwnerTournamentHub = () => (
   <TournamentListPage
     api={ownerTournamentApi}
+    branchApi={ownerBranchApi}
     basePath="/owner/tournaments"
     roleLabel="Owner"
   />
@@ -104,6 +105,7 @@ const OwnerTournamentDetail = () => (
 const ManagerTournamentHub = () => (
   <TournamentListPage
     api={managerTournamentApi}
+    branchApi={managerBranchApi}
     basePath="/manager/tournaments"
     roleLabel="Manager"
   />
@@ -172,8 +174,12 @@ const ManagerDrawPage = () => (
   <DrawPage api={managerMatchApi} basePath="/manager/tournaments" />
 );
 
-const OwnerTournamentNotifications = () => <TournamentNotificationsPage api={ownerEmailApi} />;
-const ManagerTournamentNotifications = () => <TournamentNotificationsPage api={managerEmailApi} />;
+const OwnerTournamentNotifications = () => (
+  <TournamentNotificationsPage api={ownerEmailApi} basePath="/owner/tournaments" />
+);
+const ManagerTournamentNotifications = () => (
+  <TournamentNotificationsPage api={managerEmailApi} basePath="/manager/tournaments" />
+);
 
 const OwnerNewsCMS = () => (
   <NewsCMSPage api={ownerNewsCmsApi} editorPath="/owner/news" taxonomyPath="/owner/news/categories" />
