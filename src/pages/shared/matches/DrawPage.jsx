@@ -14,7 +14,7 @@ import SocketConnectionBadge from "../../../components/shared/SocketConnectionBa
 import SocketReconnectBanner from "../../../components/shared/SocketReconnectBanner";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { useTournamentSocket } from "../../../hooks/useTournamentSocket";
-import BracketDiagram from "./BracketDiagram";
+import BracketDiagram, { buildFeedersMap } from "./BracketDiagram";
 
 /* ══════════════════════════════════════════════════════════
    Constants & helpers
@@ -329,6 +329,13 @@ const DrawPage = ({ api, basePath }) => {
     });
     return map;
   }, [stages]);
+
+  // matchId (đích) -> { player1: matchCode|null, player2: matchCode|null } của 2 trận nguồn,
+  // dùng để hiện "Thắng RxMy" thay vì "TBD" khi chưa xác định người chơi.
+  const listFeedersMap = useMemo(
+    () => buildFeedersMap(stages.flatMap(s => s.matches ?? [])),
+    [stages]
+  );
 
   /* ══ Stats ══════════════════════════════════════════════ */
   const totalMatches = stages.reduce((s, st) => s + (st.matches?.length ?? 0), 0);
@@ -970,6 +977,7 @@ const DrawPage = ({ api, basePath }) => {
             onScore: (m) => { setScoreModal(m); setScoreForm({ p1: String(m.player1Score??0), p2: String(m.player2Score??0) }); },
             onComplete: setCompleteModal, onEvents: loadEvents,
             onToggleSelect: toggleSelect, onOpenAssign: openAssignSingle, flashIds,
+            feedersMap: listFeedersMap,
           }}
         />
       ) : (
@@ -977,6 +985,7 @@ const DrawPage = ({ api, basePath }) => {
           <StageSection
             key={stage.id}
             stage={stage}
+            feedersMap={listFeedersMap}
             editMode={editMode}
             swapFirst={swapFirst}
             dragSrc={dragSrc}
@@ -1392,6 +1401,7 @@ export const StageSection = ({
   matchQuery, statusFilter, startingId, bulkMode, selectedIds,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
   onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, flashIds,
+  feedersMap,
 }) => {
   const rounds = {};
   (stage.matches || []).forEach(m => {
@@ -1520,6 +1530,7 @@ export const StageSection = ({
                   onToggleSelect={onToggleSelect}
                   onOpenAssign={onOpenAssign}
                   flashIds={flashIds}
+                  feeders={feedersMap?.get(m.id)}
                 />
               ))}
             </div>
@@ -1538,6 +1549,7 @@ const MatchRow = ({
   bulkMode, isSelected,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
   onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, flashIds,
+  feeders,
 }) => {
   const canEdit    = editMode && match.roundNo === 1 && !["LOSERS","GRAND_FINAL"].includes(stageType);
   const sCfg       = STATUS_CFG[match.status] || STATUS_CFG.PENDING;
@@ -1589,6 +1601,7 @@ const MatchRow = ({
                 isSelected={isSelected}
                 isDragSrc={isDragSrc}
                 isDropTarget={isDropTgt}
+                feederCode={feeders?.[slot]}
                 onSlotClick={() => onSlotClick(match, slot, player, stageType)}
                 onDragStart={e => onDragStart(e, match.id, slot)}
                 onDragOver={e => onDragOver(e, match.id, slot)}
@@ -1672,7 +1685,7 @@ const MatchRow = ({
    PlayerSlot
 ══════════════════════════════════════════════════════════ */
 const PlayerSlot = ({
-  player, isWinner, canEdit, isSelected, isDragSrc, isDropTarget,
+  player, isWinner, canEdit, isSelected, isDragSrc, isDropTarget, feederCode,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd, onSearch,
 }) => {
   return (
@@ -1718,7 +1731,7 @@ const PlayerSlot = ({
             : "text-slate-800"
           : "text-slate-300 italic",
       ].join(" ")}>
-        {player?.displayName ?? "TBD"}
+        {player?.displayName ?? (feederCode ? `Thắng ${feederCode}` : "TBD")}
         {isWinner && " ✓"}
       </span>
 

@@ -408,6 +408,15 @@ const TournamentDetailPage = ({ api, basePath }) => {
           </>
         )}
 
+        {detail.status === "COMPLETED" && (
+          <AdminButton
+            variant="secondary"
+            onClick={() => navigate(`${basePath}/${id}/draw`)}
+          >
+            🏆 Xem bracket & Kết quả
+          </AdminButton>
+        )}
+
         {basePath === "/manager/tournaments" && (
           <AdminButton
             variant="secondary"
@@ -417,7 +426,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
           </AdminButton>
         )}
 
-        {detail.isRegister && ["OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED", "DRAW_PREVIEW", "DRAW_DONE", "FINAL_BRACKET_READY", "IN_PROGRESS"].includes(detail.status) && (
+        {detail.isRegister && ["OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED", "DRAW_PREVIEW", "DRAW_DONE", "FINAL_BRACKET_READY", "IN_PROGRESS", "COMPLETED"].includes(detail.status) && (
           <AdminButton
             variant="secondary"
             onClick={() => navigate(`${basePath}/${id}/registrations`)}

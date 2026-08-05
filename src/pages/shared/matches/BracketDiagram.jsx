@@ -51,7 +51,7 @@ function MiniAvatar({ name, id }) {
 /* ══════════════════════════════════════════════════════════
    MatchNode — 1 ô trận trong sơ đồ cây
 ══════════════════════════════════════════════════════════ */
-const MatchNode = ({ match, nodeRef, onStart, onScore, onComplete, starting, flashing }) => {
+const MatchNode = ({ match, nodeRef, onStart, onScore, onComplete, starting, flashing, feeders }) => {
   const isBye = match.status === "BYE";
   const canStart    = match.status === "PENDING" && match.player1 && match.player2;
   const inProgress  = match.status === "IN_PROGRESS";
@@ -75,11 +75,12 @@ const MatchNode = ({ match, nodeRef, onStart, onScore, onComplete, starting, fla
 
       {[["player1", match.player1], ["player2", match.player2]].map(([slot, p]) => {
         const isW = Boolean(p && match.winner && match.winner.id === p.id);
+        const feederCode = !p ? feeders?.[slot] : null;
         return (
           <div key={slot} className={`flex items-center gap-1.5 px-2 py-1 ${isW ? "bg-emerald-50" : ""}`}>
             <MiniAvatar name={p?.displayName} id={p?.id} />
             <span className={`flex-1 truncate ${isW ? "font-bold text-emerald-700" : p ? "text-slate-700" : "text-slate-300 italic"}`}>
-              {p?.displayName ?? "TBD"}
+              {p?.displayName ?? (feederCode ? `Thắng ${feederCode}` : "TBD")}
               {isW && " ✓"}
             </span>
             {["IN_PROGRESS", "COMPLETED", "WALKOVER"].includes(match.status) && (
@@ -168,7 +169,24 @@ const ConnectorOverlay = ({ containerRef, nodesRef, links, signal }) => {
    BracketTreeSection — 1 khối cây (KNOCKOUT / WINNERS / LOSERS /
    FINAL_BRACKET / PROGRESSIVE_PLAYOFF) tự đo & tự vẽ đường nối.
 ══════════════════════════════════════════════════════════ */
-const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onComplete }) => {
+/** matchId (đích) -> { player1: matchCode|null, player2: matchCode|null } của 2 trận nguồn. */
+export function buildFeedersMap(allMatches) {
+  const feedersByTarget = new Map();
+  allMatches.forEach(m => {
+    if (!m.nextMatchWinId) return;
+    const arr = feedersByTarget.get(m.nextMatchWinId) ?? [];
+    arr.push(m);
+    feedersByTarget.set(m.nextMatchWinId, arr);
+  });
+  const result = new Map();
+  feedersByTarget.forEach((arr, targetId) => {
+    const sorted = [...arr].sort((a, b) => a.positionNo - b.positionNo);
+    result.set(targetId, { player1: sorted[0]?.matchCode ?? null, player2: sorted[1]?.matchCode ?? null });
+  });
+  return result;
+}
+
+const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onComplete, feedersMap }) => {
   const containerRef = useRef(null);
   const nodesRef = useRef(new Map());
   const registerNode = useCallback((id, el) => {
@@ -238,6 +256,7 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
                     onStart={onStart}
                     onScore={onScore}
                     onComplete={onComplete}
+                    feeders={feedersMap?.get(m.id)}
                   />
                 ))}
               </div>
@@ -257,6 +276,8 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
    sẵn có) vì vòng tròn không có hình cây để vẽ.
 ══════════════════════════════════════════════════════════ */
 const BracketDiagram = ({ stages, startingId, flashIds, onStart, onScore, onComplete, ListStageSection, listProps }) => {
+  const feedersMap = buildFeedersMap(stages.flatMap(s => s.matches ?? []));
+
   return (
     <div className="space-y-5">
       {stages.map(stage => {
@@ -270,6 +291,7 @@ const BracketDiagram = ({ stages, startingId, flashIds, onStart, onScore, onComp
               onStart={onStart}
               onScore={onScore}
               onComplete={onComplete}
+              feedersMap={feedersMap}
             />
           );
         }
@@ -293,6 +315,7 @@ const BracketDiagram = ({ stages, startingId, flashIds, onStart, onScore, onComp
                     onStart={onStart}
                     onScore={onScore}
                     onComplete={onComplete}
+                    feeders={feedersMap.get(m.id)}
                   />
                 ) : <p className="text-sm text-slate-400">Chưa có trận nào.</p>}
               </div>
