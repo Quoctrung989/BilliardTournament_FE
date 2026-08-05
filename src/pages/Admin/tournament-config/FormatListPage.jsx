@@ -101,8 +101,8 @@ const FormatListPage = () => {
               >
                 <option value="">Tất cả</option>
                 <option value="INFO_DONE">Thông tin</option>
-                <option value="CONFIG_FIELDS_DONE">Config fields</option>
-                <option value="RACE_TO_DONE">Race-to</option>
+                <option value="CONFIG_FIELDS_DONE">Thông số thi đấu</option>
+                <option value="RACE_TO_DONE">Số ván mỗi vòng</option>
                 <option value="READY_TO_ACTIVATE">Sẵn sàng</option>
                 <option value="ACTIVE">Đang hoạt động</option>
               </select>

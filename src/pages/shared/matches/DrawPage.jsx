@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
   ArrowLeft, ArrowLeftRight, Eye, Lock, Search, GripVertical,
-  ChevronRight, Users, Swords, Zap, BarChart2, Scissors,
+  ChevronRight, Users, Swords, Zap, BarChart2,
   Loader2, X, MapPin, CheckSquare, List, GitBranch, UserCheck,
 } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -229,13 +229,8 @@ const DrawPage = ({ api, basePath }) => {
   const [matchQuery,   setMatchQuery]   = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  /* ── CUT_TO_SE / GROUP_PLAYOFF actions ── */
+  /* ── CUT_TO_SE actions ── */
   const [populating,     setPopulating]     = useState(false);
-  const [generatingPO,   setGeneratingPO]   = useState(false);
-  const [standings,      setStandings]      = useState([]);
-  const [elimModal,      setElimModal]      = useState(false);
-  const [keepCount,      setKeepCount]      = useState("");
-  const [eliminating,    setEliminating]    = useState(false);
   const [advancing,      setAdvancing]      = useState(false);
   const [progStandings,  setProgStandings]  = useState(null); // { stageName, rows } | null
   const [loadingProgStd, setLoadingProgStd] = useState(false);
@@ -243,7 +238,6 @@ const DrawPage = ({ api, basePath }) => {
 
   const isPreview          = tournament?.status === "DRAW_PREVIEW";
   const isFinalBracketReady= tournament?.status === "FINAL_BRACKET_READY";
-  const isGroupPlayoff     = tournament?.format === "GROUP_PLAYOFF";
   const isProgressive      = tournament?.format === "PROGRESSIVE_ROUND_ROBIN";
   const isDoubleElim       = tournament?.format === "DOUBLE_ELIMINATION";
   const hasFinalBracket    = stages.some(s => s.stageType === "FINAL_BRACKET");
@@ -546,44 +540,6 @@ const DrawPage = ({ api, basePath }) => {
         finally { setPopulating(false); }
       },
       { okLabel: "Điền bracket", okVariant: "primary" }
-    );
-  };
-
-  /* ══ GROUP_PLAYOFF: standings + eliminate + generate playoff ═ */
-  const loadStandings = useCallback(async () => {
-    try {
-      const data = await api.getStandings(tournamentId);
-      setStandings(Array.isArray(data) ? data : []);
-    } catch { setStandings([]); }
-  }, [api, tournamentId]);
-
-  const handleEliminate = async () => {
-    const k = parseInt(keepCount);
-    if (!k || k < 2) { toast.warn("Nhập số người giữ lại hợp lệ (≥ 2)"); return; }
-    setEliminating(true);
-    try {
-      await api.eliminateBottom(tournamentId, { keepCount: k });
-      toast.success(`Đã loại bottom — giữ top ${k}`);
-      setElimModal(false); setKeepCount("");
-      load(); loadStandings();
-    } catch (err) { toast.error(getApiErrorMessage(err)); }
-    finally { setEliminating(false); }
-  };
-
-  const handleGeneratePlayoff = () => {
-    showConfirm(
-      "Tạo bracket playoff",
-      "Lấy kết quả xếp hạng vòng tròn để tạo bracket playoff. Tất cả trận group phải hoàn thành.",
-      async () => {
-        setGeneratingPO(true);
-        try {
-          await api.generatePlayoff(tournamentId);
-          toast.success("Đã tạo bracket playoff!");
-          load();
-        } catch (err) { toast.error(getApiErrorMessage(err)); }
-        finally { setGeneratingPO(false); }
-      },
-      { okLabel: "Tạo playoff", okVariant: "primary" }
     );
   };
 
@@ -997,21 +953,6 @@ const DrawPage = ({ api, basePath }) => {
                 </AdminButton>
               )}
 
-              {/* GROUP_PLAYOFF: standings + eliminate + generate playoff */}
-              {isGroupPlayoff && (
-                <>
-                  <AdminButton variant="secondary" onClick={() => { loadStandings(); setElimModal(true); }}
-                               className="flex items-center gap-2">
-                    <BarChart2 size={14} /> Xếp hạng & Loại bottom
-                  </AdminButton>
-                  <AdminButton variant="secondary" disabled={generatingPO}
-                               onClick={handleGeneratePlayoff}
-                               className="flex items-center gap-2">
-                    <Trophy size={14} />
-                    {generatingPO ? "Đang tạo..." : "Tạo bracket Playoff"}
-                  </AdminButton>
-                </>
-              )}
 
               {/* PROGRESSIVE_ROUND_ROBIN: standings từng GĐ + chuyển giai đoạn */}
               {isProgressive && currentProgressiveStage && (
@@ -1291,73 +1232,6 @@ const DrawPage = ({ api, basePath }) => {
         <p className="text-sm text-slate-600">{confirmModal?.body}</p>
       </AdminModal>
 
-      {/* ── Standings + Eliminate Bottom (GROUP_PLAYOFF) ── */}
-      <AdminModal
-        open={elimModal}
-        onClose={() => setElimModal(false)}
-        title="Xếp hạng & Loại bottom (Progressive Elimination)"
-        size="lg"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setElimModal(false)}>Đóng</AdminButton>
-            <AdminButton variant="danger" disabled={eliminating || !keepCount}
-                         onClick={handleEliminate}
-                         className="flex items-center gap-2">
-              <Scissors size={13} />
-              {eliminating ? "Đang loại..." : `Loại bottom — giữ top ${keepCount || "?"}`}
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {/* Standings table */}
-          <div className="max-h-64 overflow-y-auto border border-slate-100 rounded-xl">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
-                <tr>
-                  <th className="px-3 py-2 text-left">#</th>
-                  <th className="px-3 py-2 text-left">Cơ thủ</th>
-                  <th className="px-3 py-2 text-center">Thắng</th>
-                  <th className="px-3 py-2 text-center">Hiệu số</th>
-                  <th className="px-3 py-2 text-center">Frame</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {standings.length === 0 ? (
-                  <tr><td colSpan={5} className="px-3 py-6 text-center text-slate-400 text-xs">Chưa có kết quả</td></tr>
-                ) : standings.map(s => (
-                  <tr key={s.participantId}
-                      className={s.rank <= parseInt(keepCount || "0") ? "bg-emerald-50" : ""}>
-                    <td className="px-3 py-2 font-mono text-slate-500">{s.rank}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800">{s.displayName}</td>
-                    <td className="px-3 py-2 text-center text-slate-700">{s.wins}</td>
-                    <td className={`px-3 py-2 text-center font-medium ${s.frameDiff >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-                      {s.frameDiff >= 0 ? "+" : ""}{s.frameDiff}
-                    </td>
-                    <td className="px-3 py-2 text-center text-slate-500">{s.framesWon}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {/* Keep count input */}
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-slate-700 shrink-0">Giữ lại top:</label>
-            <input
-              type="number" min={2} max={standings.length}
-              className="admin-input w-24"
-              placeholder="e.g. 8"
-              value={keepCount}
-              onChange={e => setKeepCount(e.target.value)}
-            />
-            <p className="text-xs text-slate-400">
-              Loại {Math.max(0, standings.length - parseInt(keepCount || "0"))} người xếp cuối.
-              Match còn lại của họ → Walkover tự động.
-            </p>
-          </div>
-        </div>
-      </AdminModal>
-
       {/* PROGRESSIVE: standings từng giai đoạn (read-only) */}
       <AdminModal
         open={!!progStandings}
@@ -1551,7 +1425,7 @@ const DrawPage = ({ api, basePath }) => {
             </div>
           ))}
         </div>
-        <p className="text-xs text-slate-400 mt-3">Race to: {scoreModal?.raceTo}</p>
+        <p className="text-xs text-slate-400 mt-3">Đánh tới: {scoreModal?.raceTo} ván</p>
       </AdminModal>
 
       {/* Complete / Walkover */}

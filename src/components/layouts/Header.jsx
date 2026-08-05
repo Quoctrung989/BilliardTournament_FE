@@ -26,7 +26,7 @@ const NAV_ITEMS = [
   { label: "Giải Đấu",        path: "/event" },
   { label: "Cơ Sở",           path: "/branches" },
   // { label: "Vé",               path: null },
-  { label: "Bảng Xếp Hạng",   path: null },
+  { label: "Bảng Xếp Hạng",   path: "/rankings" },
   // { label: "Cửa Hàng",        path: null },
 ];
 

@@ -2,8 +2,8 @@ import { Check } from "lucide-react";
 
 const STEPS = [
   { id: 1, label: "Thông tin" },
-  { id: 2, label: "Config fields" },
-  { id: 3, label: "Race-to" },
+  { id: 2, label: "Thông số thi đấu" },
+  { id: 3, label: "Số ván mỗi vòng" },
   { id: 4, label: "Kích hoạt" },
 ];
 

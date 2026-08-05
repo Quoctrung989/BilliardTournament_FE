@@ -227,6 +227,9 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const [basic, setBasic] = useState(defaultBasic);
   const [tournamentStatus, setTournamentStatus] = useState("DRAFT");
   const [approvedCount, setApprovedCount] = useState(0);
+  /** Optimistic lock: version đọc lúc load form, gửi lại khi lưu để backend phát hiện xung đột
+   * (2 người cùng sửa 1 giải). null = bỏ qua kiểm tra (chưa load hoặc giải mới tạo). */
+  const [tournamentVersion, setTournamentVersion] = useState(null);
   /** Vào từ lỗi đóng ĐK (TOURNAMENT_010) → chỉnh survivors rồi lưu + đóng luôn. */
   const closeRegistrationIntent = searchParams.get("intent") === INTENT_CLOSE_REGISTRATION;
   const isCloseRegistrationMode =
@@ -239,7 +242,6 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const [fieldErrors, setFieldErrors] = useState({});
 
   const [seedingMethod, setSeedingMethod] = useState("RANDOM");
-  const [seedCount, setSeedCount] = useState("");
   const [configFields, setConfigFields] = useState([]);
   const [raceToRules, setRaceToRules] = useState([]);
   const [resolvedConfig, setResolvedConfig] = useState(null);
@@ -303,6 +305,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
       });
       setTournamentStatus(detail.status || "DRAFT");
       setApprovedCount(Number(detail.approvedCount ?? 0));
+      setTournamentVersion(detail.version ?? null);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -316,7 +319,6 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     try {
       const form = await api.getConfigForm(tournamentId);
       setSeedingMethod(form.seedingMethod || "RANDOM");
-      setSeedCount(form.seedCount != null ? String(form.seedCount) : "");
       setConfigFields(form.fields || []);
       setRaceToRules(form.raceToRules || []);
     } catch (err) {
@@ -338,7 +340,6 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
       setResolvedConfig(resolved);
       setValidateResult(validation);
       setSeedingMethod(form.seedingMethod || "RANDOM");
-      setSeedCount(form.seedCount != null ? String(form.seedCount) : "");
       setConfigFields(form.fields || []);
       setRaceToRules(form.raceToRules || []);
     } catch (err) {
@@ -410,6 +411,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   }, [api, basic.isRegister, basic.registrationFormTemplateId]);
 
   const buildBasicPayload = () => ({
+    version: tournamentVersion,
     name: basic.name.trim(),
     description: basic.description?.trim() || null,
     thumbnailUrl: basic.thumbnailUrl?.trim() || "",
@@ -482,7 +484,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
         toast.success("Đã tạo giải đấu");
         navigate(`${basePath}/${created.id}?step=2`, { replace: true });
       } else {
-        await api.updateTournament(tournamentId, buildBasicPayload());
+        const updated = await api.updateTournament(tournamentId, buildBasicPayload());
+        setTournamentVersion(updated?.version ?? tournamentVersion);
         setFieldErrors({});
         toast.success("Đã cập nhật thông tin giải");
         setStep(2);
@@ -495,14 +498,9 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   };
 
   const buildConfigPayload = () => {
-    const usesSeeding = seedingMethod !== "RANDOM";
-    const seedCountNum = seedCount.trim() ? Number(seedCount) : null;
     return {
-      usesSeeding,
-      seedCountNum,
       body: {
         seedingMethod,
-        seedCount: usesSeeding ? seedCountNum : null,
         fields: configFields.map((f) => ({
           fieldKey: f.fieldKey,
           value: String(f.value ?? f.defaultValue ?? ""),
@@ -514,11 +512,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
   const handleSaveStep2 = async () => {
     if (!tournamentId) return;
-    const { usesSeeding, seedCountNum, body } = buildConfigPayload();
-    if (usesSeeding && (!seedCountNum || seedCountNum < 1)) {
-      toast.warn("Nhập số lượng hạt giống (từ 1 trở lên) khi chọn phương thức xếp hạt giống");
-      return;
-    }
+    const { body } = buildConfigPayload();
     setSaving(true);
     try {
       await api.saveConfig(tournamentId, body);
@@ -534,11 +528,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   /** Lưu pe_survivors (và config khác) rồi đóng đăng ký ngay — dùng khi số người thực tế < slot. */
   const handleSaveAndCloseRegistration = async () => {
     if (!tournamentId) return;
-    const { usesSeeding, seedCountNum, body } = buildConfigPayload();
-    if (usesSeeding && (!seedCountNum || seedCountNum < 1)) {
-      toast.warn("Nhập số lượng hạt giống (từ 1 trở lên) khi chọn phương thức xếp hạt giống");
-      return;
-    }
+    const { body } = buildConfigPayload();
     setSaving(true);
     try {
       await api.saveConfig(tournamentId, body);
@@ -1005,23 +995,13 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
-                {seedingMethod !== "RANDOM" && (
-                  <>
-                    <label className="admin-label mt-4">Số lượng hạt giống *</label>
-                    <input
-                      type="number"
-                      min={1}
-                      className="admin-input w-full"
-                      placeholder="VD: 16"
-                      value={seedCount}
-                      onChange={(e) => setSeedCount(e.target.value)}
-                    />
-                    <p className="text-xs text-slate-400 mt-1">
-                      Ở trang Người tham gia, gán hạt giống cho đúng số người này (không cần nhập đủ
-                      tất cả). Hệ thống sẽ chặn bốc thăm nếu chưa gán đủ. Người không có hạt giống sẽ
-                      được bốc thăm ngẫu nhiên vào các vị trí còn lại.
-                    </p>
-                  </>
+                {seedingMethod === "RANK" && (
+                  <p className="text-xs text-slate-400 mt-3">
+                    Thứ tự hạt giống lấy theo hạng cơ thủ (CN → A → … → L). Hạng đến từ hồ sơ của cơ
+                    thủ khi đăng ký online, hoặc do BQT nhập khi thêm tay / import Excel. Người cùng
+                    hạng bốc thăm ngẫu nhiên với nhau; người chưa xếp hạng xếp sau nhóm đã có hạng
+                    để các cơ thủ mạnh nằm ở những nhánh khác nhau, không gặp nhau sớm.
+                  </p>
                 )}
               </div>
 
@@ -1073,7 +1053,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               )}
               <TournamentConfigFieldForm fields={configFields} onChange={setConfigFields} />
 
-              <h3 className="text-sm font-semibold text-slate-700 mt-8 mb-3">Race-to theo vòng đấu</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mt-8 mb-3">Số ván thắng theo vòng đấu</h3>
               <TournamentRaceToOverrides rules={raceToRules} onChange={setRaceToRules} />
 
               <div className="flex justify-between gap-2 mt-6 pt-4 border-t border-slate-100">
@@ -1207,12 +1187,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                   {resolvedConfig && (
                     <div>
                       <p className="text-xs text-slate-400 uppercase mb-1">Xếp hạt giống</p>
-                      <p className="font-medium">
-                        {resolvedConfig.seedingMethod}
-                        {resolvedConfig.seedingMethod !== "RANDOM" && resolvedConfig.seedCount != null
-                          ? ` — ${resolvedConfig.seedCount} hạt giống`
-                          : ""}
-                      </p>
+                      <p className="font-medium">{resolvedConfig.seedingMethod}</p>
                     </div>
                   )}
                 </div>
@@ -1261,7 +1236,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 {/* Race-to rules */}
                 {resolvedConfig?.raceToRules && Object.keys(resolvedConfig.raceToRules).length > 0 && (
                   <div className="mb-6">
-                    <p className="text-xs text-slate-400 uppercase mb-2">Race-to theo vòng</p>
+                    <p className="text-xs text-slate-400 uppercase mb-2">Số ván thắng theo vòng</p>
                     <div className="bg-slate-50 rounded-lg border border-slate-100 divide-y divide-slate-100">
                       {Object.entries(resolvedConfig.raceToRules).map(([roundKey, raceTo]) => {
                         const isOverridden = resolvedConfig.overriddenRounds?.includes(roundKey);
@@ -1271,7 +1246,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                               {roundKey.replace(/_/g, " ")}
                             </span>
                             <span className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-800">Race to {raceTo}</span>
+                              <span className="font-semibold text-slate-800">Đánh tới {raceTo} ván</span>
                               {isOverridden && (
                                 <span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
                                   Override

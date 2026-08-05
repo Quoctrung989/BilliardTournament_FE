@@ -57,7 +57,7 @@ const GameTypeDetail = ({ item, loading }) => {
 
       <div className="catalog-detail-grid">
         <div className="catalog-detail-chip">
-          <span className="catalog-detail-chip-label">Race-to mặc định</span>
+          <span className="catalog-detail-chip-label">Số ván thắng mặc định</span>
           <span className="catalog-detail-chip-value">{item.defaultRaceTo ?? "—"}</span>
         </div>
         <div className="catalog-detail-chip">
@@ -100,7 +100,7 @@ const GameTypeDetail = ({ item, loading }) => {
         <div className="catalog-detail-specs">
           <SpecCell label="Mã loại bi" value={item.code} mono />
           <SpecCell label="Tên hiển thị" value={item.name || "—"} />
-          <SpecCell label="Race-to mặc định" value={item.defaultRaceTo ?? "—"} />
+          <SpecCell label="Số ván thắng mặc định" value={item.defaultRaceTo ?? "—"} />
           <SpecCell label="Trạng thái" value={isActive ? "Đang bật" : "Đã tắt"} />
         </div>
 

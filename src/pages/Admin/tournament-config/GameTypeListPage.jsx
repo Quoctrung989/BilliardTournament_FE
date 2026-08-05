@@ -203,7 +203,7 @@ const GameTypeListPage = () => {
                   <th>Mã</th>
                   <th>Tên hiển thị</th>
                   <th>Mô tả</th>
-                  <th className="align-center">Race-to</th>
+                  <th className="align-center">Số ván mỗi vòng</th>
                   <th>Loại bàn</th>
                   <th className="align-center">Kích hoạt</th>
                   <th className="align-right">Thao tác</th>

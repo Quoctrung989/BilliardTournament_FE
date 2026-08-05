@@ -60,14 +60,14 @@ const GameTypeForm = ({
           <textarea
             className="admin-input mt-1"
             rows={2}
-            placeholder="Race-to, luật break..."
+            placeholder="Số ván thắng, luật giao bóng..."
             value={form.description}
             onChange={(e) => onChange({ description: e.target.value })}
           />
         </div>
 
         <div>
-          <label className="admin-label">Race-to mặc định</label>
+          <label className="admin-label">Số ván thắng mặc định</label>
           <input
             type="number"
             min={1}
@@ -135,7 +135,7 @@ export const validateGameTypeForm = (form, { isCreate = false } = {}) => {
 
   const race = form.defaultRaceTo === "" ? null : Number(form.defaultRaceTo);
   if (form.defaultRaceTo !== "" && (Number.isNaN(race) || race < 1)) {
-    errors.defaultRaceTo = "Race-to phải là số nguyên ≥ 1";
+    errors.defaultRaceTo = "Số ván thắng phải là số nguyên ≥ 1";
   }
 
   if (Object.keys(errors).length > 0) return { errors };

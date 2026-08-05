@@ -1,0 +1,124 @@
+/* Theme cho trang Bảng xếp hạng — phong cách WNT (thẻ trắng nổi trên hero vân bê tông).
+   Class `.dark` do themeStore gắn vào <html> sẽ flip sang bản tối. */
+:root {
+  --rnk-hero-bg: #e6e6e6;
+  --rnk-hero-line: rgba(0, 0, 0, 0.045);
+  --rnk-card-bg: #ffffff;
+  --rnk-card-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  --rnk-divider: #eef1f5;
+  --rnk-row-hover: #f6f8fc;
+  --rnk-rank: #10182b;
+  --rnk-name: #1d2430;
+  --rnk-meta: #9aa3b2;
+  --rnk-value: #92a5c9;
+  --rnk-photo-bg: #f1f3f7;
+  --rnk-tab-bg: rgba(255, 255, 255, 0.55);
+  --rnk-tab-active-bg: #ffffff;
+  --rnk-tab-text: #4b5563;
+  --rnk-red: #ef342a;
+}
+
+:root.dark {
+  --rnk-hero-bg: #131a26;
+  --rnk-hero-line: rgba(255, 255, 255, 0.05);
+  --rnk-card-bg: #0f1a2b;
+  --rnk-card-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --rnk-divider: rgba(255, 255, 255, 0.08);
+  --rnk-row-hover: rgba(255, 255, 255, 0.045);
+  --rnk-rank: #ffffff;
+  --rnk-name: #ffffff;
+  --rnk-meta: rgba(255, 255, 255, 0.45);
+  --rnk-value: #8fb0e8;
+  --rnk-photo-bg: rgba(255, 255, 255, 0.06);
+  --rnk-tab-bg: rgba(255, 255, 255, 0.08);
+  --rnk-tab-active-bg: #0f1a2b;
+  --rnk-tab-text: rgba(255, 255, 255, 0.7);
+}
+
+/* Dùng đúng font mặc định toàn app (reset.css/global.css) — giống Header, Home và trang
+   danh sách giải. KHÔNG ép Poppins ở đây: Poppins chỉ được bật riêng cho trang chi tiết giải
+   qua class `.evt-surface`, và bản nạp trong index.html cũng không có weight 900 lẫn trục
+   italic nên ép vào sẽ bị giả lập, nhìn lệch hẳn so với các trang khác. */
+.rnk-surface {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Nền hero: vân bê tông giả lập bằng gradient chồng lớp — không phụ thuộc ảnh texture */
+.rnk-hero {
+  background-color: var(--rnk-hero-bg);
+  background-image:
+    repeating-linear-gradient(
+      115deg,
+      var(--rnk-hero-line) 0 1px,
+      transparent 1px 9px
+    ),
+    repeating-linear-gradient(
+      -20deg,
+      var(--rnk-hero-line) 0 1px,
+      transparent 1px 14px
+    ),
+    radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.05), transparent 55%),
+    radial-gradient(circle at 82% 68%, rgba(0, 0, 0, 0.05), transparent 55%);
+}
+
+/* Huy hiệu tròn đỏ giữa hero */
+.rnk-badge {
+  background: radial-gradient(circle at 35% 28%, #ff5348 0%, var(--rnk-red) 45%, #c2251d 100%);
+  box-shadow: 0 18px 44px rgba(239, 52, 42, 0.38);
+}
+
+/* Bi trong logo: xếp thành hình thoi 1-2-3-2-1 */
+.rnk-rack-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background: #ffffff;
+}
+
+.rnk-card {
+  background: var(--rnk-card-bg);
+  box-shadow: var(--rnk-card-shadow);
+}
+
+.rnk-row + .rnk-row {
+  border-top: 1px solid var(--rnk-divider);
+}
+
+.rnk-row:hover {
+  background: var(--rnk-row-hover);
+}
+
+/* Số hạng + điểm: chữ nghiêng đậm đặc trưng WNT */
+.rnk-numeric {
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.rnk-name {
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+  color: var(--rnk-name);
+  line-height: 1;
+}
+
+.rnk-tab {
+  background: var(--rnk-tab-bg);
+  color: var(--rnk-tab-text);
+  backdrop-filter: blur(4px);
+}
+
+.rnk-tab--active {
+  background: var(--rnk-tab-active-bg);
+  color: var(--rnk-name);
+  box-shadow: 0 -4px 18px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 640px) {
+  .rnk-hero {
+    min-height: 260px;
+  }
+}

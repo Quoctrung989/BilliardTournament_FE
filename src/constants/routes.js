@@ -2,6 +2,7 @@ import CommonLayout from "../components/layouts/CommonLayout";
 import EventPage from "../pages/Event";
 import EventDetailPage from "../pages/Event/EventDetailPage";
 import BranchListPage from "../pages/Branch";
+import RankingsPage from "../pages/Rankings";
 import BranchDetailPage from "../pages/Branch/BranchDetailPage";
 import Dashboard from "../pages/Admin/Dashboard";
 import Home from "../pages/Home";
@@ -669,6 +670,7 @@ export const ROUTES = [
   { path: "/event/:id", component: EventDetailPage, layout: CommonLayout },
   { path: "/branches", component: BranchListPage, layout: CommonLayout },
   { path: "/branches/:id", component: BranchDetailPage, layout: CommonLayout },
+  { path: "/rankings", component: RankingsPage, layout: CommonLayout },
   { path: "/", component: Home, layout: CommonLayout },
   { path: "/login", component: LoginPage, layout: null },
   { path: "/register", component: RegisterPage, layout: null },

@@ -8,16 +8,15 @@ export const SETUP_STATUS_STYLES = {
 
 export const SETUP_STATUS_LABELS = {
   INFO_DONE: "Thông tin",
-  CONFIG_FIELDS_DONE: "Config fields",
-  RACE_TO_DONE: "Race-to",
+  CONFIG_FIELDS_DONE: "Thông số thi đấu",
+  RACE_TO_DONE: "Số ván mỗi vòng",
   READY_TO_ACTIVATE: "Sẵn sàng kích hoạt",
   ACTIVE: "Đang hoạt động",
 };
 
 export const SEEDING_OPTIONS = [
   { value: "RANDOM", label: "Ngẫu nhiên" },
-  { value: "MANUAL", label: "Thủ công" },
-  { value: "ELO", label: "Theo ELO" },
+  { value: "RANK", label: "Theo hạng cơ thủ" },
 ];
 
 export const PARTICIPANT_TYPES = [
@@ -50,11 +49,23 @@ export const TOURNAMENT_STATUS_STYLES = {
   CANCELLED:            "bg-rose-50    text-rose-700   ring-1 ring-rose-200",
 };
 
+/** tournament_results.note / ranking entry note — BE lưu enum.name() (English), dịch sang VN ở
+ * đây. Dùng `RANKING_NOTE_LABELS[note] ?? note` khi render: dòng dữ liệu cũ (lưu sẵn text tiếng
+ * Việt trước khi BE đổi sang name()) không khớp key thì fallback hiển thị nguyên văn. */
+export const RANKING_NOTE_LABELS = {
+  CHAMPION: "Vô địch",
+  RUNNER_UP: "Á quân",
+  THIRD_PLACE: "Hạng 3",
+  FOURTH_PLACE: "Hạng 4",
+  SEMI_FINAL: "Bán kết",
+  GROUP_LEADER: "Dẫn đầu bảng",
+};
+
 export const BRACKET_PHASES = [
-  { value: "KNOCKOUT", label: "Knockout" },
-  { value: "WINNERS", label: "Winners" },
-  { value: "LOSERS", label: "Losers" },
-  { value: "GRAND_FINAL", label: "Grand Final" },
-  { value: "GROUP", label: "Group" },
-  { value: "PLAYOFF", label: "Playoff" },
+  { value: "KNOCKOUT", label: "Loại trực tiếp" },
+  { value: "WINNERS", label: "Nhánh thắng" },
+  { value: "LOSERS", label: "Nhánh thua" },
+  { value: "GRAND_FINAL", label: "Chung kết lớn" },
+  { value: "GROUP", label: "Vòng tròn" },
+  { value: "PLAYOFF", label: "Vòng chung kết" },
 ];

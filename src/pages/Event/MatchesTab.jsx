@@ -11,8 +11,6 @@ import "./eventTheme.css";
 const FORMAT_MAP = {
   "Loại trực tiếp":      "single_elimination",
   "Loại trực tiếp kép":  "double_elimination",
-  "Vòng bảng + Playoff": "group_stage",
-  "Vòng bảng":           "round_robin",
   "Vòng tròn loại dần + Playoff": "group_stage",
 };
 const detectFormatFromTournament = (t) =>
@@ -145,6 +143,16 @@ const fmtTime = (iso) => {
 };
 
 /* Tính bảng điểm vòng tròn từ danh sách trận (dữ liệu BE).
+
+   ⚠️ Thứ tự phân định PHẢI khớp BracketGenerationServiceImpl.computeStageStandings() ở backend,
+   vì backend dùng chính thứ tự đó để loại người sau mỗi giai đoạn. Lệch nhau thì khán giả thấy
+   một bảng còn hệ thống loại người theo bảng khác:
+     1. Số trận thắng
+     2. Hiệu số ván
+     3. Đối đầu trực tiếp giữa những người còn hoà
+     4. Tổng số ván thắng
+     5. Tên A→Z (backend dùng hạt giống → id; FE không có 2 field này nên chốt bằng tên)
+
    Trả về mảng đã xếp hạng: [{ id, name, played, wins, losses, framesWon, framesLost, frameDiff, rank }] */
 const computeStandings = (matches) => {
   const table = {};
@@ -169,11 +177,45 @@ const computeStandings = (matches) => {
     if (winId === a.id) { a.wins++; b.losses++; }
     else if (winId === b.id) { b.wins++; a.losses++; }
   });
-  return Object.values(table)
-    .map((r) => ({ ...r, frameDiff: r.framesWon - r.framesLost }))
-    .sort((x, y) => y.wins - x.wins || y.frameDiff - x.frameDiff || y.framesWon - x.framesWon
-      || (x.name || "").localeCompare(y.name || ""))
-    .map((r, i) => ({ ...r, rank: i + 1 }));
+  /* Số trận thắng khi chỉ tính các trận GIỮA những người trong nhóm hoà */
+  const headToHeadWins = (groupIds) => {
+    const h2h = {};
+    groupIds.forEach((id) => { h2h[id] = 0; });
+    (matches || []).forEach((m) => {
+      if (m.status !== "COMPLETED" && m.status !== "WALKOVER") return;
+      const id1 = m.player1?.id, id2 = m.player2?.id;
+      if (!h2h.hasOwnProperty(id1) || !h2h.hasOwnProperty(id2)) return;
+      const s1 = m.player1Score ?? 0, s2 = m.player2Score ?? 0;
+      const winId = m.winner?.id ?? (s1 > s2 ? id1 : s2 > s1 ? id2 : null);
+      if (winId != null && h2h.hasOwnProperty(winId)) h2h[winId] += 1;
+    });
+    return h2h;
+  };
+
+  const rows = Object.values(table).map((r) => ({ ...r, frameDiff: r.framesWon - r.framesLost }));
+
+  // Bậc 1-2: số trận thắng → hiệu số ván
+  rows.sort((x, y) => y.wins - x.wins || y.frameDiff - x.frameDiff);
+
+  // Bậc 3-5: trong từng nhóm còn hoà (cùng thắng + cùng hiệu số) mới xét đối đầu trực tiếp
+  let i = 0;
+  while (i < rows.length) {
+    let j = i + 1;
+    while (j < rows.length && rows[j].wins === rows[i].wins && rows[j].frameDiff === rows[i].frameDiff) j++;
+    if (j - i > 1) {
+      const group = rows.slice(i, j);
+      const h2h = headToHeadWins(group.map((r) => r.id));
+      group.sort((x, y) =>
+        (h2h[y.id] || 0) - (h2h[x.id] || 0)          // 3. đối đầu trực tiếp
+        || y.framesWon - x.framesWon                  // 4. số ván thắng
+        || (x.name || "").localeCompare(y.name || "") // 5. chốt cuối
+      );
+      rows.splice(i, j - i, ...group);
+    }
+    i = j;
+  }
+
+  return rows.map((r, idx) => ({ ...r, rank: idx + 1 }));
 };
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -331,7 +373,7 @@ const ListView = ({ matches, rounds, flashIds, feedersMap }) => {
                 {badge && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-white/20 text-white">{badge.label}</span>}
                 <span className="text-xs font-semibold text-white tracking-wide">{round.label}</span>
               </div>
-              <span className="text-[10px] font-light text-white/70">Race to {round.raceTO}</span>
+              <span className="text-[10px] font-light text-white/70">Đánh tới {round.raceTO} ván</span>
             </div>
             <div>{rMatches.map(m=><MatchRow key={m.id} m={m} matchNum={matchNumMap[m.id]} flashIds={flashIds} feedersMap={feedersMap}/>)}</div>
           </div>
@@ -468,7 +510,7 @@ const StandingView = ({ rows }) => {
         <div className="rounded-3xl shadow-sm flex flex-col items-center justify-center py-16 gap-2"
              style={{background:"var(--evt-card-bg)",border:"1px solid var(--evt-card-border)"}}>
           <BarChart2 size={30} className="text-slate-300 dark:text-white/15"/>
-          <p className="text-slate-500 dark:text-white/40 text-sm font-light">Chưa có bảng điểm — các trận vòng bảng chưa hoàn thành</p>
+          <p className="text-slate-500 dark:text-white/40 text-sm font-light">Chưa có bảng điểm — các trận vòng tròn chưa hoàn thành</p>
         </div>
       ) : (
         <StandingTable rows={rows}/>
@@ -605,7 +647,7 @@ const BracketView = ({ matches, rounds, flashIds, feedersMap }) => {
               {rounds.map((r,i)=>(
                 <div key={r.id} className="flex-shrink-0 text-center py-3" style={{width:C_W,marginLeft:i>0?R_GAP:0}}>
                   <p className="text-slate-800 dark:text-white text-[11px] font-bold uppercase tracking-[0.08em]">{r.label}</p>
-                  <p className="text-sky-600 dark:text-sky-300/40 text-[9px] font-medium mt-0.5">Race to {r.raceTO}</p>
+                  <p className="text-sky-600 dark:text-sky-300/40 text-[9px] font-medium mt-0.5">Đánh tới {r.raceTO} ván</p>
                 </div>
               ))}
             </div>
@@ -675,7 +717,7 @@ const DoubleEliminationBracketView = ({ stages, flashIds, feedersMap }) => {
           <div className="flex items-center gap-2 px-5 py-2.5 border-b border-slate-200 dark:border-white/[0.08]">
             <Trophy size={12} className="text-yellow-400 shrink-0"/>
             <span className="text-slate-800 dark:text-white text-xs font-semibold tracking-wide">CHUNG KẾT LỚN (GRAND FINAL)</span>
-            <span className="ml-auto text-[10px] text-yellow-400/50">Race to {gfMatch.raceTo}</span>
+            <span className="ml-auto text-[10px] text-yellow-400/50">Đánh tới {gfMatch.raceTo} ván</span>
           </div>
           <div className="p-5 flex justify-center">
             <BracketCard match={gfMatch} compact={false} flashIds={flashIds} feedersMap={feedersMap}/>

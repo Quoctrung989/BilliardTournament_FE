@@ -10,7 +10,10 @@ import {
   RankingEmptyMessage,
   TournamentStatus,
 } from "../../constants/rankingEnums";
+import { RANKING_NOTE_LABELS } from "../../constants/tournamentConfig";
 import "./eventTheme.css";
+
+const noteLabel = (note) => (note ? RANKING_NOTE_LABELS[note] ?? note : note);
 
 const PlayerAvatar = ({ src, alt, className, style }) => (
   <img
@@ -72,7 +75,7 @@ const ChampionHero = ({ player, isProvisional, onNavigate }) => {
       </div>
 
       {player.note && (
-        <div className="evt-rank-champion__note">{player.note}</div>
+        <div className="evt-rank-champion__note">{noteLabel(player.note)}</div>
       )}
     </div>
   );
@@ -96,7 +99,7 @@ const RankRow = ({ player, onNavigate }) => (
         {DEFAULT_COUNTRY.name}
       </p>
     </div>
-    {player.note ? <span className="evt-rank-row__note">{player.note}</span> : <span />}
+    {player.note ? <span className="evt-rank-row__note">{noteLabel(player.note)}</span> : <span />}
   </div>
 );
 

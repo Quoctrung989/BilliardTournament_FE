@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Trophy, Award, Star } from "lucide-react";
 import { getParticipantProfile, getPlayerProfileByUserId } from "../../api/publicTournamentApi";
+import { RANKING_NOTE_LABELS } from "../../constants/tournamentConfig";
+import { billiardRankShort } from "../../constants/profileConfig";
 
 const DEFAULT_AVATAR = "/player-default.webp";
+const noteLabel = (note) => (note ? RANKING_NOTE_LABELS[note] ?? note : note);
 
 const splitName = (full = "") => {
   const parts = full.trim().split(/\s+/).filter(Boolean);
@@ -71,7 +74,7 @@ const AchievementCard = ({ entry }) => {
               fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase",
               letterSpacing: "0.1em", color: "#c9a227",
             }}>
-              {entry.note}
+              {noteLabel(entry.note)}
             </span>
           )}
           {entry.pointsEarned > 0 && (
@@ -232,7 +235,7 @@ const PlayerProfilePage = () => {
               </div>
 
               {/* Stats grid */}
-              {(totalEvents > 0 || profile.billiardRank || profile.seedNo) && (
+              {(totalEvents > 0 || profile.billiardRank) && (
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))",
@@ -278,7 +281,7 @@ const PlayerProfilePage = () => {
 
               {/* Badges */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                {profile.billiardRank && (
+                {profile.billiardRank && profile.billiardRank !== "UNKNOWN" && (
                   <span style={{
                     fontSize: "0.6rem", fontWeight: 700,
                     textTransform: "uppercase", letterSpacing: "0.1em",
@@ -286,18 +289,7 @@ const PlayerProfilePage = () => {
                     border: "1px solid rgba(201,162,39,0.4)",
                     padding: "0.2rem 0.65rem", borderRadius: "999px",
                   }}>
-                    {profile.billiardRank}
-                  </span>
-                )}
-                {profile.seedNo && (
-                  <span style={{
-                    fontSize: "0.6rem", fontWeight: 700,
-                    textTransform: "uppercase", letterSpacing: "0.1em",
-                    color: "rgba(255,255,255,0.45)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    padding: "0.2rem 0.65rem", borderRadius: "999px",
-                  }}>
-                    Hạt giống #{profile.seedNo}
+                    Hạng {billiardRankShort(profile.billiardRank)}
                   </span>
                 )}
               </div>
