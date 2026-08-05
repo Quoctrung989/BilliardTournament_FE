@@ -1,7 +1,15 @@
+import TvBrandingCell from "./TvBrandingCell";
+import TvEmptyCell from "./TvEmptyCell";
 import TvMatchCell from "./TvMatchCell";
 import { LAYOUT_TRANSITION_MS } from "./tvLayout";
 
-const TvLiveBoard = ({ layout, flashState, pageKey }) => (
+const TvLiveBoard = ({
+  layout,
+  flashState,
+  pageKey,
+  tournamentName,
+  logoUrl,
+}) => (
   <div
     key={pageKey}
     className="tv-grid tv-page-fade-in grid min-h-0 flex-1"
@@ -13,11 +21,32 @@ const TvLiveBoard = ({ layout, flashState, pageKey }) => (
     }}
   >
     {layout.slots.map((slot) => {
-      const id = slot.match.id;
-      const flash = flashState[id] ?? {};
+      if (slot.type === "branding") {
+        return (
+          <TvBrandingCell
+            key={slot.key}
+            tournamentName={tournamentName}
+            logoUrl={logoUrl}
+            gridColumn={slot.gridColumn}
+            gridRow={slot.gridRow}
+          />
+        );
+      }
+
+      if (slot.type === "empty") {
+        return (
+          <TvEmptyCell
+            key={slot.key}
+            gridColumn={slot.gridColumn}
+            gridRow={slot.gridRow}
+          />
+        );
+      }
+
+      const flash = flashState[slot.match.id] ?? {};
       return (
         <TvMatchCell
-          key={id}
+          key={slot.key}
           match={slot.match}
           layout={layout}
           gridColumn={slot.gridColumn}

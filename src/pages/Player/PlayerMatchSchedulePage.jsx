@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { X, Swords, Calendar } from "lucide-react";
 import { getMyMatches } from "../../api/matchApi";
 import { getApiErrorMessage } from "../../utils/apiError";
+import { useReveal } from "../../hooks/useReveal";
 import "../Profile/profile.scss";
 
 const STATUS_CFG = {
@@ -35,6 +36,7 @@ const StatusBadge = ({ status }) => {
 
 const PlayerMatchSchedulePage = () => {
   const navigate = useNavigate();
+  const gridRef = useReveal({ threshold: 0.08 });
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -75,12 +77,13 @@ const PlayerMatchSchedulePage = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {Object.entries(grouped).map(([tournamentId, group]) => {
+              <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Object.entries(grouped).map(([tournamentId, group], groupIndex) => {
                   const tourName = group.matches[0]?.tournamentName;
                   const stageType = group.matches[0]?.stageType;
                   return (
-                    <div key={tournamentId} className="bg-white border border-slate-200 rounded-xl overflow-hidden"
+                    <div key={tournamentId} className="ui-stagger flex" style={{ "--i": Math.min(groupIndex, 11) }}>
+                    <div className="ui-card bg-white border border-slate-200 rounded-xl overflow-hidden w-full"
                       style={{ boxShadow: "0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(15,23,42,0.04)" }}>
                       {/* Group header */}
                       <div className="px-4 py-3 bg-slate-800 flex items-center gap-3">
@@ -108,7 +111,7 @@ const PlayerMatchSchedulePage = () => {
                             const isWinner2 = m.winner?.id === m.player2?.id;
                             return (
                               <button key={m.id} type="button" onClick={() => setSelectedMatch(m)}
-                                className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors">
+                                className="ui-row w-full text-left px-4 py-3 hover:bg-slate-50 border-l-2 border-l-transparent">
                                 <div className="flex items-center justify-between mb-2">
                                   <span className="text-xs text-slate-400 font-mono">{m.matchCode}</span>
                                   <StatusBadge status={m.status} />
@@ -135,6 +138,7 @@ const PlayerMatchSchedulePage = () => {
                           })}
                       </div>
                     </div>
+                    </div>
                   );
                 })}
               </div>
@@ -151,9 +155,9 @@ const PlayerMatchSchedulePage = () => {
         const hasScore = m.status === "IN_PROGRESS" || m.status === "COMPLETED";
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setSelectedMatch(null)} role="presentation" />
+            <div className="ui-modal-backdrop absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setSelectedMatch(null)} role="presentation" />
 
-            <div className="relative bg-white border border-slate-200 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+            <div className="ui-modal-panel relative bg-white border border-slate-200 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
               {/* Header */}
               <div className="px-6 py-4 border-b border-slate-200 shrink-0 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900">Chi tiết trận đấu</h3>

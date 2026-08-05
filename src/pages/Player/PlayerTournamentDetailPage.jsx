@@ -10,6 +10,7 @@ import {
   getMyRegistrations,
 } from "../../api/playerRegistrationApi";
 import { getApiErrorMessage } from "../../utils/apiError";
+import { useReveal } from "../../hooks/useReveal";
 
 const BANNER_POOL = [
   "/images/tournaments/vn-player-1.jpg",
@@ -85,6 +86,7 @@ const SlotBar = ({ approved, max }) => {
 const PlayerTournamentDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const contentRef = useReveal({ threshold: 0 });
   const tournamentId = Number(id);
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
@@ -160,7 +162,7 @@ const PlayerTournamentDetailPage = () => {
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(12,21,39,0.55) 0%, rgba(12,21,39,0.25) 50%, rgba(232,232,232,0.15) 100%)" }} />
 
         {/* Back button → về trang đăng ký của tôi */}
-        <button type="button"
+        <button type="button" className="ui-press"
           onClick={() => navigate("/player/registrations")}
           style={{
             position: "absolute", top: "1.25rem", left: "1.5rem",
@@ -178,8 +180,11 @@ const PlayerTournamentDetailPage = () => {
       {/* ══════════════════════════════════════════
           EVENT INFO CARD (overlaps hero)
       ══════════════════════════════════════════ */}
-      <div style={{ position: "relative", zIndex: 10, maxWidth: "min(1100px, calc(100% - 3rem))", margin: "-60px auto 0", paddingBottom: "3rem" }}>
-        <div style={{
+      {/* `contentRef` gắn `is-in` lên container này; mọi `.ui-stagger` bên trong
+          (card thông tin + 4 card chi tiết) vào lần lượt theo `--i`. */}
+      <div ref={contentRef} style={{ position: "relative", zIndex: 10, maxWidth: "min(1100px, calc(100% - 3rem))", margin: "-60px auto 0", paddingBottom: "3rem" }}>
+        <div className="ui-stagger" style={{
+          "--i": 0,
           background: "var(--pd-card)",
           borderRadius: "1.25rem",
           boxShadow: "0 10px 40px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08)",
@@ -326,7 +331,7 @@ const PlayerTournamentDetailPage = () => {
               {regState === "registered" && (
                 <>
                   {myRegistration.status === "PENDING_PAYMENT" && (
-                    <button type="button"
+                    <button type="button" className="ui-press"
                       onClick={() => navigate("/player/registrations")}
                       style={{
                         padding: "0.65rem 1.75rem", borderRadius: "0.5rem",
@@ -338,7 +343,7 @@ const PlayerTournamentDetailPage = () => {
                       <CreditCard size={15} /> Thanh toán ngay
                     </button>
                   )}
-                  <button type="button"
+                  <button type="button" className="ui-press"
                     onClick={() => navigate("/player/registrations")}
                     style={{
                       padding: "0.55rem 1.5rem", borderRadius: "0.5rem",
@@ -353,7 +358,7 @@ const PlayerTournamentDetailPage = () => {
               )}
 
               {regState === "open" && (
-                <button type="button"
+                <button type="button" className="ui-press"
                   onClick={() => navigate(`/player/tournaments/${tournamentId}/register`)}
                   style={{
                     padding: "0.85rem 2.5rem", borderRadius: "0.5rem",
@@ -380,7 +385,7 @@ const PlayerTournamentDetailPage = () => {
 
           {/* Địa điểm tổ chức */}
           {detail.venue && (
-            <div style={{ background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+            <div className="ui-stagger" style={{ "--i": 1, background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
                 <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
                 <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
@@ -419,7 +424,7 @@ const PlayerTournamentDetailPage = () => {
           )}
 
           {/* Schedule */}
-          <div style={{ background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+          <div className="ui-stagger" style={{ "--i": 2, background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
               <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
               <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
@@ -446,7 +451,7 @@ const PlayerTournamentDetailPage = () => {
           </div>
 
           {/* Slots + Fee */}
-          <div style={{ background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+          <div className="ui-stagger" style={{ "--i": 3, background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
             {!isEndedOrClosed && (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
@@ -483,7 +488,7 @@ const PlayerTournamentDetailPage = () => {
 
           {/* Format / Config */}
           {(detail.configSummary || detail.formatName) && (
-            <div style={{ background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+            <div className="ui-stagger" style={{ "--i": 4, background: "var(--pd-card)", borderRadius: "1rem", border: "1px solid var(--pd-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
                 <span style={{ width: "3px", height: "1rem", background: "#0c1527", borderRadius: "2px" }} aria-hidden />
                 <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>

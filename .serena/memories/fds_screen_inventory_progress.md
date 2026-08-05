@@ -1,5 +1,8 @@
 # FDS Screen Inventory — TIẾN ĐỘ & QUYẾT ĐỊNH ĐÃ CHỐT
 
+> ⚠️ **TẠM DỪNG (2026-07-28)** — trọng tâm hiện tại là app mobile. Xem cảnh báo trong
+> `fds_screen_inventory_task`: danh sách màn cần bổ sung Branch / Live TV / Public StaffList.
+
 > Cập nhật 2026-07-08. Bổ sung cho `mem:fds_screen_inventory_task`. Đọc cả 2 file.
 
 ## QUYẾT ĐỊNH ĐÃ CHỐT VỚI USER (không hỏi lại)

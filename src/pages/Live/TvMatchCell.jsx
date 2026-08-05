@@ -1,26 +1,40 @@
 import clsx from "clsx";
 import { getPlayerName, isMatchFinished } from "../../utils/refereeMatch";
 import {
+  SLOT_COLORS,
   getCellTypography,
   getCurrentInning,
   isEndingSoon,
 } from "./tvLayout";
 
-const PlayerRow = ({
+/**
+ * Một nửa ô: tên trên, điểm dưới, cả hai căn giữa nửa của mình.
+ * Màu theo vị trí cơ thủ (xanh / đỏ) giống màn chấm điểm của trọng tài.
+ */
+const PlayerSide = ({
   name,
   score,
+  accent,
   leading,
   won,
   scorePop,
   nameSize,
   scoreSize,
 }) => (
-  <div className="flex min-w-0 items-center justify-between gap-2">
-    <div className="flex min-w-0 flex-1 items-center gap-2">
+  <div
+    className="flex min-w-0 flex-1 flex-col items-center justify-center gap-[clamp(0.2rem,0.7vmin,0.55rem)] rounded-[0.85rem] px-[clamp(0.4rem,1vmin,0.85rem)] py-[clamp(0.3rem,0.8vmin,0.65rem)] text-center"
+    style={{
+      background:
+        leading || won
+          ? `linear-gradient(160deg, ${accent}2e 0%, ${accent}0f 70%, rgba(255,255,255,0.02) 100%)`
+          : `linear-gradient(160deg, ${accent}14 0%, rgba(255,255,255,0.02) 70%)`,
+    }}
+  >
+    <div className="flex w-full min-w-0 flex-col items-center gap-1">
       <span
         className={clsx(
-          "truncate font-semibold leading-tight",
-          leading || won ? "text-white" : "text-zinc-500"
+          "min-w-0 font-semibold leading-tight line-clamp-2",
+          leading || won ? "text-white" : "text-zinc-400"
         )}
         style={{ fontSize: nameSize }}
         title={name}
@@ -28,18 +42,30 @@ const PlayerRow = ({
         {name}
       </span>
       {won && (
-        <span className="shrink-0 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-1.5 py-0.35 text-[0.6em] font-extrabold uppercase tracking-[0.18em] text-emerald-300">
+        <span
+          className="shrink-0 rounded-full px-1.5 py-0.5 text-[0.55em] font-extrabold uppercase tracking-[0.18em]"
+          style={{
+            color: accent,
+            backgroundColor: `${accent}1f`,
+            boxShadow: `inset 0 0 0 1px ${accent}45`,
+          }}
+        >
           Thắng
         </span>
       )}
     </div>
+
     <span
       className={clsx(
-        "shrink-0 font-black tabular-nums leading-none",
-        leading || won ? "text-emerald-300" : "text-zinc-500",
+        "font-black tabular-nums leading-none",
         scorePop && "tv-score-pop"
       )}
-      style={{ fontSize: scoreSize }}
+      style={{
+        fontSize: scoreSize,
+        color: accent,
+        opacity: leading || won ? 1 : 0.62,
+        textShadow: leading || won ? `0 0 22px ${accent}66` : "none",
+      }}
     >
       {score}
     </span>
@@ -73,24 +99,12 @@ const TvMatchCell = ({
   return (
     <article
       className={clsx(
-        "tv-panel-sheen relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.1rem] border bg-[linear-gradient(145deg,rgba(13,17,25,0.98),rgba(4,8,14,0.98))] p-[clamp(0.55rem,1.3vmin,1rem)] shadow-[0_18px_45px_rgba(0,0,0,0.35)] backdrop-blur",
-        endingSoon && !finished
-          ? "border-amber-400/70 shadow-[0_0_0_1px_rgba(251,191,36,0.16),0_18px_45px_rgba(251,191,36,0.08)]"
-          : "border-white/10",
+        "tv-panel-sheen relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.1rem] border-2 border-white/30 bg-[linear-gradient(145deg,rgba(13,17,25,0.98),rgba(4,8,14,0.98))] p-[clamp(0.55rem,1.3vmin,1rem)] shadow-[0_18px_45px_rgba(0,0,0,0.35)] backdrop-blur",
         finished && "opacity-80",
         cellFlash && "tv-cell-flash"
       )}
       style={{ gridColumn, gridRow }}
     >
-      <div
-        className={clsx(
-          "absolute inset-x-0 top-0 h-1",
-          endingSoon && !finished
-            ? "bg-gradient-to-r from-amber-400 via-amber-300 to-orange-400"
-            : "bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-500"
-        )}
-      />
-
       <header
         className="mb-[clamp(0.35rem,0.95vmin,0.7rem)] flex shrink-0 items-center justify-between gap-2"
         style={{ fontSize: typo.header }}
@@ -102,60 +116,47 @@ const TvMatchCell = ({
           <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[0.62em] font-semibold uppercase tracking-[0.2em] text-zinc-400">
             Ván {inning}
           </span>
-          <span
-            className={clsx(
-              "rounded-full px-2 py-0.5 text-[0.62em] font-semibold uppercase tracking-[0.2em]",
-              finished ? "bg-white/5 text-zinc-400" : "bg-emerald-500/15 text-emerald-300"
-            )}
-          >
-            {finished ? "Kết thúc" : "Đang đấu"}
+          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[0.62em] font-semibold uppercase tracking-[0.2em] text-zinc-400">
+            {finished ? "Kết thúc" : endingSoon ? "Sắp kết thúc" : "Đang đấu"}
           </span>
         </div>
       </header>
 
-      {endingSoon && !finished && (
-        <p className="mb-2 inline-flex w-fit items-center rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[0.62em] font-extrabold uppercase tracking-[0.2em] text-amber-300">
-          Sắp kết thúc
-        </p>
-      )}
+      {/* Hai cơ thủ nằm hai bên, tỉ số quay vào vạch phân cách ở giữa */}
+      <div className="flex min-h-0 flex-1 items-stretch gap-[clamp(0.25rem,0.7vmin,0.6rem)]">
+        <PlayerSide
+          name={p1}
+          score={s1}
+          accent={SLOT_COLORS[1]}
+          leading={tied || p1Leading}
+          won={p1Won}
+          scorePop={scoreFlash.p1}
+          nameSize={typo.name}
+          scoreSize={typo.score}
+        />
 
-      <div className="flex min-h-0 flex-1 flex-col justify-center gap-[clamp(0.35rem,0.95vmin,0.7rem)]">
         <div
-          className={clsx(
-            "rounded-[0.85rem] border px-3 py-2",
-            p1Leading || p1Won
-              ? "border-emerald-400/20 bg-emerald-500/10"
-              : "border-white/5 bg-white/[0.03]"
-          )}
+          className="flex shrink-0 items-center justify-center px-[clamp(0.1rem,0.4vmin,0.35rem)]"
+          aria-hidden
         >
-          <PlayerRow
-            name={p1}
-            score={s1}
-            leading={tied || p1Leading}
-            won={p1Won}
-            scorePop={scoreFlash.p1}
-            nameSize={typo.name}
-            scoreSize={typo.score}
-          />
+          <span
+            className="font-black italic leading-none tracking-tight text-zinc-600"
+            style={{ fontSize: `calc(${typo.score} * 0.34)` }}
+          >
+            VS
+          </span>
         </div>
-        <div
-          className={clsx(
-            "rounded-[0.85rem] border px-3 py-2",
-            p2Leading || p2Won
-              ? "border-emerald-400/20 bg-emerald-500/10"
-              : "border-white/5 bg-white/[0.03]"
-          )}
-        >
-          <PlayerRow
-            name={p2}
-            score={s2}
-            leading={tied || p2Leading}
-            won={p2Won}
-            scorePop={scoreFlash.p2}
-            nameSize={typo.name}
-            scoreSize={typo.score}
-          />
-        </div>
+
+        <PlayerSide
+          name={p2}
+          score={s2}
+          accent={SLOT_COLORS[2]}
+          leading={tied || p2Leading}
+          won={p2Won}
+          scorePop={scoreFlash.p2}
+          nameSize={typo.name}
+          scoreSize={typo.score}
+        />
       </div>
     </article>
   );

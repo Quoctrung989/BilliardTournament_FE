@@ -88,6 +88,26 @@ export const apiMatchToComp = (m) => {
   };
 };
 
+/** matchId (đích, id gốc từ BE) -> { player1: {type,code}|null, player2: {...}|null } của trận nguồn —
+ *  dùng winSlot/loseSlot (BE trả về đúng slot player1/player2) để hiện "Thắng RxMy" / "Thua RxMy"
+ *  thay vì "TBD", đúng cả nhánh thắng (nextMatchWinId) lẫn nhánh thua rớt xuống (nextMatchLoseId). */
+function buildFeedersMap(rawMatches) {
+  const result = new Map();
+  const ensure = (id) => {
+    if (!result.has(id)) result.set(id, { player1: null, player2: null });
+    return result.get(id);
+  };
+  (rawMatches || []).forEach(m => {
+    if (m.nextMatchWinId && m.winSlot) {
+      ensure(m.nextMatchWinId)[m.winSlot] = { type: "win", code: m.matchCode };
+    }
+    if (m.nextMatchLoseId && m.loseSlot) {
+      ensure(m.nextMatchLoseId)[m.loseSlot] = { type: "lose", code: m.matchCode };
+    }
+  });
+  return result;
+}
+
 const LEAGUE_STAGE_TYPES = ["GROUP", "PROGRESSIVE_ROUND"];
 const buildRoundsFromApiStage = (stageMatches, stageType) => {
   if (!stageMatches?.length) return [];
@@ -201,12 +221,13 @@ const computeStandings = (matches) => {
 /* ═══════════════════════════════════════════════════════════════════
    SHARED DISPLAY COMPONENTS
 ═══════════════════════════════════════════════════════════════════ */
-const BracketCard = ({ match, compact, flashIds }) => {
+const BracketCard = ({ match, compact, flashIds, feedersMap }) => {
   const navigate   = useNavigate();
   const isLive     = match?.status === "live";
   const isDone     = match?.status === "done";
   const isUpcoming = match?.status === "upcoming";
   const isFlashing = match && flashIds?.has(match.id);
+  const feeders    = match && feedersMap?.get(Number(match.id));
   const W = compact ? 190 : 218;
 
   if (!match) return (
@@ -230,6 +251,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
       {[{p:match.p1,side:1},{p:match.p2,side:2}].map(({p,side})=>{
         const isWinner = match.winSide === side;
         const isLoser  = isDone && match.winSide && !isWinner;
+        const feeder = !p?.id ? feeders?.[side === 1 ? "player1" : "player2"] : null;
         return (
           <div key={side}
                className={`relative flex items-center justify-between pl-3 pr-2.5 py-[4px] mx-1 my-[1px] rounded-md ${isWinner?"bg-blue-500/[0.12]":""}`}>
@@ -242,7 +264,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
                     : isUpcoming ? "text-slate-500 dark:text-white/55 font-light"
                     : "text-slate-700 dark:text-white/70 font-normal"}`}
                   style={{maxWidth: compact?110:138}}>
-              {p?.name||"TBD"}
+              {p?.id ? p.name : feeder ? `${feeder.type === "win" ? "Thắng" : "Thua"} ${feeder.code}` : "TBD"}
             </span>
             <span className={`text-[15px] font-black tabular-nums shrink-0 ${
                     isWinner ? "text-blue-600 dark:text-blue-400"
@@ -257,7 +279,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
   );
 };
 
-export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
+export const MatchRow = ({ m, matchNum, flashIds, showRefs = true, feedersMap }) => {
   const navigate   = useNavigate();
   const num        = matchNum ?? m.seq;
   const isLive     = m.status === "live";
@@ -265,6 +287,10 @@ export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
   const p1Win      = m.winSide === 1;
   const p2Win      = m.winSide === 2;
   const isFlashing = flashIds?.has(m.id);
+  const feeders    = feedersMap?.get(Number(m.id));
+  const p1Feeder   = !m.p1?.id ? feeders?.player1 : null;
+  const p2Feeder   = !m.p2?.id ? feeders?.player2 : null;
+  const feederLabel = (f) => `${f.type === "win" ? "Thắng" : "Thua"} ${f.code}`;
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-white/[0.05] last:border-0 transition-colors ${isLive?"":"hover:bg-slate-50 dark:hover:bg-white/[0.03]"} ${isFlashing?"ws-flash":""}`}
@@ -277,7 +303,7 @@ export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
           <span
             onClick={m.p1?.id ? () => navigate(`/event/players/${m.p1.id}`) : undefined}
             className={`text-[13px] leading-tight truncate text-right max-w-[100px] sm:max-w-[140px] ${m.p1?.id?"cursor-pointer hover:underline":""} ${p1Win?"font-bold text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
-            {m.p1?.name}
+            {m.p1?.id ? m.p1.name : p1Feeder ? feederLabel(p1Feeder) : m.p1?.name}
           </span>
           <span className={`text-xl font-black tabular-nums shrink-0 w-7 text-right ${p1Win?"text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/40":m.p1?.score!=null?"text-slate-800 dark:text-white":"text-transparent"}`}>
             {m.p1?.score??""}
@@ -291,7 +317,7 @@ export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
           <span
             onClick={m.p2?.id ? () => navigate(`/event/players/${m.p2.id}`) : undefined}
             className={`text-[13px] leading-tight truncate max-w-[100px] sm:max-w-[140px] ${m.p2?.id?"cursor-pointer hover:underline":""} ${p2Win?"font-bold text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
-            {m.p2?.name}
+            {m.p2?.id ? m.p2.name : p2Feeder ? feederLabel(p2Feeder) : m.p2?.name}
           </span>
         </div>
       </div>
@@ -321,7 +347,7 @@ const BRACKET_BADGE = {
   GF: { label:"GF", cls:"bg-yellow-500/15 text-yellow-400"   },
 };
 
-const ListView = ({ matches, rounds, flashIds }) => {
+const ListView = ({ matches, rounds, flashIds, feedersMap }) => {
   const matchNumMap = useMemo(() => {
     const map = {};
     let idx = 0;
@@ -349,7 +375,7 @@ const ListView = ({ matches, rounds, flashIds }) => {
               </div>
               <span className="text-[10px] font-light text-white/70">Đánh tới {round.raceTO} ván</span>
             </div>
-            <div>{rMatches.map(m=><MatchRow key={m.id} m={m} matchNum={matchNumMap[m.id]} flashIds={flashIds}/>)}</div>
+            <div>{rMatches.map(m=><MatchRow key={m.id} m={m} matchNum={matchNumMap[m.id]} flashIds={flashIds} feedersMap={feedersMap}/>)}</div>
           </div>
         );
       })}
@@ -535,7 +561,7 @@ function buildBracketGeometry(rounds, matchesByRound) {
 const ZOOM_MIN = 0.4, ZOOM_MAX = 1.5, ZOOM_STEP = 0.1;
 const clampZoom = (z) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, +z.toFixed(3)));
 
-const BracketView = ({ matches, rounds, flashIds }) => {
+const BracketView = ({ matches, rounds, flashIds, feedersMap }) => {
   const matchesByRound = useMemo(() => {
     const map = {};
     rounds.forEach(r => {
@@ -633,7 +659,7 @@ const BracketView = ({ matches, rounds, flashIds }) => {
                 {rounds.map((r,ri)=>
                   (matchesByRound[r.id]||[]).map((m,mi)=>(
                     <div key={m.id} className="absolute" style={{left:posXL(ri),top:posTop(ri,mi)}}>
-                      <BracketCard match={m} compact={false} flashIds={flashIds}/>
+                      <BracketCard match={m} compact={false} flashIds={flashIds} feedersMap={feedersMap}/>
                     </div>
                   ))
                 )}
@@ -649,7 +675,7 @@ const BracketView = ({ matches, rounds, flashIds }) => {
 /* ═══════════════════════════════════════════════════════════════════
    DOUBLE ELIMINATION VIEWS
 ═══════════════════════════════════════════════════════════════════ */
-const DoubleEliminationBracketView = ({ stages, flashIds }) => {
+const DoubleEliminationBracketView = ({ stages, flashIds, feedersMap }) => {
   const wbStage  = stages.find(s=>s.stageType==="WINNERS");
   const lbStage  = stages.find(s=>s.stageType==="LOSERS");
   const gfStage  = stages.find(s=>s.stageType==="GRAND_FINAL");
@@ -671,7 +697,7 @@ const DoubleEliminationBracketView = ({ stages, flashIds }) => {
             <span className="text-slate-800 dark:text-white text-xs font-semibold tracking-wide">NHÁNH THẮNG (WINNER BRACKET)</span>
             <span className="ml-auto text-[10px] text-slate-400 dark:text-white/30">Thua → Nhánh Thua</span>
           </div>
-          <BracketView matches={wbMatches} rounds={wbRounds} flashIds={flashIds}/>
+          <BracketView matches={wbMatches} rounds={wbRounds} flashIds={flashIds} feedersMap={feedersMap}/>
         </div>
       )}
       {lbMatches.length > 0 && (
@@ -682,7 +708,7 @@ const DoubleEliminationBracketView = ({ stages, flashIds }) => {
             <span className="text-slate-800 dark:text-white text-xs font-semibold tracking-wide">NHÁNH THUA (LOSER BRACKET)</span>
             <span className="ml-auto text-[10px] text-slate-400 dark:text-white/30">Thắng → Chung kết</span>
           </div>
-          <BracketView matches={lbMatches} rounds={lbRounds} flashIds={flashIds}/>
+          <BracketView matches={lbMatches} rounds={lbRounds} flashIds={flashIds} feedersMap={feedersMap}/>
         </div>
       )}
       {gfMatch && (
@@ -694,7 +720,7 @@ const DoubleEliminationBracketView = ({ stages, flashIds }) => {
             <span className="ml-auto text-[10px] text-yellow-400/50">Đánh tới {gfMatch.raceTo} ván</span>
           </div>
           <div className="p-5 flex justify-center">
-            <BracketCard match={gfMatch} compact={false} flashIds={flashIds}/>
+            <BracketCard match={gfMatch} compact={false} flashIds={flashIds} feedersMap={feedersMap}/>
           </div>
         </div>
       )}
@@ -807,6 +833,11 @@ const MatchesTab = ({ tournament }) => {
   );
   const views = VIEWS[format] || VIEWS.single_elimination;
   const validView = views.find(v=>v.id===view) ? view : views[0].id;
+
+  const feedersMap = useMemo(
+    () => buildFeedersMap(stages.flatMap(s => s.matches ?? [])),
+    [stages]
+  );
 
   /* Flatten all matches into component format — gồm cả Playoff để "Tất cả giai đoạn" đủ trận */
   const { allMatches, rounds } = useMemo(() => {
@@ -1070,29 +1101,29 @@ const MatchesTab = ({ tournament }) => {
       {/* Single Elimination */}
       {format === "single_elimination" && validView === "list" && (
         filteredKo.length > 0
-          ? <ListView matches={filteredKo} rounds={koRounds} flashIds={flashIds}/>
+          ? <ListView matches={filteredKo} rounds={koRounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
       {format === "single_elimination" && validView === "bracket" && (
         koMatches.length > 0
-          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds}/>
+          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <NoBracket/>
       )}
 
       {/* Double Elimination */}
       {format === "double_elimination" && validView === "list" && (
         filteredMatches.length > 0
-          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds}/>
+          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
       {format === "double_elimination" && validView === "bracket" && (
-        <DoubleEliminationBracketView stages={stages} flashIds={flashIds}/>
+        <DoubleEliminationBracketView stages={stages} flashIds={flashIds} feedersMap={feedersMap}/>
       )}
 
       {/* Group stage / Round robin: Lịch đấu */}
       {(format === "group_stage" || format === "round_robin") && validView === "list" && (
         filteredMatches.length > 0
-          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds}/>
+          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
 
@@ -1104,7 +1135,7 @@ const MatchesTab = ({ tournament }) => {
       {/* Group stage: Playoff (bracket từ vòng knockout) */}
       {format === "group_stage" && validView === "bracket" && (
         koMatches.length > 0
-          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds}/>
+          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <NoBracket/>
       )}
     </div>

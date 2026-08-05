@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminPagination from "../../../components/admin/ui/AdminPagination";
@@ -9,6 +9,7 @@ import {
   EMAIL_MANUAL_RECIPIENT_TYPES,
   EMAIL_SEND_STATUS_LABELS,
   EMAIL_SEND_STATUS_STYLES,
+  EMAIL_TRIGGER_TYPE_LABELS,
 } from "../../../constants/emailConfig";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../../utils/pagination";
@@ -307,13 +308,35 @@ const HistoryTab = ({ api, tournamentId }) => {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
+  const [triggerTypeFilter, setTriggerTypeFilter] = useState("");
+  const [templateCodeFilter, setTemplateCodeFilter] = useState("");
+  const [recipientEmailFilter, setRecipientEmailFilter] = useState("");
+  const [fromDateFilter, setFromDateFilter] = useState("");
+  const [toDateFilter, setToDateFilter] = useState("");
+  const [templates, setTemplates] = useState([]);
+
+  useEffect(() => {
+    api
+      .listTemplates(buildListParams({ page: 0, size: 100 }))
+      .then((r) => setTemplates(r.content))
+      .catch(() => {});
+  }, [api]);
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (silent) setRefreshing(true); else setLoading(true);
     try {
       const result = await api.listLogs(
         tournamentId,
-        buildListParams({ page, size: pageSize, status: statusFilter || undefined })
+        buildListParams({
+          page,
+          size: pageSize,
+          status: statusFilter || undefined,
+          triggerType: triggerTypeFilter || undefined,
+          templateCode: templateCodeFilter || undefined,
+          recipientEmail: recipientEmailFilter || undefined,
+          fromDate: fromDateFilter || undefined,
+          toDate: toDateFilter || undefined,
+        })
       );
       setLogs(result.content);
       setTotalElements(result.totalElements);
@@ -324,11 +347,32 @@ const HistoryTab = ({ api, tournamentId }) => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [api, tournamentId, page, pageSize, statusFilter]);
+  }, [
+    api,
+    tournamentId,
+    page,
+    pageSize,
+    statusFilter,
+    triggerTypeFilter,
+    templateCodeFilter,
+    recipientEmailFilter,
+    fromDateFilter,
+    toDateFilter,
+  ]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const resetFilters = () => {
+    setPage(0);
+    setStatusFilter("");
+    setTriggerTypeFilter("");
+    setTemplateCodeFilter("");
+    setRecipientEmailFilter("");
+    setFromDateFilter("");
+    setToDateFilter("");
+  };
 
   // Email vừa gửi ở trạng thái "Đang chờ gửi" sẽ được xử lý bất đồng bộ ở BE,
   // nên tự động làm mới định kỳ tới khi không còn dòng nào chờ nữa — khỏi phải F5 cả trang.
@@ -364,6 +408,68 @@ const HistoryTab = ({ api, tournamentId }) => {
             </option>
           ))}
         </select>
+        <select
+          className="admin-select w-auto"
+          value={triggerTypeFilter}
+          onChange={(e) => {
+            setPage(0);
+            setTriggerTypeFilter(e.target.value);
+          }}
+        >
+          <option value="">Tất cả kích hoạt</option>
+          {Object.entries(EMAIL_TRIGGER_TYPE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <select
+          className="admin-select w-auto"
+          value={templateCodeFilter}
+          onChange={(e) => {
+            setPage(0);
+            setTemplateCodeFilter(e.target.value);
+          }}
+        >
+          <option value="">Tất cả mẫu email</option>
+          {templates.map((t) => (
+            <option key={t.code} value={t.code}>
+              {t.name} ({t.code})
+            </option>
+          ))}
+        </select>
+        <input
+          className="admin-input w-auto"
+          placeholder="Lọc theo email người nhận"
+          value={recipientEmailFilter}
+          onChange={(e) => {
+            setPage(0);
+            setRecipientEmailFilter(e.target.value);
+          }}
+        />
+        <input
+          type="date"
+          className="admin-input w-auto"
+          title="Từ ngày"
+          value={fromDateFilter}
+          onChange={(e) => {
+            setPage(0);
+            setFromDateFilter(e.target.value);
+          }}
+        />
+        <input
+          type="date"
+          className="admin-input w-auto"
+          title="Đến ngày"
+          value={toDateFilter}
+          onChange={(e) => {
+            setPage(0);
+            setToDateFilter(e.target.value);
+          }}
+        />
+        <AdminButton variant="secondary" onClick={resetFilters}>
+          Xóa lọc
+        </AdminButton>
       </div>
       <div className="overflow-x-auto">
         <table className="admin-table w-full text-sm">
@@ -424,13 +530,19 @@ const HistoryTab = ({ api, tournamentId }) => {
   );
 };
 
-const TournamentNotificationsPage = ({ api }) => {
+const TournamentNotificationsPage = ({ api, basePath }) => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const tournamentId = Number(id);
   const [tab, setTab] = useState("manual");
 
   return (
     <div className="space-y-4">
+      {basePath && (
+        <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
+          <ArrowLeft size={14} /> Chi tiết giải
+        </AdminButton>
+      )}
       <div className="flex gap-2 border-b border-slate-200">
         {TABS.map((t) => (
           <button

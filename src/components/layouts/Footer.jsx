@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { FaInstagram, FaTiktok, FaYoutube, FaFacebook } from "react-icons/fa6";
 
 const Footer = () => {
@@ -30,14 +31,16 @@ const Footer = () => {
                   key={item}
                   href="/"
                   className="
+                    ui-underline
                     w-fit
+                    pb-0.5
                     text-[12px]
                     font-light
                     text-[#1f1f1f]
                     dark:text-gray-300
-                    transition-opacity
+                    transition-colors
                     duration-200
-                    hover:opacity-60
+                    hover:text-[var(--wnt25-color-red)]
                   "
                 >
                   {item}
@@ -49,9 +52,13 @@ const Footer = () => {
 
         <div className="flex flex-col gap-8 pt-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center">
-            <h1 className="text-[60px] font-black italic leading-none tracking-tight text-[#2b2b2b] dark:text-white">
+            <Link
+              to="/"
+              aria-label="Về trang chủ CAPSTONE"
+              className="ui-logo-zoom text-[60px] font-black italic leading-none tracking-tight text-[#2b2b2b] dark:text-white"
+            >
               CAPS<span className="text-red-500">.</span>
-            </h1>
+            </Link>
           </div>
 
           <div className="max-w-[540px]">
@@ -70,21 +77,27 @@ const Footer = () => {
               CAPS.tv
             </h2>
 
-            <button className="transition-opacity hover:opacity-60">✕</button>
+            <button className="ui-icon-lift">✕</button>
 
-            <button className="transition-opacity hover:opacity-60">
+            <a
+              href="https://www.facebook.com/profile.php?id=61591577595713"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Trang Facebook CAPSTONE"
+              className="ui-icon-lift"
+            >
               <FaFacebook size={22} />
-            </button>
+            </a>
 
-            <button className="transition-opacity hover:opacity-60">
+            <button className="ui-icon-lift">
               <FaInstagram size={22} />
             </button>
 
-            <button className="transition-opacity hover:opacity-60">
+            <button className="ui-icon-lift">
               <FaYoutube size={24} />
             </button>
 
-            <button className="transition-opacity hover:opacity-60">
+            <button className="ui-icon-lift">
               <FaTiktok size={22} />
             </button>
           </div>

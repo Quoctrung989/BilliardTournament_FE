@@ -9,6 +9,8 @@ export const register = (body) => axiosClient.post("/auth/register", body);
 
 export const forgotPassword = (body) => axiosClient.post("/auth/forgot-password", body);
 
+export const verifyOtp = (body) => axiosClient.post("/auth/verify-otp", body);
+
 export const resetPassword = (body) => axiosClient.post("/auth/reset-password", body);
 
 /** POST /auth/change-password — body: { oldPassword, newPassword } */

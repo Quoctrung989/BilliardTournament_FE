@@ -7,6 +7,8 @@ module.exports = {
       fontFamily: {
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
+        // Dùng `font-display` trong JSX cho tiêu đề không phải thẻ h1-h6
+        display: ["var(--font-display)"],
       },
       colors:{
         "primary": "#010851",

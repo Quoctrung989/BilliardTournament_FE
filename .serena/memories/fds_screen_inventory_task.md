@@ -1,5 +1,10 @@
 # NHIỆM VỤ: Điền mục "3. Screen Inventory" của Functional Design Spec (Google Doc)
 
+> ⚠️ **TẠM DỪNG — đối chiếu 2026-07-28.** Nhiệm vụ chưa xong (xem `fds_screen_inventory_progress`),
+> nhưng trọng tâm hiện tại là **app mobile**. Danh sách 38 màn ở mục 5 **đã thiếu** so với FE `prod`:
+> nay còn có `src/pages/Branch/`, `src/pages/Live/` (màn TV tỉ số trực tiếp) và `src/pages/Public/StaffList/`.
+> Nhánh `thanh/feat/fixEventUI` không còn dùng. Nếu làm tiếp: đọc lại `src/constants/routes.js` trước.
+
 > Ghi 2026-07-07. Người dùng sẽ mở SESSION MỚI (có Claude Chrome) để tiếp tục. Đọc kỹ file này là đủ để làm tiếp, không cần hỏi lại từ đầu.
 
 ## 1. Mục tiêu

@@ -17,7 +17,6 @@ import OwnerBranchListPage from "../pages/Owner/branches/BranchListPage";
 import OwnerTableListPage from "../pages/Owner/tables/TableListPage";
 import ManagerBranchListPage from "../pages/Manager/branches/BranchListPage";
 import StaffProfile from "../pages/Manager/StaffProfile";
-import PublicStaffListPage from "../pages/Public/StaffList";
 import FormatListPage from "../pages/Admin/tournament-config/FormatListPage";
 import FormatWizardPage from "../pages/Admin/tournament-config/FormatWizardPage";
 import GameTypeListPage from "../pages/Admin/tournament-config/GameTypeListPage";
@@ -72,6 +71,7 @@ import {
 import { ownerEmailApi, managerEmailApi } from "../api/emailApi";
 import { getOwnerStats, getManagerStats } from "../api/dashboardApi";
 import { ownerAnalyticsApi, managerAnalyticsApi } from "../api/analyticsApi";
+import { ownerBranchApi, managerBranchApi } from "../api/branchApi";
 import StatisticsPage from "../pages/shared/StatisticsPage";
 import TransactionsPage from "../pages/shared/TransactionsPage";
 import { ownerMatchApi, managerMatchApi } from "../api/matchApi";
@@ -83,6 +83,7 @@ import { withManagerPage } from "../components/manager/withManagerPage";
 const OwnerTournamentHub = () => (
   <TournamentListPage
     api={ownerTournamentApi}
+    branchApi={ownerBranchApi}
     basePath="/owner/tournaments"
     roleLabel="Owner"
   />
@@ -104,6 +105,7 @@ const OwnerTournamentDetail = () => (
 const ManagerTournamentHub = () => (
   <TournamentListPage
     api={managerTournamentApi}
+    branchApi={managerBranchApi}
     basePath="/manager/tournaments"
     roleLabel="Manager"
   />
@@ -150,7 +152,7 @@ const OwnerDashboard = () => (
   <DashboardPage statsLoader={getOwnerStats} basePath="/owner" title="Owner — Tổng quan" />
 );
 const OwnerStatistics = () => (
-  <StatisticsPage analyticsApi={ownerAnalyticsApi} title="Owner — Thống kê & Phân tích" />
+  <StatisticsPage analyticsApi={ownerAnalyticsApi} branchApi={ownerBranchApi} title="Owner — Thống kê & Phân tích" />
 );
 const OwnerTransactions = () => (
   <TransactionsPage analyticsApi={ownerAnalyticsApi} title="Owner — Quản lý giao dịch" />
@@ -159,7 +161,7 @@ const ManagerDashboard = () => (
   <DashboardPage statsLoader={getManagerStats} basePath="/manager" title="Manager — Tổng quan" />
 );
 const ManagerStatistics = () => (
-  <StatisticsPage analyticsApi={managerAnalyticsApi} title="Manager — Thống kê & Phân tích" />
+  <StatisticsPage analyticsApi={managerAnalyticsApi} branchApi={managerBranchApi} title="Manager — Thống kê & Phân tích" />
 );
 const ManagerTransactions = () => (
   <TransactionsPage analyticsApi={managerAnalyticsApi} title="Manager — Quản lý giao dịch" />
@@ -172,8 +174,12 @@ const ManagerDrawPage = () => (
   <DrawPage api={managerMatchApi} basePath="/manager/tournaments" />
 );
 
-const OwnerTournamentNotifications = () => <TournamentNotificationsPage api={ownerEmailApi} />;
-const ManagerTournamentNotifications = () => <TournamentNotificationsPage api={managerEmailApi} />;
+const OwnerTournamentNotifications = () => (
+  <TournamentNotificationsPage api={ownerEmailApi} basePath="/owner/tournaments" />
+);
+const ManagerTournamentNotifications = () => (
+  <TournamentNotificationsPage api={managerEmailApi} basePath="/manager/tournaments" />
+);
 
 const OwnerNewsCMS = () => (
   <NewsCMSPage api={ownerNewsCmsApi} editorPath="/owner/news" taxonomyPath="/owner/news/categories" />
@@ -671,7 +677,6 @@ export const ROUTES = [
   { path: "/forgot-password", component: ForgotPasswordPage, layout: null },
   { path: "/profile", component: Profile, layout: CommonLayout },
   { path: "/staffProfile/:slug", component: StaffProfile, layout: null },
-  { path: "/staffs", component: PublicStaffListPage, layout: CommonLayout },
   {
     path: "/admin/accounts", 
     component: withAdminPage(

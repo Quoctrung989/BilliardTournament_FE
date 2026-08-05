@@ -28,6 +28,7 @@ export const adminEmailApi = {
 
   getLayoutSettings: () => unwrap(axiosClient.get("/admin/email/layout")),
   updateLayoutSettings: (body) => unwrap(axiosClient.put("/admin/email/layout", body)),
+  sendLayoutTest: (body) => unwrap(axiosClient.post("/admin/email/layout/test-send", body)),
 };
 
 /** Owner/Manager — email theo phạm vi 1 giải đấu. */

@@ -8,9 +8,112 @@ body {
   font-family: var(--font-sans);
 }
 
+/* ===================================================================
+   Tiêu đề — Bebas Neue nghiêng.
+
+   Bebas Neue chỉ có duy nhất weight 400. Nếu để nguyên `font-weight: 700/900`
+   mà nhiều nơi trong dự án đang dùng, trình duyệt sẽ tự làm đậm (faux bold) và
+   nét bị bết lại. Nên ép về 400 và bù độ "nặng" bằng letter-spacing.
+
+   Bebas Neue cũng là font toàn chữ hoa — mọi tiêu đề sẽ hiển thị dạng hoa dù
+   nội dung viết thường. Đó là đặc tính của font, không phải lỗi CSS.
+   =================================================================== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Ô nhập và nút giữ font chữ thường — tiêu đề dạng display rất khó đọc ở cỡ
+   nhỏ, và chữ hoa toàn phần làm placeholder khó quét mắt. */
+input,
+textarea,
+select,
+button,
+label {
+  font-family: var(--font-sans);
+  font-style: normal;
+}
+
 .container {
   width: 1200px;
   margin: 0 auto;
+}
+
+/* ===================================================================
+   Tiện ích chuyển động dùng chung — Header, Footer và các trang.
+   Đặt ở global vì Header/Footer nằm ngoài mọi page component.
+   Prefix `ui-` để phân biệt với `hm-` (riêng trang chủ) và `admin-`.
+   =================================================================== */
+
+/* Gạch chân đỏ chạy từ trái khi hover — dùng cho nav link, footer link,
+   và các nút text kiểu "Tất cả tin tức" / "Toàn bộ lịch". */
+.ui-underline {
+  position: relative;
+}
+
+.ui-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background-color: var(--wnt25-color-red);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.ui-underline:hover::after,
+.ui-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Logo phóng to khi hover. `transform-origin: left` để logo nở sang phải,
+   không đẩy các phần tử bên cạnh và không tràn mép trái màn hình. */
+.ui-logo-zoom {
+  display: inline-block;
+  transform-origin: left center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+.ui-logo-zoom:hover,
+.ui-logo-zoom:focus-visible {
+  transform: scale(1.08);
+}
+
+/* Icon nhấc nhẹ và chuyển đỏ — dùng cho cụm mạng xã hội ở footer. */
+.ui-icon-lift {
+  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.5, 1), color 0.3s ease;
+}
+
+.ui-icon-lift:hover {
+  transform: translateY(-3px) scale(1.12);
+  color: var(--wnt25-color-red);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-underline::after {
+    transition: none;
+  }
+
+  .ui-icon-lift {
+    transition: color 0.3s ease;
+  }
+
+  .ui-icon-lift:hover,
+  .ui-logo-zoom:hover,
+  .ui-logo-zoom:focus-visible {
+    transform: none;
+  }
 }
 
 @keyframes tournament-stream-in {
