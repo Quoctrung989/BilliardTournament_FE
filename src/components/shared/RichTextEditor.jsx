@@ -34,7 +34,9 @@ const ToolbarButton = ({ onClick, active, disabled, title, children }) => (
 const RichTextEditor = ({ value, onChange, placeholder = "Nội dung bài viết..." }) => {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      // Tiptap v3 StarterKit already bundles Link + Underline — disable them here
+      // to avoid "Duplicate extension names" and configure them separately below.
+      StarterKit.configure({ link: false, underline: false }),
       Underline,
       Link.configure({ openOnClick: false, autolink: true }),
       ImageExtension,

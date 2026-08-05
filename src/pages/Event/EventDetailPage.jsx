@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import {
   ArrowLeft, Calendar, Trophy, Gamepad2, Award,
   Info, List, Radio, BarChart2, UserCheck,
-  CreditCard, Clock, CheckCircle2, XCircle, ChevronRight, Search,
+  CreditCard, Clock, CheckCircle2, XCircle, ChevronRight, Search, MapPin, Phone,
 } from "lucide-react";
 import MatchesTab, { apiMatchToComp, MatchRow } from "./MatchesTab";
 import RankingTab from "./RankingTab";
@@ -287,8 +287,46 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
         </div>
       </div>
 
+      {/* Organizing branch card */}
+      {t.venue && (
+        <div className="ui-stagger" style={{ "--i": 2, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+            <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
+            <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+              Chi nhánh tổ chức
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+            {t.venue.images?.[0]?.url && (
+              <img
+                src={t.venue.images[0].url}
+                alt={t.venue.name}
+                style={{ width: "72px", height: "72px", borderRadius: "0.75rem", objectFit: "cover", flexShrink: 0, border: "1px solid var(--evt-card-border)" }}
+              />
+            )}
+            <div style={{ flex: 1, minWidth: "180px", display: "grid", gap: "0.6rem" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
+                <MapPin size={15} style={{ color: "var(--evt-accent)", marginTop: "0.15rem", flexShrink: 0 }} />
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--evt-heading)", margin: 0 }}>{t.venue.name}</p>
+                  {t.venue.address && (
+                    <p style={{ fontSize: "0.8125rem", color: "var(--evt-text-3)", margin: "0.15rem 0 0" }}>{t.venue.address}</p>
+                  )}
+                </div>
+              </div>
+              {t.venue.phone && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <Phone size={14} style={{ color: "var(--evt-text-4)", flexShrink: 0 }} />
+                  <p style={{ fontSize: "0.8125rem", color: "var(--evt-text-2)", margin: 0 }}>{t.venue.phone}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Participants + Fee card */}
-      <div className="ui-stagger" style={{ "--i": 2, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+      <div className="ui-stagger" style={{ "--i": 3, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
         {!isEndedOrClosed && (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
@@ -335,7 +373,7 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
 
       {/* Format / Config card */}
       {(t.configSummary || t.formatName) && (
-        <div className="ui-stagger" style={{ "--i": 3, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+        <div className="ui-stagger" style={{ "--i": 4, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
             <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
             <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
@@ -369,7 +407,7 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
 
       {/* Description card */}
       {t.description && (
-        <div className="ui-stagger" style={{ "--i": 4, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+        <div className="ui-stagger" style={{ "--i": 5, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
             <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
             <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>

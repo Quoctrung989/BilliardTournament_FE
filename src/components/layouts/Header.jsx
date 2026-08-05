@@ -97,63 +97,64 @@ const Header = () => {
           </button>
 
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-1 h-full" ref={menuRef}>
+            <div className="relative flex items-center gap-1 h-full" ref={menuRef}>
               <button
+                type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="relative flex items-center gap-1.5 text-[#1a1a2e] dark:text-gray-200 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 text-[12px] font-normal whitespace-nowrap"
+                className="flex items-center gap-1.5 text-[#1a1a2e] dark:text-gray-200 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 text-[12px] font-normal whitespace-nowrap"
               >
                 <AiOutlineUser size={17} />
                 <span className="max-w-[100px] truncate">{user.fullName || user.email}</span>
                 <AiOutlineDown size={12} className={`transition-transform ${menuOpen ? "rotate-180" : ""}`} />
+              </button>
 
-                {menuOpen && (
-                  <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-[#1a1d24] border border-slate-100 dark:border-white/10 rounded-xl shadow-lg py-1 z-50">
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-[#1a1d24] border border-slate-100 dark:border-white/10 rounded-xl shadow-lg py-1 z-50">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate("/profile"); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
+                  >
+                    <AiOutlineUser size={15} />
+                    Hồ sơ
+                  </button>
+                  {canManage && dashboardPath && (
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate("/profile"); }}
+                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate(dashboardPath); }}
                       className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
                     >
-                      <AiOutlineUser size={15} />
-                      Hồ sơ
+                      <AiOutlineDashboard size={15} />
+                      Quản lý
                     </button>
-                    {canManage && dashboardPath && (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate(dashboardPath); }}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
-                      >
-                        <AiOutlineDashboard size={15} />
-                        Quản lý
-                      </button>
-                    )}
-                    {isPlayer && (
-                      <>
-                        <div className="my-1 border-t border-slate-100 dark:border-white/10" />
-                        {PLAYER_MENU.map(({ label, path, Icon }) => (
-                          <button
-                            key={path}
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate(path); }}
-                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
-                          >
-                            <Icon size={15} />
-                            {label}
-                          </button>
-                        ))}
-                      </>
-                    )}
-                    <div className="my-1 border-t border-slate-100 dark:border-white/10" />
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); logout(); navigate("/"); }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left"
-                    >
-                      <AiOutlineLogout size={15} />
-                      Đăng xuất
-                    </button>
-                  </div>
-                )}
-              </button>
+                  )}
+                  {isPlayer && (
+                    <>
+                      <div className="my-1 border-t border-slate-100 dark:border-white/10" />
+                      {PLAYER_MENU.map(({ label, path, Icon }) => (
+                        <button
+                          key={path}
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate(path); }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
+                        >
+                          <Icon size={15} />
+                          {label}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  <div className="my-1 border-t border-slate-100 dark:border-white/10" />
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); logout(); navigate("/"); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left"
+                  >
+                    <AiOutlineLogout size={15} />
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <button
