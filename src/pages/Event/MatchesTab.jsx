@@ -237,7 +237,7 @@ const BracketCard = ({ match, compact, flashIds, feedersMap }) => {
   );
 };
 
-export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
+export const MatchRow = ({ m, matchNum, flashIds, showRefs = true, feedersMap }) => {
   const navigate   = useNavigate();
   const num        = matchNum ?? m.seq;
   const isLive     = m.status === "live";
@@ -245,6 +245,10 @@ export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
   const p1Win      = m.winSide === 1;
   const p2Win      = m.winSide === 2;
   const isFlashing = flashIds?.has(m.id);
+  const feeders    = feedersMap?.get(Number(m.id));
+  const p1Feeder   = !m.p1?.id ? feeders?.player1 : null;
+  const p2Feeder   = !m.p2?.id ? feeders?.player2 : null;
+  const feederLabel = (f) => `${f.type === "win" ? "Thắng" : "Thua"} ${f.code}`;
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-white/[0.05] last:border-0 transition-colors ${isLive?"":"hover:bg-slate-50 dark:hover:bg-white/[0.03]"} ${isFlashing?"ws-flash":""}`}
@@ -257,7 +261,7 @@ export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
           <span
             onClick={m.p1?.id ? () => navigate(`/event/players/${m.p1.id}`) : undefined}
             className={`text-[13px] leading-tight truncate text-right max-w-[100px] sm:max-w-[140px] ${m.p1?.id?"cursor-pointer hover:underline":""} ${p1Win?"font-bold text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
-            {m.p1?.name}
+            {m.p1?.id ? m.p1.name : p1Feeder ? feederLabel(p1Feeder) : m.p1?.name}
           </span>
           <span className={`text-xl font-black tabular-nums shrink-0 w-7 text-right ${p1Win?"text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/40":m.p1?.score!=null?"text-slate-800 dark:text-white":"text-transparent"}`}>
             {m.p1?.score??""}
@@ -271,7 +275,7 @@ export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
           <span
             onClick={m.p2?.id ? () => navigate(`/event/players/${m.p2.id}`) : undefined}
             className={`text-[13px] leading-tight truncate max-w-[100px] sm:max-w-[140px] ${m.p2?.id?"cursor-pointer hover:underline":""} ${p2Win?"font-bold text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
-            {m.p2?.name}
+            {m.p2?.id ? m.p2.name : p2Feeder ? feederLabel(p2Feeder) : m.p2?.name}
           </span>
         </div>
       </div>
@@ -301,7 +305,7 @@ const BRACKET_BADGE = {
   GF: { label:"GF", cls:"bg-yellow-500/15 text-yellow-400"   },
 };
 
-const ListView = ({ matches, rounds, flashIds }) => {
+const ListView = ({ matches, rounds, flashIds, feedersMap }) => {
   const matchNumMap = useMemo(() => {
     const map = {};
     let idx = 0;
@@ -329,7 +333,7 @@ const ListView = ({ matches, rounds, flashIds }) => {
               </div>
               <span className="text-[10px] font-light text-white/70">Race to {round.raceTO}</span>
             </div>
-            <div>{rMatches.map(m=><MatchRow key={m.id} m={m} matchNum={matchNumMap[m.id]} flashIds={flashIds}/>)}</div>
+            <div>{rMatches.map(m=><MatchRow key={m.id} m={m} matchNum={matchNumMap[m.id]} flashIds={flashIds} feedersMap={feedersMap}/>)}</div>
           </div>
         );
       })}
@@ -1055,7 +1059,7 @@ const MatchesTab = ({ tournament }) => {
       {/* Single Elimination */}
       {format === "single_elimination" && validView === "list" && (
         filteredKo.length > 0
-          ? <ListView matches={filteredKo} rounds={koRounds} flashIds={flashIds}/>
+          ? <ListView matches={filteredKo} rounds={koRounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
       {format === "single_elimination" && validView === "bracket" && (
@@ -1067,7 +1071,7 @@ const MatchesTab = ({ tournament }) => {
       {/* Double Elimination */}
       {format === "double_elimination" && validView === "list" && (
         filteredMatches.length > 0
-          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds}/>
+          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
       {format === "double_elimination" && validView === "bracket" && (
@@ -1077,7 +1081,7 @@ const MatchesTab = ({ tournament }) => {
       {/* Group stage / Round robin: Lịch đấu */}
       {(format === "group_stage" || format === "round_robin") && validView === "list" && (
         filteredMatches.length > 0
-          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds}/>
+          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
 
