@@ -1982,7 +1982,7 @@ const MatchRow = ({
                 isSelected={isSelected}
                 isDragSrc={isDragSrc}
                 isDropTarget={isDropTgt}
-                feederCode={feeders?.[slot]}
+                feeder={feeders?.[slot]}
                 onSlotClick={() => onSlotClick(match, slot, player, stageType)}
                 onDragStart={e => onDragStart(e, match.id, slot)}
                 onDragOver={e => onDragOver(e, match.id, slot)}
@@ -2084,7 +2084,7 @@ const MatchRow = ({
    PlayerSlot
 ══════════════════════════════════════════════════════════ */
 const PlayerSlot = ({
-  player, isWinner, canEdit, isSelected, isDragSrc, isDropTarget, feederCode,
+  player, isWinner, canEdit, isSelected, isDragSrc, isDropTarget, feeder,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd, onSearch,
 }) => {
   return (
@@ -2130,7 +2130,7 @@ const PlayerSlot = ({
             : "text-slate-800"
           : "text-slate-300 italic",
       ].join(" ")}>
-        {player?.displayName ?? (feederCode ? `Thắng ${feederCode}` : "TBD")}
+        {player?.displayName ?? (feeder ? `${feeder.type === "win" ? "Thắng" : "Thua"} ${feeder.code}` : "TBD")}
         {isWinner && " ✓"}
       </span>
 

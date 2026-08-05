@@ -75,12 +75,12 @@ const MatchNode = ({ match, nodeRef, onStart, onScore, onComplete, starting, fla
 
       {[["player1", match.player1], ["player2", match.player2]].map(([slot, p]) => {
         const isW = Boolean(p && match.winner && match.winner.id === p.id);
-        const feederCode = !p ? feeders?.[slot] : null;
+        const feeder = !p ? feeders?.[slot] : null;
         return (
           <div key={slot} className={`flex items-center gap-1.5 px-2 py-1 ${isW ? "bg-emerald-50" : ""}`}>
             <MiniAvatar name={p?.displayName} id={p?.id} />
             <span className={`flex-1 truncate ${isW ? "font-bold text-emerald-700" : p ? "text-slate-700" : "text-slate-300 italic"}`}>
-              {p?.displayName ?? (feederCode ? `Thắng ${feederCode}` : "TBD")}
+              {p?.displayName ?? (feeder ? `${feeder.type === "win" ? "Thắng" : "Thua"} ${feeder.code}` : "TBD")}
               {isW && " ✓"}
             </span>
             {["IN_PROGRESS", "COMPLETED", "WALKOVER"].includes(match.status) && (
@@ -169,19 +169,22 @@ const ConnectorOverlay = ({ containerRef, nodesRef, links, signal }) => {
    BracketTreeSection — 1 khối cây (KNOCKOUT / WINNERS / LOSERS /
    FINAL_BRACKET / PROGRESSIVE_PLAYOFF) tự đo & tự vẽ đường nối.
 ══════════════════════════════════════════════════════════ */
-/** matchId (đích) -> { player1: matchCode|null, player2: matchCode|null } của 2 trận nguồn. */
+/** matchId (đích) -> { player1: {type,code}|null, player2: {...}|null } của trận nguồn — dùng
+ *  winSlot/loseSlot (BE trả về đúng slot player1/player2) thay vì đoán qua positionNo, để đúng
+ *  cả nhánh thắng (nextMatchWinId) lẫn nhánh thua rớt xuống (nextMatchLoseId) ở Double Elimination. */
 export function buildFeedersMap(allMatches) {
-  const feedersByTarget = new Map();
-  allMatches.forEach(m => {
-    if (!m.nextMatchWinId) return;
-    const arr = feedersByTarget.get(m.nextMatchWinId) ?? [];
-    arr.push(m);
-    feedersByTarget.set(m.nextMatchWinId, arr);
-  });
   const result = new Map();
-  feedersByTarget.forEach((arr, targetId) => {
-    const sorted = [...arr].sort((a, b) => a.positionNo - b.positionNo);
-    result.set(targetId, { player1: sorted[0]?.matchCode ?? null, player2: sorted[1]?.matchCode ?? null });
+  const ensure = (id) => {
+    if (!result.has(id)) result.set(id, { player1: null, player2: null });
+    return result.get(id);
+  };
+  allMatches.forEach(m => {
+    if (m.nextMatchWinId && m.winSlot) {
+      ensure(m.nextMatchWinId)[m.winSlot] = { type: "win", code: m.matchCode };
+    }
+    if (m.nextMatchLoseId && m.loseSlot) {
+      ensure(m.nextMatchLoseId)[m.loseSlot] = { type: "lose", code: m.matchCode };
+    }
   });
   return result;
 }
