@@ -8,8 +8,17 @@ import AdminModal from "../../../components/admin/ui/AdminModal";
 import ConfirmModal from "../../../components/shared/ui/ConfirmModal";
 import { ownerTournamentApi, managerTournamentApi } from "../../../api/tournamentManagementApi";
 import { getApiErrorMessage } from "../../../utils/apiError";
+import { BILLIARD_RANK_OPTIONS, billiardRankShort } from "../../../constants/profileConfig";
 
 const ROSTER_EDITABLE_STATUSES = ["DRAFT", "OPEN_FOR_REGISTRATION", "REGISTRATION_CLOSED"];
+
+const EMPTY_ADD_FORM = {
+  displayName: "",
+  phone: "",
+  partnerFullName: "",
+  partnerPhone: "",
+  billiardRank: "UNKNOWN",
+};
 
 const STATUS_STYLES = {
   ACTIVE: "bg-emerald-100 text-emerald-800",
@@ -35,7 +44,7 @@ const ParticipantListPage = ({ api, basePath }) => {
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const [form, setForm] = useState({ displayName: "", phone: "", partnerFullName: "", partnerPhone: "", seedNo: "" });
+  const [form, setForm] = useState(EMPTY_ADD_FORM);
   const [withdrawModal, setWithdrawModal] = useState(null);
   const [tournamentStatus, setTournamentStatus] = useState(null);
   const [participantType, setParticipantType] = useState(null);
@@ -74,11 +83,6 @@ const ParticipantListPage = ({ api, basePath }) => {
       toast.warn("Vui lòng nhập tên người chơi 2");
       return;
     }
-    const seedNo = form.seedNo.trim() ? Number(form.seedNo) : undefined;
-    if (seedNo !== undefined && (isNaN(seedNo) || seedNo < 1)) {
-      toast.warn("Hạt giống phải là số nguyên từ 1 trở lên");
-      return;
-    }
     setActionLoading(true);
     try {
       await api.addManual(tournamentId, {
@@ -86,11 +90,11 @@ const ParticipantListPage = ({ api, basePath }) => {
         phone: form.phone.trim() || undefined,
         partnerFullName: isDouble ? form.partnerFullName.trim() : undefined,
         partnerPhone: isDouble ? form.partnerPhone.trim() || undefined : undefined,
-        seedNo: seedNo,
+        billiardRank: form.billiardRank || "UNKNOWN",
       });
       toast.success("Đã thêm người tham gia");
       setAddModal(false);
-      setForm({ displayName: "", phone: "", partnerFullName: "", partnerPhone: "", seedNo: "" });
+      setForm(EMPTY_ADD_FORM);
       load();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -129,7 +133,7 @@ const ParticipantListPage = ({ api, basePath }) => {
         phone1: r.phone1,
         name2: r.name2,
         phone2: r.phone2,
-        seedNo: r.seedNo,
+        billiardRank: r.billiardRank,
       }));
       const result = await api.confirmImportExcel(tournamentId, rows);
       setImportResult(result);
@@ -170,7 +174,9 @@ const ParticipantListPage = ({ api, basePath }) => {
   };
 
   const active = items.filter((p) => p.status === "ACTIVE").length;
-  const seeded = items.filter((p) => p.status === "ACTIVE" && p.seedNo != null).length;
+  const ranked = items.filter(
+    (p) => p.status === "ACTIVE" && p.billiardRank && p.billiardRank !== "UNKNOWN"
+  ).length;
 
   return (
     <div className="space-y-5">
@@ -186,7 +192,7 @@ const ParticipantListPage = ({ api, basePath }) => {
               Người tham gia chính thức
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              {active} ACTIVE · {items.length} tổng · {seeded} có hạt giống
+              {active} ACTIVE · {items.length} tổng · {ranked} đã có hạng
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -250,7 +256,7 @@ const ParticipantListPage = ({ api, basePath }) => {
                   <th>#</th>
                   <th>Tên hiển thị</th>
                   <th>Số điện thoại</th>
-                  <th>Hạt giống</th>
+                  <th>Hạng</th>
                   <th>Nguồn</th>
                   <th>Trạng thái</th>
                   <th className="align-right">Thao tác</th>
@@ -264,7 +270,11 @@ const ParticipantListPage = ({ api, basePath }) => {
                       <span className="admin-table-name" title={p.displayName}>{p.displayName}</span>
                     </td>
                     <td>{p.phone || "—"}</td>
-                    <td>{p.seedNo ?? "—"}</td>
+                    <td>
+                      <span className="text-xs font-semibold text-slate-700">
+                        {billiardRankShort(p.billiardRank)}
+                      </span>
+                    </td>
                     <td>
                       <span className="text-xs text-slate-500">
                         {SOURCE_LABELS[p.source] || p.source}
@@ -361,7 +371,7 @@ const ParticipantListPage = ({ api, basePath }) => {
                     <th>SĐT{isDouble ? " VĐV 1" : ""}</th>
                     {isDouble && <th>Tên VĐV 2</th>}
                     {isDouble && <th>SĐT VĐV 2</th>}
-                    <th>Hạt giống</th>
+                    <th>Hạng</th>
                     <th>Trạng thái</th>
                   </tr>
                 </thead>
@@ -373,7 +383,7 @@ const ParticipantListPage = ({ api, basePath }) => {
                       <td>{r.phone1 || "—"}</td>
                       {isDouble && <td>{r.name2 || "—"}</td>}
                       {isDouble && <td>{r.phone2 || "—"}</td>}
-                      <td>{r.seedNo ?? "—"}</td>
+                      <td>{billiardRankShort(r.billiardRank)}</td>
                       <td>
                         {r.valid ? (
                           <span className="text-emerald-600 text-xs font-medium">✓ Hợp lệ</span>
@@ -424,17 +434,22 @@ const ParticipantListPage = ({ api, basePath }) => {
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
               />
             </div>
-            <div>
-              <label className="admin-label">Hạt giống</label>
-              <input
-                type="number"
-                min={1}
-                className="admin-input w-full mt-1"
-                placeholder="1, 2, 3..."
-                value={form.seedNo}
-                onChange={(e) => setForm((f) => ({ ...f, seedNo: e.target.value }))}
-              />
-            </div>
+          </div>
+          <div>
+            <label className="admin-label">Hạng cơ thủ</label>
+            <select
+              className="admin-input w-full mt-1"
+              value={form.billiardRank}
+              onChange={(e) => setForm((f) => ({ ...f, billiardRank: e.target.value }))}
+            >
+              {BILLIARD_RANK_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-400 mt-1">
+              Dùng để xếp cặp khi giải chọn phương thức "Theo hạng cơ thủ". Để "Chưa xếp hạng" nếu
+              không rõ trình độ.
+            </p>
           </div>
           {isDouble && (
             <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">

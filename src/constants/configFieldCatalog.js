@@ -17,9 +17,8 @@ export const CATALOG_DATA_TYPE_LABELS = {
 export const CATALOG_FIELD_SCOPES = [
   { value: "COMMON", label: "Chung" },
   { value: "KNOCKOUT", label: "Loại trực tiếp" },
-  { value: "GROUP", label: "Vòng bảng" },
   { value: "DOUBLE_ELIM", label: "Loại kép" },
-  { value: "PLAYOFF", label: "Play-off" },
+  { value: "PROGRESSIVE", label: "Vòng tròn loại dần" },
 ];
 
 export const CATALOG_SCOPE_LABELS = Object.fromEntries(

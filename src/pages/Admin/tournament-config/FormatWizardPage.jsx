@@ -192,7 +192,7 @@ const FormatWizardPage = () => {
         navigate(`/admin/tournament-config/formats/${newCode}/edit`, { replace: true });
         setStep(2);
       } else if (!infoDirty) {
-        toast.info("Không có thay đổi — chuyển sang bước Config fields.");
+        toast.info("Không có thay đổi — chuyển sang bước Thông số thi đấu.");
         setStep(2);
       } else {
         await updateFormat(effectiveCode, body);
@@ -295,7 +295,7 @@ const FormatWizardPage = () => {
 
   const handleSaveConfigFields = async () => {
     if (!fieldsDirty) {
-      toast.info("Không có thay đổi — chuyển sang bước Race-to.");
+      toast.info("Không có thay đổi — chuyển sang bước Số ván mỗi vòng.");
       setStep(3);
       return;
     }
@@ -568,14 +568,14 @@ const FormatWizardPage = () => {
               <div className="grid gap-4 md:grid-cols-3">
                 <PreviewBlock title="Thông tin" items={[{ label: "Code", value: effectiveCode }]} />
                 <PreviewBlock
-                  title="Config fields"
+                  title="Thông số thi đấu"
                   items={(summary.configFields || []).map((f) => ({
                     label: f.fieldKey || f.label,
                     value: f.defaultValue,
                   }))}
                 />
                 <PreviewBlock
-                  title="Race-to rules"
+                  title="Số ván thắng theo vòng"
                   items={(summary.raceToRules || []).map((r) => ({
                     label: r.label || r.roundKey,
                     value: `raceTo: ${r.raceTo}`,

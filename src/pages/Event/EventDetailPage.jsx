@@ -334,12 +334,12 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
               t.participantType && { label: "Hình thức", value: participantLabel(t.participantType) },
               t.configSummary?.seedingMethod && {
                 label: "Bốc thăm",
-                value: { RANDOM: "Ngẫu nhiên", ELO: "Theo ELO", MANUAL: "Thủ công" }[t.configSummary.seedingMethod] || t.configSummary.seedingMethod,
+                value: { RANDOM: "Ngẫu nhiên", RANK: "Theo hạng cơ thủ" }[t.configSummary.seedingMethod] || t.configSummary.seedingMethod,
               },
-              t.configSummary?.bracketSize != null && { label: "Bracket", value: `${t.configSummary.bracketSize} slot` },
-              t.configSummary?.finalRaceTo != null && { label: "Final", value: `Race to ${t.configSummary.finalRaceTo}` },
+              t.configSummary?.bracketSize != null && { label: "Số người tối đa", value: `${t.configSummary.bracketSize} người` },
+              t.configSummary?.finalRaceTo != null && { label: "Chung kết", value: `Đánh tới ${t.configSummary.finalRaceTo} ván` },
               t.configSummary?.breakRule && {
-                label: "Break rule",
+                label: "Luật giao bóng",
                 value: { ALTERNATE_BREAK: "Luân phiên", WINNER_BREAK: "Người thắng", LOSER_BREAK: "Người thua" }[t.configSummary.breakRule] || t.configSummary.breakRule,
               },
               t.configSummary?.thirdPlaceMatch != null && { label: "Tranh hạng 3", value: t.configSummary.thirdPlaceMatch ? "Có" : "Không" },
@@ -432,12 +432,6 @@ const PlayerModal = ({ player, onClose }) => {
           {/* Divider */}
           <div style={{ width: "2.5rem", height: "2px", background: "#EF342A", borderRadius: "2px", margin: "0.5rem 0" }} />
 
-          {/* Extra info */}
-          {player.seedNo && (
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Hạt giống #{player.seedNo}
-            </p>
-          )}
         </div>
 
         {/* Close button */}
@@ -545,11 +539,6 @@ const PlayersTab = ({ participants }) => {
                         <span style={{ fontSize: "0.75rem", lineHeight: 1 }}>🇻🇳</span>
                         Việt Nam
                       </p>
-                      {p.seedNo && (
-                        <p className="evt-meta" style={{ marginTop: "0.2rem", letterSpacing: "0.05em" }}>
-                          Hạt #{p.seedNo}
-                        </p>
-                      )}
                     </div>
                   </button>
               ))}

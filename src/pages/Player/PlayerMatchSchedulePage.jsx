@@ -194,7 +194,7 @@ const PlayerMatchSchedulePage = () => {
                             <span className="text-slate-300 mx-1">—</span>
                             {m.player2Score}
                           </p>
-                          {m.raceTo && <p className="text-xs text-slate-400 mt-1">Race to {m.raceTo}</p>}
+                          {m.raceTo && <p className="text-xs text-slate-400 mt-1">Đánh tới {m.raceTo} ván</p>}
                         </>
                       ) : (
                         <p className="text-base font-bold text-slate-300">vs</p>

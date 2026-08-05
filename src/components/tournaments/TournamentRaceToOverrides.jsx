@@ -29,7 +29,7 @@ const TournamentRaceToOverrides = ({ rules, onChange }) => {
             <tr>
               <th className="px-3 py-2 text-left">Vòng</th>
               <th className="px-3 py-2 text-left">Pha</th>
-              <th className="px-3 py-2 text-left">Race-to</th>
+              <th className="px-3 py-2 text-left">Số ván thắng</th>
               <th className="px-3 py-2 text-left">Mặc định</th>
             </tr>
           </thead>

@@ -496,12 +496,12 @@ const PlayerTournamentDetailPage = () => {
                   detail.participantType && { label: "Hình thức", value: participantLabel(detail.participantType) },
                   detail.configSummary?.seedingMethod && {
                     label: "Bốc thăm",
-                    value: { RANDOM: "Ngẫu nhiên", ELO: "Theo ELO", MANUAL: "Thủ công" }[detail.configSummary.seedingMethod] || detail.configSummary.seedingMethod
+                    value: { RANDOM: "Ngẫu nhiên", RANK: "Theo hạng cơ thủ" }[detail.configSummary.seedingMethod] || detail.configSummary.seedingMethod
                   },
-                  detail.configSummary?.bracketSize != null && { label: "Bracket", value: `${detail.configSummary.bracketSize} slot` },
-                  detail.configSummary?.finalRaceTo != null && { label: "Final", value: `Race to ${detail.configSummary.finalRaceTo}` },
+                  detail.configSummary?.bracketSize != null && { label: "Số người tối đa", value: `${detail.configSummary.bracketSize} người` },
+                  detail.configSummary?.finalRaceTo != null && { label: "Chung kết", value: `Đánh tới ${detail.configSummary.finalRaceTo} ván` },
                   detail.configSummary?.breakRule && {
-                    label: "Break rule",
+                    label: "Luật giao bóng",
                     value: { ALTERNATE_BREAK: "Luân phiên", WINNER_BREAK: "Người thắng", LOSER_BREAK: "Người thua" }[detail.configSummary.breakRule] || detail.configSummary.breakRule
                   },
                   detail.configSummary?.thirdPlaceMatch != null && { label: "Tranh hạng 3", value: detail.configSummary.thirdPlaceMatch ? "Có" : "Không" },

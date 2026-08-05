@@ -44,14 +44,13 @@ const participantLabel = (type) =>
 
 /* Nhãn hiển thị cho các giá trị enum config phổ biến. */
 const ENUM_LABELS = {
-  RANDOM: "Ngẫu nhiên", MANUAL: "Thủ công", ELO: "ELO",
-  ALTERNATE_BREAK: "Luân phiên", WINNER_BREAK: "Người thắng", LOSER_BREAK: "Người thua",
-  GAME: "Ván (game)", FRAME: "Frame",
-  SEEDED: "Theo hạt giống",
-  POINTS: "Điểm", RACK_DIFF: "Hiệu số rack", RACKS_WON: "Rack thắng", HEAD_TO_HEAD: "Đối đầu", SCORE_DIFF: "Hiệu số",
+  RANDOM: "Ngẫu nhiên", RANK: "Theo hạng cơ thủ",
+  ALTERNATE_BREAK: "Luân phiên", WINNER_BREAK: "Người thắng ván trước", LOSER_BREAK: "Người thua ván trước",
+  GAME: "Ván", FRAME: "Hiệp",
+  FULL_DE: "Đánh loại kép tới vô địch", CUT_TO_SE: "Gộp nhánh, đánh loại trực tiếp",
 };
 const seedingLabel = (m) =>
-  m === "RANDOM" ? "Ngẫu nhiên" : m === "ELO" ? "ELO" : m === "MANUAL" ? "Thủ công" : m || "—";
+  m === "RANDOM" ? "Ngẫu nhiên" : m === "RANK" ? "Theo hạng cơ thủ" : m || "—";
 
 /** 9_BALL → "9-Ball" cho gọn, dễ đọc. */
 const gameTypeLabel = (v) => {
@@ -316,9 +315,6 @@ const TournamentDetailPage = ({ api, basePath }) => {
               <div className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-x-8">
                   <Row label="Phương thức xếp hạt giống">{seedingLabel(configForm.seedingMethod)}</Row>
-                  {configForm.seedCount != null && configForm.seedCount !== "" && (
-                    <Row label="Số hạt giống">{configForm.seedCount}</Row>
-                  )}
                   {(configForm.fields || []).map((f) => (
                     <Row key={f.fieldKey} label={f.label || f.fieldKey}>{fmtConfigValue(f)}</Row>
                   ))}
@@ -332,7 +328,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
                       className="flex items-center justify-between w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
                     >
                       <span className="text-sm font-medium text-slate-700">
-                        Race-to theo vòng đấu
+                        Số ván thắng theo vòng đấu
                         <span className="ml-1 text-xs text-slate-400">({configForm.raceToRules.length} vòng)</span>
                       </span>
                       {raceToOpen ? (
@@ -347,7 +343,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
                           <div key={r.roundKey} className="flex items-center justify-between px-3 py-2 text-sm">
                             <span className="text-slate-600">{r.label || r.roundKey}</span>
                             <span className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-800">Race to {r.raceTo}</span>
+                              <span className="font-semibold text-slate-800">Đánh tới {r.raceTo} ván</span>
                               {r.isOverridden && (
                                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 font-medium">tùy chỉnh</span>
                               )}

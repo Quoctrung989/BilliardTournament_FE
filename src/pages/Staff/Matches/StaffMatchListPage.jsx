@@ -257,7 +257,7 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
             <span className="text-xs text-slate-400 font-medium tabular-nums">
               {[
                 match.matchCode,
-                match.raceTo != null ? `Race to ${match.raceTo}` : null,
+                match.raceTo != null ? `Đánh tới ${match.raceTo} ván` : null,
               ]
                 .filter(Boolean)
                 .join(" · ")}

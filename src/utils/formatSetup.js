@@ -35,7 +35,7 @@ export const getActivateBlockReason = (summary) => {
     return "Còn lỗi validation — xem danh sách phía trên.";
   }
   if (!summary.canActivate) {
-    return "Chưa đủ điều kiện kích hoạt. Hoàn tất bước Config fields và Race-to, hoặc dùng Bootstrap.";
+    return "Chưa đủ điều kiện kích hoạt. Hoàn tất bước Thông số thi đấu và Số ván mỗi vòng, hoặc dùng mẫu dựng sẵn.";
   }
   return null;
 };

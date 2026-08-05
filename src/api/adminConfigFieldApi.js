@@ -42,6 +42,6 @@ export const createCatalogItem = (body) =>
 export const updateCatalogItem = (fieldKey, body) =>
   unwrap(axiosClient.put(`/admin/config-field-catalog/${fieldKey}`, body));
 
-/** PATCH /admin/config-field-catalog/{fieldKey} */
+/** PATCH /admin/config-field-catalog/{fieldKey}/active — body: { isActive } */
 export const patchCatalogItemActive = (fieldKey, body) =>
-  unwrap(axiosClient.patch(`/admin/config-field-catalog/${fieldKey}`, body));
+  unwrap(axiosClient.patch(`/admin/config-field-catalog/${fieldKey}/active`, body));
