@@ -1,5 +1,8 @@
 # Theme mặc định Light Mode (session 2026-07-09)
 
+> ✅ **ĐÃ MERGE vào `prod`** (kiểm chứng 2026-07-28: `src/store/themeStore.js` có `getInitialTheme()`
+> + `resetTheme()`). Câu "CHƯA commit" ở cuối file không còn đúng.
+
 Yêu cầu: dark/light mode luôn **mặc định light**, và sau khi **đăng xuất → đăng nhập lại** phải về light bất kể trước đó dùng gì.
 
 ## Đã sửa (FE)

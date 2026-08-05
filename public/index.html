@@ -30,7 +30,22 @@
     <title>CAPSTONE BILLIARDS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!--
+      Bebas Neue (tiêu đề) và Poppins (chữ thường) đều KHÔNG có subset
+      `vietnamese`: latin-ext của chúng chứa U+1E00-1E9F và U+1EF2-1EFF nhưng
+      thiếu đúng khoảng U+1EA0-1EF1 — nơi có phần lớn nguyên âm có dấu tiếng
+      Việt (ế ộ ữ ầ ắ ị ọ...).
+
+      Nên nạp kèm hai font dự phòng CÓ subset vietnamese, hình dáng gần nhất:
+        · Be Vietnam Pro → đỡ cho Poppins (cùng kiểu geometric sans)
+        · Oswald 600     → đỡ cho Bebas Neue (cùng kiểu condensed display)
+      Trình duyệt tự lấy glyph từ font kế tiếp trong stack khi font đầu thiếu,
+      nên chỉ những ký tự có dấu mới rơi sang font dự phòng.
+    -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500&family=Poppins:wght@300;400;500;600;700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <script>

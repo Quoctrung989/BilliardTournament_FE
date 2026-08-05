@@ -23,12 +23,10 @@ const DASHBOARD_PATH_BY_ROLE = {
 
 const NAV_ITEMS = [
   { label: "Tin Mới Nhất",     path: "/news" },
-  { label: "Tỷ Số Trực Tiếp", path: null },
   { label: "Giải Đấu",        path: "/event" },
   { label: "Cơ Sở",           path: "/branches" },
   // { label: "Vé",               path: null },
   { label: "Bảng Xếp Hạng",   path: null },
-  { label: "Cơ Thủ",          path: null },
   // { label: "Cửa Hàng",        path: null },
 ];
 
@@ -67,7 +65,7 @@ const Header = () => {
         {/* Logo */}
         <div
           onClick={() => navigate("/")}
-          className="text-[28px] font-black italic tracking-tight text-[#1a1a2e] dark:text-white shrink-0 mr-8 leading-none select-none cursor-pointer hover:opacity-80 transition-opacity duration-150"
+          className="ui-logo-zoom text-[28px] font-black italic tracking-tight text-[#1a1a2e] dark:text-white shrink-0 mr-8 leading-none select-none cursor-pointer"
         >
           CAPSTONE<span className="text-[#EF342A]">.</span>
         </div>
@@ -78,7 +76,7 @@ const Header = () => {
             <div
               key={label}
               onClick={() => path && navigate(path)}
-              className={`flex items-center whitespace-nowrap h-full px-2 text-[11px] font-semibold tracking-widest uppercase text-[#1a1a2e] dark:text-gray-200 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors duration-150 ${path ? "cursor-pointer" : "cursor-default"}`}
+              className={`ui-underline flex items-center whitespace-nowrap h-full px-2 text-[11px] font-semibold tracking-widest uppercase text-[#1a1a2e] dark:text-gray-200 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors duration-150 ${path ? "cursor-pointer" : "cursor-default"}`}
             >
               {label}
             </div>

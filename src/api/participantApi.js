@@ -10,15 +10,20 @@ export const createParticipantApi = (scope) => ({
   addManual: (tournamentId, body) =>
     unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/participants/manual`, body)),
 
-  importExcel: (tournamentId, file) => {
+  previewImportExcel: (tournamentId, file) => {
     const form = new FormData();
     form.append("file", file);
     return unwrap(
-      axiosClient.post(`/${scope}/tournaments/${tournamentId}/participants/import-excel`, form, {
+      axiosClient.post(`/${scope}/tournaments/${tournamentId}/participants/import-excel/preview`, form, {
         headers: { "Content-Type": "multipart/form-data" },
       })
     );
   },
+
+  confirmImportExcel: (tournamentId, rows) =>
+    unwrap(
+      axiosClient.post(`/${scope}/tournaments/${tournamentId}/participants/import-excel/confirm`, { rows })
+    ),
 
   withdraw: (participantId) =>
     unwrap(axiosClient.patch(`/${scope}/participants/${participantId}/withdraw`)),

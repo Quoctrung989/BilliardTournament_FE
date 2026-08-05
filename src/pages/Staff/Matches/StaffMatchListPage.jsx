@@ -15,6 +15,9 @@ import {
   isMatchLive,
 } from "../../../utils/refereeMatch";
 
+/** Chu kỳ tự làm mới danh sách khi tab đang được xem. */
+const AUTO_REFRESH_MS = 30_000;
+
 /** Soft layers: page → section → card → accent rail */
 const selectClass =
   "appearance-none bg-white text-slate-700 text-sm font-medium rounded-xl border border-slate-200/90 pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/35 cursor-pointer min-w-[9.5rem] shadow-sm";
@@ -198,13 +201,22 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
       </button>
     );
   } else if (pending) {
+    // Chưa tới giờ trên lịch, nhưng giải thường chạy sớm — trọng tài vẫn được
+    // phép mở trận (backend chỉ yêu cầu trận ở trạng thái PENDING).
     action = (
       <button
         type="button"
-        disabled
-        className="w-full sm:w-auto whitespace-nowrap rounded-xl border border-amber-200/80 bg-amber-50 text-amber-700/70 font-medium text-sm px-4 py-2.5 cursor-not-allowed"
+        disabled={isStarting}
+        onClick={() => onStart(match)}
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-amber-300/80 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:border-amber-400 disabled:opacity-55 font-semibold text-sm px-4 py-2.5 transition-colors touch-manipulation"
+        title="Trận chưa tới giờ theo lịch — bắt đầu sớm nếu hai cơ thủ đã sẵn sàng"
       >
-        Chưa tới giờ
+        {isStarting ? (
+          <RefreshCw size={15} className="animate-spin" />
+        ) : (
+          <Play size={14} fill="currentColor" />
+        )}
+        Bắt đầu sớm
       </button>
     );
   } else if (finished) {
@@ -303,34 +315,56 @@ const StaffMatchListPage = () => {
   const [dayFilter, setDayFilter] = useState("today");
   const [startingId, setStartingId] = useState(null);
   const [finishedOpen, setFinishedOpen] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(tournamentQuery.trim()), 350);
     return () => clearTimeout(t);
   }, [tournamentQuery]);
 
-  const loadMatches = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getRefereeMatches({
-        tournamentName: debouncedQuery || undefined,
-      });
-      setMatches(Array.isArray(data) ? data : []);
-    } catch (err) {
-      const msg = getFriendlyApiErrorMessage(
-        err,
-        "Không tải được danh sách trận. Vui lòng kiểm tra mạng và thử lại."
-      );
-      setError(msg);
-      toast.error(msg);
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedQuery]);
+  /**
+   * @param {{ silent?: boolean }} [opts] silent = làm mới nền: giữ nguyên danh
+   *   sách đang hiển thị, không bật skeleton và không báo lỗi ồn ào.
+   */
+  const loadMatches = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      }
+      try {
+        const data = await getRefereeMatches({
+          tournamentName: debouncedQuery || undefined,
+        });
+        setMatches(Array.isArray(data) ? data : []);
+        setError(null);
+        setLastUpdatedAt(new Date());
+      } catch (err) {
+        const msg = getFriendlyApiErrorMessage(
+          err,
+          "Không tải được danh sách trận. Vui lòng kiểm tra mạng và thử lại."
+        );
+        if (!silent) {
+          setError(msg);
+          toast.error(msg);
+        }
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [debouncedQuery]
+  );
 
   useEffect(() => {
     loadMatches();
+  }, [loadMatches]);
+
+  /* Trọng tài thường để mở màn này chờ tới lượt — tự làm mới khi tab đang xem. */
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") loadMatches({ silent: true });
+    }, AUTO_REFRESH_MS);
+    return () => clearInterval(id);
   }, [loadMatches]);
 
   const filtered = useMemo(
@@ -395,6 +429,16 @@ const StaffMatchListPage = () => {
                     giải đấu
                   </>
                 )}
+                {lastUpdatedAt && (
+                  <span className="text-slate-400">
+                    {" · cập nhật "}
+                    {lastUpdatedAt.toLocaleTimeString("vi-VN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })}
+                  </span>
+                )}
               </p>
             )}
           </div>
@@ -444,7 +488,7 @@ const StaffMatchListPage = () => {
 
             <button
               type="button"
-              onClick={loadMatches}
+              onClick={() => loadMatches()}
               disabled={loading}
               className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 text-sm font-semibold px-3.5 py-2.5 transition-colors disabled:opacity-50 shadow-sm"
               aria-label="Tải lại"
@@ -469,7 +513,7 @@ const StaffMatchListPage = () => {
           <p className="text-slate-700">{error}</p>
           <button
             type="button"
-            onClick={loadMatches}
+            onClick={() => loadMatches()}
             className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-2.5 shadow-md shadow-indigo-200"
           >
             Thử lại

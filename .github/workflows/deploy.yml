@@ -1,0 +1,38 @@
+name: CI/CD Frontend
+
+on:
+  push:
+    branches: [prod]
+  pull_request:
+    branches: [prod]
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          # CRA biến ESLint warning thành error khi CI=true; đây chỉ là warning
+          # (a11y, unused-vars), không phải lỗi runtime, không nên chặn build.
+          CI: false
+          REACT_APP_API_URL: http://18.138.158.94:8080
+
+  deploy:
+    needs: build-check
+    if: github.ref == 'refs/heads/prod' && github.event_name == 'push'
+    runs-on: [self-hosted, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build & restart frontend container
+        run: |
+          docker compose -f /opt/deploy/docker-compose.yml --env-file /opt/deploy/.env up -d --build frontend
+
+      - name: Clean up dangling images
+        run: docker image prune -f

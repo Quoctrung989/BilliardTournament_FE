@@ -16,7 +16,6 @@ import OwnerBranchListPage from "../pages/Owner/branches/BranchListPage";
 import OwnerTableListPage from "../pages/Owner/tables/TableListPage";
 import ManagerBranchListPage from "../pages/Manager/branches/BranchListPage";
 import StaffProfile from "../pages/Manager/StaffProfile";
-import PublicStaffListPage from "../pages/Public/StaffList";
 import FormatListPage from "../pages/Admin/tournament-config/FormatListPage";
 import FormatWizardPage from "../pages/Admin/tournament-config/FormatWizardPage";
 import GameTypeListPage from "../pages/Admin/tournament-config/GameTypeListPage";
@@ -676,7 +675,6 @@ export const ROUTES = [
   { path: "/forgot-password", component: ForgotPasswordPage, layout: null },
   { path: "/profile", component: Profile, layout: CommonLayout },
   { path: "/staffProfile/:slug", component: StaffProfile, layout: null },
-  { path: "/staffs", component: PublicStaffListPage, layout: CommonLayout },
   {
     path: "/admin/accounts", 
     component: withAdminPage(

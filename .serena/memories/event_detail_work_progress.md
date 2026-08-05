@@ -1,5 +1,10 @@
 # Tiến trình công việc — Khu vực Sự kiện/Giải đấu (Event)
 
+> ⚠️ **ĐÃ HOÀN TẤT & MERGE — lưu để tham khảo, không phải việc đang làm** (đối chiếu 2026-07-28).
+> Nhánh `thanh/feat/fixEventUI` không còn dùng; repo FE hiện ở `prod`. `src/pages/Event/eventTheme.css`
+> và toàn bộ file Event đã có trên `prod` → phần "ĐÃ LÀM" bên dưới coi như xong.
+> Trọng tâm dự án hiện tại là **app mobile** (`SU26_SEP490_G2_MOBILE`).
+
 > Ghi ngày 2026-07-06. Nhánh: `thanh/feat/fixEventUI`.
 > Mục đích: đọc file này là nắm được toàn bộ context công việc đang làm ở khu vực Event để tiếp tục.
 

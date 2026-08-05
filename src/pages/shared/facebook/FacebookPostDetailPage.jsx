@@ -83,8 +83,11 @@ const FacebookPostDetailPage = ({ basePath }) => {
     else setLoading(true);
     try {
       let data = await facebookApi.getInsights(postId, { refresh: isRefresh });
-      // Cache cũ có thể chưa lưu ảnh — tải lại 1 lần từ Facebook
-      if (!isRefresh && !data.fullPicture) {
+      // Cache cũ có thể chưa lưu ảnh — tải lại 1 lần từ Facebook, nhưng chỉ với
+      // bài có ảnh (bài TEXT không bao giờ có full_picture nên sẽ luôn gọi lại
+      // Facebook mỗi lần xem nếu không loại trừ trường hợp này).
+      const canHavePicture = data.postType === "PHOTO" || data.postType === "MULTI_PHOTO";
+      if (!isRefresh && canHavePicture && !data.fullPicture) {
         data = await facebookApi.getInsights(postId, { refresh: true });
       }
       setPost({

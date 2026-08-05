@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Crown, Flag, Hand, Undo2 } from "lucide-react";
+import { ArrowLeft, Crown, Flag } from "lucide-react";
 import { toast } from "react-toastify";
 import { getMatchDetail } from "../../../api/matchApi";
+import { getParticipantProfile } from "../../../api/publicTournamentApi";
 import {
   completeStaffMatch,
   incrementStaffScore,
@@ -10,7 +11,14 @@ import {
 } from "../../../api/staffMatchApi";
 import SocketConnectionBadge from "../../../components/shared/SocketConnectionBadge";
 import SocketReconnectBanner from "../../../components/shared/SocketReconnectBanner";
+import {
+  ShotClockControls,
+  ShotClockDial,
+  ShotClockRuleHint,
+} from "../../../components/staff/ShotClock";
+import { useShotClock } from "../../../hooks/useShotClock";
 import { useTournamentSocket } from "../../../hooks/useTournamentSocket";
+import { useWakeLock } from "../../../hooks/useWakeLock";
 import { getFriendlyApiErrorMessage } from "../../../utils/apiError";
 import {
   getPlayerName,
@@ -19,41 +27,30 @@ import {
   isMatchPending,
   pickDefaultWinnerId,
 } from "../../../utils/refereeMatch";
+import ScorePanel from "./ScorePanel";
 
 const P1_COLOR = "#378add";
 const P2_COLOR = "#ef4444";
 
-/**
- * Chấm "đang giao bóng" hiện đang được suy đoán từ tổng ván ((p1+p2)%2),
- * không phải dữ liệu thật từ backend. Vì trọng tài là người có thẩm quyền,
- * hiển thị một chỉ dấu "chắc chắn" nhưng có thể sai sẽ gây hiểu nhầm.
- * Giữ tắt cho tới khi BE trả về trường break thật, rồi bật lại.
- */
-const SHOW_BREAK = false;
-
 const P1_THEME = {
   accent: P1_COLOR,
-  panel: "bg-[#0c1018]",
   panelTint:
     "linear-gradient(175deg, rgba(55,138,221,0.34) 0%, rgba(55,138,221,0.10) 38%, rgba(10,14,20,1) 82%)",
   score: "text-white",
   glow: "rgba(55,138,221,0.55)",
   name: "text-white",
   label: "text-[#9cc9f2]",
-  hint: "text-slate-400",
   pipEmpty: "bg-white/[0.08]",
 };
 
 const P2_THEME = {
   accent: P2_COLOR,
-  panel: "bg-[#0c1018]",
   panelTint:
     "linear-gradient(175deg, rgba(239,68,68,0.34) 0%, rgba(239,68,68,0.10) 38%, rgba(10,14,20,1) 82%)",
   score: "text-[#ffe4e4]",
   glow: "rgba(239,68,68,0.55)",
   name: "text-white",
   label: "text-[#f5a8a8]",
-  hint: "text-slate-400",
   pipEmpty: "bg-white/[0.08]",
 };
 
@@ -96,241 +93,33 @@ function getRaceToLeader(scores, raceTo, p1Name, p2Name) {
   return null;
 }
 
-/** Luân phiên giao bóng theo tổng ván đã chơi (heuristic khi BE chưa có break). */
-function getBreakSlot(scores) {
-  return (scores.p1 + scores.p2) % 2 === 0 ? 1 : 2;
-}
-
-const ProgressPips = ({ score, raceTo, accent, emptyClass }) => {
-  const total = Math.max(raceTo ?? 5, 1);
-  return (
-    <div className="flex items-center justify-center gap-1.5 sm:gap-2" aria-hidden>
-      {Array.from({ length: total }, (_, i) => (
-        <span
-          key={i}
-          className={`h-2 w-8 sm:w-10 rounded-sm transition-colors ${
-            i < score ? "" : emptyClass
-          }`}
-          style={i < score ? { backgroundColor: accent } : undefined}
-        />
-      ))}
-    </div>
-  );
-};
-
-const ScorePanel = ({
-  name,
-  score,
-  slot,
-  theme,
-  raceTo,
-  canAdd,
-  canUndo,
-  finished,
-  isWinner,
-  dimmed,
-  hasBreak,
-  onTapPlus,
-  onMinus,
-}) => {
-  // Pop nhẹ con số mỗi khi điểm thay đổi -> phản hồi xác nhận cho trọng tài.
-  const [pop, setPop] = useState(false);
-  const prevScore = useRef(score);
-  useEffect(() => {
-    if (score !== prevScore.current) {
-      setPop(true);
-      const t = setTimeout(() => setPop(false), 260);
-      prevScore.current = score;
-      return () => clearTimeout(t);
-    }
-  }, [score]);
-
-  const borderStyle = isWinner
-    ? {
-        borderColor: theme.accent,
-        borderWidth: 2,
-        boxShadow: `0 0 40px -8px ${theme.accent}, inset 0 0 0 1px ${theme.accent}59`,
-      }
-    : { borderColor: "rgba(255,255,255,0.06)", borderWidth: 1 };
-
-  return (
-    <div
-      className="relative flex flex-1 flex-col min-h-0 rounded-none overflow-hidden"
-      style={borderStyle}
-    >
-      <div
-        className={`flex flex-1 flex-col min-h-0 transition-opacity duration-300 ${
-          dimmed ? "opacity-55" : "opacity-100"
-        }`}
-        style={{ background: theme.panelTint }}
-      >
-        {/* Nhãn + tên cơ thủ */}
-        <div className="shrink-0 text-center px-3 pt-4 sm:pt-6">
-          <div className="flex items-center justify-center gap-2 min-h-[1.75rem]">
-            <span
-              className={`font-semibold uppercase tracking-[0.22em] ${theme.label}`}
-              style={{ fontSize: "clamp(0.7rem, 1.7vh, 0.9rem)" }}
-            >
-              Cơ thủ {slot}
-            </span>
-            {isWinner && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#f5c842]/15 text-[#f5c842] px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ring-[#f5c842]/35">
-                <Crown size={13} strokeWidth={2.5} />
-                Thắng
-              </span>
-            )}
-          </div>
-          <div className="mt-2 inline-flex max-w-full items-center gap-2.5 rounded-full bg-white/[0.07] px-4 py-1.5 ring-1 ring-inset ring-white/10 backdrop-blur-sm">
-            <span
-              className={`shrink-0 h-2.5 w-2.5 rounded-full transition-opacity ${
-                hasBreak ? "opacity-100" : "hidden"
-              }`}
-              style={
-                hasBreak
-                  ? {
-                      backgroundColor: theme.accent,
-                      boxShadow: `0 0 0 3px ${theme.accent}40`,
-                    }
-                  : undefined
-              }
-              title={hasBreak ? "Đang giao bóng" : undefined}
-              aria-hidden={!hasBreak}
-            />
-            <h2
-              className={`font-semibold leading-tight line-clamp-1 ${theme.name}`}
-              style={{ fontSize: "clamp(1.1rem, 3.4vh, 1.6rem)" }}
-            >
-              {name}
-            </h2>
-          </div>
-        </div>
-
-        {/* Vùng chạm +1 — số khổng lồ có glow + pip */}
-        <button
-          type="button"
-          disabled={!canAdd}
-          onClick={onTapPlus}
-          className={`flex-1 flex flex-col items-center justify-center min-h-[6rem] w-full px-4 py-2 gap-4 sm:gap-6 touch-manipulation select-none transition-transform disabled:cursor-default ${
-            canAdd ? "active:scale-[0.99] cursor-pointer" : ""
-          }`}
-          aria-label={`Cộng 1 điểm cho ${name}`}
-        >
-          <p
-            className={`tabular-nums leading-none font-bold ${theme.score}`}
-            style={{
-              fontSize: "clamp(7rem, 38vh, 13rem)",
-              fontVariantNumeric: "tabular-nums",
-              textShadow: `0 0 48px ${theme.glow}`,
-              animation: pop ? "scorePop 0.26s ease-out" : undefined,
-            }}
-          >
-            {score}
-          </p>
-
-          <ProgressPips
-            score={score}
-            raceTo={raceTo}
-            accent={theme.accent}
-            emptyClass={theme.pipEmpty}
-          />
-        </button>
-      </div>
-
-      {/* Hàng thao tác: +1 điểm (chính) + hoàn tác */}
-      <div className="shrink-0 flex items-stretch gap-2.5 px-3 sm:px-4 py-3.5 sm:py-4 bg-[#0a0e14]/85 border-t border-white/[0.06]">
-        <button
-          type="button"
-          disabled={!canAdd}
-          onClick={onTapPlus}
-          className={`flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl min-h-[56px] py-3.5 font-bold uppercase tracking-wide transition-all touch-manipulation active:scale-[0.98] disabled:cursor-default ${
-            canAdd
-              ? "text-white"
-              : "bg-white/[0.04] text-slate-500 ring-1 ring-inset ring-white/[0.06]"
-          }`}
-          style={
-            canAdd
-              ? {
-                  backgroundColor: theme.accent,
-                  boxShadow: `0 10px 26px -10px ${theme.accent}`,
-                  fontSize: "clamp(1rem, 2.4vh, 1.25rem)",
-                }
-              : { fontSize: "clamp(0.95rem, 2.2vh, 1.15rem)" }
-          }
-          aria-label={`Cộng 1 điểm cho ${name}`}
-        >
-          {canAdd ? (
-            <>
-              <Hand size={20} strokeWidth={2.4} />
-              +1 điểm
-            </>
-          ) : finished ? (
-            "Đã kết thúc"
-          ) : (
-            "Đã đủ điểm"
-          )}
-        </button>
-
-        <button
-          type="button"
-          disabled={!canUndo}
-          onClick={(e) => {
-            e.stopPropagation();
-            onMinus();
-          }}
-          className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-2xl px-4 sm:px-5 min-h-[56px] font-medium text-slate-400 bg-white/[0.05] ring-1 ring-inset ring-white/10 hover:bg-white/[0.09] hover:text-slate-200 disabled:opacity-25 disabled:pointer-events-none transition-colors touch-manipulation"
-          style={{ fontSize: "clamp(0.95rem, 2.2vh, 1.15rem)" }}
-          aria-label={`Hoàn tác, trừ 1 điểm của ${name}`}
-        >
-          <Undo2 size={18} className="opacity-80" />
-          <span className="hidden sm:inline">Hoàn tác</span>
-          <span className="tabular-nums">−1</span>
-        </button>
-      </div>
-    </div>
-  );
-};
-
-/** Huy hiệu VS / vương miện ở giữa 2 panel — lấp khoảng trống trung tâm. */
+/** Huy hiệu VS / vương miện — dùng khi đồng hồ tắt hoặc trận chưa/đã kết thúc. */
 const VersusBadge = ({ winnerAccent }) => {
   const isWinner = Boolean(winnerAccent);
   return (
-    <div
-      className="pointer-events-none absolute inset-y-0 left-1/2 z-20 flex -translate-x-1/2 items-center justify-center"
-      aria-hidden
+    <span
+      className="relative flex h-20 w-20 items-center justify-center rounded-full bg-[#0a0e14] font-black sm:h-28 sm:w-28"
+      style={{
+        border: `3px solid ${isWinner ? winnerAccent : "rgba(255,255,255,0.22)"}`,
+        boxShadow: isWinner
+          ? `0 0 44px -4px ${winnerAccent}`
+          : `0 0 0 8px rgba(10,14,20,0.92), 0 0 34px -6px ${P1_COLOR}55, 0 0 34px -6px ${P2_COLOR}55`,
+      }}
     >
-      {/* Đường chia dọc phát sáng */}
-      <span
-        className="absolute top-0 bottom-0 w-px"
-        style={{
-          background:
-            "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.18) 20%, rgba(255,255,255,0.18) 80%, transparent 100%)",
-        }}
-      />
-      {/* Huy hiệu tròn */}
-      <span
-        className="relative flex h-20 w-20 items-center justify-center rounded-full bg-[#0a0e14] font-black sm:h-28 sm:w-28"
-        style={{
-          border: `3px solid ${isWinner ? winnerAccent : "rgba(255,255,255,0.22)"}`,
-          boxShadow: isWinner
-            ? `0 0 44px -4px ${winnerAccent}`
-            : `0 0 0 8px rgba(10,14,20,0.92), 0 0 34px -6px ${P1_COLOR}55, 0 0 34px -6px ${P2_COLOR}55`,
-        }}
-      >
-        {isWinner ? (
-          <Crown size={46} strokeWidth={2.2} style={{ color: winnerAccent }} />
-        ) : (
-          <span
-            className="italic tracking-tight text-white"
-            style={{
-              fontSize: "clamp(1.7rem, 5vh, 3rem)",
-              textShadow: "0 2px 14px rgba(0,0,0,0.6)",
-            }}
-          >
-            VS
-          </span>
-        )}
-      </span>
-    </div>
+      {isWinner ? (
+        <Crown size={46} strokeWidth={2.2} style={{ color: winnerAccent }} />
+      ) : (
+        <span
+          className="italic tracking-tight text-white"
+          style={{
+            fontSize: "clamp(1.7rem, 5vh, 3rem)",
+            textShadow: "0 2px 14px rgba(0,0,0,0.6)",
+          }}
+        >
+          VS
+        </span>
+      )}
+    </span>
   );
 };
 
@@ -345,6 +134,7 @@ const StaffScoringPage = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [endOpen, setEndOpen] = useState(false);
   const [selectedWinnerId, setSelectedWinnerId] = useState(null);
+  const [avatars, setAvatars] = useState({ 1: null, 2: null });
 
   const incrementInFlight = useRef(0);
 
@@ -370,6 +160,31 @@ const StaffScoringPage = () => {
     setLoading(true);
     loadSnapshot();
   }, [loadSnapshot]);
+
+  /* Ảnh cơ thủ — API trận không kèm avatar nên lấy riêng từ hồ sơ công khai. */
+  const p1Id = match?.player1?.id;
+  const p2Id = match?.player2?.id;
+  useEffect(() => {
+    let cancelled = false;
+    const fetchAvatar = async (participantId) => {
+      if (!participantId) return null;
+      try {
+        const profile = await getParticipantProfile(participantId);
+        return profile?.avatarUrl || null;
+      } catch {
+        return null;
+      }
+    };
+
+    (async () => {
+      const [a1, a2] = await Promise.all([fetchAvatar(p1Id), fetchAvatar(p2Id)]);
+      if (!cancelled) setAvatars({ 1: a1, 2: a2 });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [p1Id, p2Id]);
 
   const applyServerMatch = useCallback(
     (serverMatch) => {
@@ -404,6 +219,8 @@ const StaffScoringPage = () => {
   const live = isMatchLive(match?.status);
   const finished = isMatchFinished(match?.status);
 
+  useWakeLock(live);
+
   const scores = useMemo(() => {
     if (optimisticScores) return optimisticScores;
     return {
@@ -416,6 +233,44 @@ const StaffScoringPage = () => {
   const p1Name = getPlayerName(match?.player1, "Cơ thủ 1");
   const p2Name = getPlayerName(match?.player2, "Cơ thủ 2");
 
+  /* Ai vừa thắng ván — suy từ điểm số vừa tăng, cập nhật ngay trong render để
+     đồng hồ chọn đúng người phá ván kế tiếp. */
+  const scoreTrackRef = useRef(null);
+  if (scoreTrackRef.current === null) {
+    scoreTrackRef.current = { p1: scores.p1, p2: scores.p2, winner: null };
+  } else {
+    const prev = scoreTrackRef.current;
+    if (prev.p1 !== scores.p1 || prev.p2 !== scores.p2) {
+      scoreTrackRef.current = {
+        p1: scores.p1,
+        p2: scores.p2,
+        winner:
+          scores.p1 > prev.p1 ? 1 : scores.p2 > prev.p2 ? 2 : prev.winner,
+      };
+    }
+  }
+  const lastRackWinnerSlot = scoreTrackRef.current.winner;
+
+  const handleShotClockExpire = useCallback(
+    (offenderSlot) => {
+      const offender = offenderSlot === 1 ? p1Name : p2Name;
+      const opponent = offenderSlot === 1 ? p2Name : p1Name;
+      toast.warn(
+        `Hết giờ — ${offender} phạm lỗi, mất lượt. ${opponent} được bi tự do.`,
+        { autoClose: 6000 }
+      );
+    },
+    [p1Name, p2Name]
+  );
+
+  const clock = useShotClock({
+    matchId,
+    active: live && !finished,
+    rackIndex: match ? scores.p1 + scores.p2 : null,
+    lastRackWinnerSlot,
+    onExpire: handleShotClockExpire,
+  });
+
   const raceLeader = useMemo(
     () => getRaceToLeader(scores, raceTo, p1Name, p2Name),
     [scores, raceTo, p1Name, p2Name]
@@ -423,12 +278,13 @@ const StaffScoringPage = () => {
 
   const anyoneReachedRace = raceLeader != null;
   const defaultWinnerId = pickDefaultWinnerId(match, scores.p1, scores.p2);
-  const breakSlot = getBreakSlot(scores);
 
   const raceReached = scores.p1 >= raceTo || scores.p2 >= raceTo;
   const scoreInteractive = live && !finished && actionLoading !== "complete";
   const canAdd = scoreInteractive && !raceReached;
   const canUndo = scoreInteractive;
+
+  const showClock = clock.enabled && live && !finished;
 
   const handleStart = async () => {
     if (!pending || actionLoading) return;
@@ -571,17 +427,24 @@ const StaffScoringPage = () => {
 
   const header = formatHeaderMeta(match);
   const startDisabled = !pending || Boolean(actionLoading) || finished;
-
   const statusLabel = finished ? "Đã xong" : live ? "Đang đấu" : "Sắp tới";
+  const turnAccent = clock.turnSlot === 1 ? P1_COLOR : P2_COLOR;
+  /* Khoảng trống mỗi bên dành cho đồng hồ / huy hiệu VS ở tâm màn hình. */
+  const centerGap = showClock
+    ? "clamp(5rem, 9vw, 8rem)"
+    : "clamp(3.5rem, 7vw, 5.5rem)";
 
   return (
     <div className="min-h-screen bg-[#0a0e14] text-white flex flex-col landscape:max-h-screen font-normal">
-      {/* Keyframe pop cho con số — chèn tại chỗ nên không cần sửa CSS global */}
       <style>{`
         @keyframes scorePop {
           0%   { transform: scale(1); }
           30%  { transform: scale(1.14); }
           100% { transform: scale(1); }
+        }
+        @keyframes shotClockPulse {
+          0%, 100% { transform: scale(1); }
+          50%      { transform: scale(1.06); }
         }
       `}</style>
 
@@ -678,7 +541,7 @@ const StaffScoringPage = () => {
         </div>
       )}
 
-      {/* Hai panel — luôn cạnh nhau để trọng tài so sánh tỉ số nhanh */}
+      {/* Hai panel — ảnh cơ thủ sát mép ngoài, tỉ số dồn vào giữa */}
       <div className="relative flex-1 flex flex-row min-h-0">
         <ScorePanel
           name={p1Name}
@@ -686,25 +549,60 @@ const StaffScoringPage = () => {
           slot={1}
           theme={P1_THEME}
           raceTo={raceTo}
+          avatarUrl={avatars[1]}
+          centerGap={centerGap}
           canAdd={canAdd}
           canUndo={canUndo}
           finished={finished}
           isWinner={raceLeader?.slot === 1}
           dimmed={anyoneReachedRace && raceLeader?.slot !== 1}
-          hasBreak={SHOW_BREAK && breakSlot === 1 && live}
+          hasTurn={showClock && clock.turnSlot === 1}
           onTapPlus={() => handleIncrement(1, 1)}
           onMinus={() => handleIncrement(1, -1)}
         />
 
-        <VersusBadge
-          winnerAccent={
-            anyoneReachedRace
-              ? raceLeader?.slot === 1
-                ? P1_COLOR
-                : P2_COLOR
-              : null
-          }
-        />
+        {/* Cụm giữa: đồng hồ khi đang đấu, huy hiệu VS khi không */}
+        <div className="absolute inset-y-0 left-1/2 z-20 flex -translate-x-1/2 items-center justify-center">
+          <span
+            className="absolute top-0 bottom-0 w-px pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.18) 20%, rgba(255,255,255,0.18) 80%, transparent 100%)",
+            }}
+            aria-hidden
+          />
+          {showClock ? (
+            <button
+              type="button"
+              onClick={clock.toggleRun}
+              className="rounded-full touch-manipulation"
+              title={clock.running ? "Tạm dừng đồng hồ" : "Chạy đồng hồ"}
+              aria-label={clock.running ? "Tạm dừng đồng hồ" : "Chạy đồng hồ"}
+            >
+              <ShotClockDial
+                remainingSeconds={clock.remainingSeconds}
+                totalSeconds={clock.totalSeconds}
+                accent={turnAccent}
+                running={clock.running}
+                isWarning={clock.isWarning}
+                isBreakShot={clock.isBreakShot}
+                size={112}
+              />
+            </button>
+          ) : (
+            <div className="pointer-events-none" aria-hidden>
+              <VersusBadge
+                winnerAccent={
+                  anyoneReachedRace
+                    ? raceLeader?.slot === 1
+                      ? P1_COLOR
+                      : P2_COLOR
+                    : null
+                }
+              />
+            </div>
+          )}
+        </div>
 
         <ScorePanel
           name={p2Name}
@@ -712,19 +610,21 @@ const StaffScoringPage = () => {
           slot={2}
           theme={P2_THEME}
           raceTo={raceTo}
+          avatarUrl={avatars[2]}
+          centerGap={centerGap}
           canAdd={canAdd}
           canUndo={canUndo}
           finished={finished}
           isWinner={raceLeader?.slot === 2}
           dimmed={anyoneReachedRace && raceLeader?.slot !== 2}
-          hasBreak={SHOW_BREAK && breakSlot === 2 && live}
+          hasTurn={showClock && clock.turnSlot === 2}
           onTapPlus={() => handleIncrement(2, 1)}
           onMinus={() => handleIncrement(2, -1)}
         />
       </div>
 
       {/* Footer */}
-      <footer className="shrink-0 px-4 py-2.5 border-t border-white/[0.06] bg-[#0f141c] safe-area-pb">
+      <footer className="shrink-0 px-4 py-2.5 border-t border-white/[0.06] bg-[#0f141c] safe-area-pb space-y-2">
         {pending && !finished && (
           <div className="flex justify-center">
             <button
@@ -736,6 +636,15 @@ const StaffScoringPage = () => {
               {actionLoading === "start" ? "Đang bắt đầu…" : "Bắt đầu trận"}
             </button>
           </div>
+        )}
+
+        {live && !finished && (
+          <>
+            <div className="flex justify-center">
+              <ShotClockControls clock={clock} disabled={!live || finished} />
+            </div>
+            {clock.enabled && <ShotClockRuleHint clock={clock} />}
+          </>
         )}
 
         {live && !finished && !anyoneReachedRace && (
