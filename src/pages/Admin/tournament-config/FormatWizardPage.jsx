@@ -641,7 +641,7 @@ const WizardNav = ({ step, setStep, onSave, saving, canBack, isDirty = true }) =
 
 const PreviewBlock = ({ title, items }) => (
   <div className="admin-card p-4">
-    <h4 className="font-semibold text-slate-800 mb-3">{title}</h4>
+    <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-3">{title}</h4>
     {items?.length ? (
       <ul className="text-xs space-y-2 text-gray-600">
         {items.map((item, i) => (

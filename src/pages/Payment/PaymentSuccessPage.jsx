@@ -59,7 +59,7 @@ const PaymentSuccessPage = () => {
          style={{ background: "linear-gradient(135deg,#010851 0%,#0d1b2e 100%)" }}>
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="bg-white rounded-3xl overflow-hidden shadow-2xl">
+        <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl overflow-hidden shadow-2xl">
           {/* Top stripe */}
           <div className={`h-2 w-full ${isSuccess ? "bg-emerald-400" : isCancelled ? "bg-amber-400" : "bg-slate-300"}`} />
 
@@ -69,7 +69,7 @@ const PaymentSuccessPage = () => {
             ) : isCancelled ? (
               <XCircle size={64} className="mx-auto mb-4 text-amber-500" />
             ) : (
-              <Clock size={64} className="mx-auto mb-4 text-slate-400" />
+              <Clock size={64} className="mx-auto mb-4 text-slate-400 dark:text-white/40" />
             )}
 
             <h1 className="text-2xl font-black text-[#010851] mb-2">
@@ -79,9 +79,9 @@ const PaymentSuccessPage = () => {
             {isSuccess && (
               <>
                 {orderCode && (
-                  <p className="text-slate-400 text-sm mb-1">Mã đơn: <strong className="text-slate-700">#{orderCode}</strong></p>
+                  <p className="text-slate-400 dark:text-white/40 text-sm mb-1">Mã đơn: <strong className="text-slate-700 dark:text-white/80">#{orderCode}</strong></p>
                 )}
-                <p className="text-slate-500 text-sm mb-6">
+                <p className="text-slate-500 dark:text-white/60 text-sm mb-6">
                   Đăng ký của bạn đã được xác nhận. Kiểm tra trạng thái trong "Đăng ký của tôi".
                 </p>
                 <div className="mb-6 py-3 px-4 rounded-2xl text-sm font-medium"
@@ -93,13 +93,13 @@ const PaymentSuccessPage = () => {
             )}
 
             {isCancelled && (
-              <p className="text-slate-500 text-sm mb-6">
+              <p className="text-slate-500 dark:text-white/60 text-sm mb-6">
                 Bạn đã hủy giao dịch. Đơn đăng ký vẫn còn hiệu lực — bạn có thể thanh toán lại bất kỳ lúc nào trong "Đăng ký của tôi".
               </p>
             )}
 
             {!isSuccess && !isCancelled && (
-              <p className="text-slate-500 text-sm mb-6">
+              <p className="text-slate-500 dark:text-white/60 text-sm mb-6">
                 Giao dịch đang được xử lý. Vui lòng kiểm tra lại sau ít phút.
               </p>
             )}
@@ -117,7 +117,7 @@ const PaymentSuccessPage = () => {
               <button
                 type="button"
                 onClick={() => navigate("/event")}
-                className="w-full py-2.5 rounded-2xl font-medium text-sm text-slate-500 hover:text-[#010851] border border-slate-200 hover:border-[#010851] transition-colors"
+                className="w-full py-2.5 rounded-2xl font-medium text-sm text-slate-500 dark:text-white/60 hover:text-[#010851] border border-slate-200 dark:border-white/10 hover:border-[#010851] transition-colors"
               >
                 Xem giải đấu khác
               </button>

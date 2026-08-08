@@ -121,7 +121,7 @@ const TournamentRegisterPage = () => {
   /* ── Loading ── */
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-slate-400 content-dark">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-slate-400 dark:text-white/40 content-dark">
         Đang tải form đăng ký...
       </div>
     );
@@ -134,8 +134,8 @@ const TournamentRegisterPage = () => {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center content-dark">
         <Loader size={48} className="mx-auto mb-4 text-indigo-500 animate-spin" />
-        <h2 className="text-xl font-bold text-slate-900 mb-2">Đang chuyển tới cổng thanh toán...</h2>
-        <p className="text-slate-500">Vui lòng không đóng trang này.</p>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Đang chuyển tới cổng thanh toán...</h2>
+        <p className="text-slate-500 dark:text-white/60">Vui lòng không đóng trang này.</p>
       </div>
     );
   }
@@ -146,8 +146,8 @@ const TournamentRegisterPage = () => {
       <div className="max-w-lg mx-auto px-4 py-12 content-dark">
         <div className="admin-card p-8 text-center">
           <CheckCircle size={56} className="mx-auto mb-4 text-emerald-500" />
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Đăng ký thành công!</h2>
-          <p className="text-slate-500 mb-6">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Đăng ký thành công!</h2>
+          <p className="text-slate-500 dark:text-white/60 mb-6">
             Đây là giải đấu miễn phí. Bạn đã được tự động xác nhận tham gia nếu còn slot.
             Kiểm tra lại trạng thái trong mục "Đăng ký của tôi".
           </p>
@@ -162,7 +162,7 @@ const TournamentRegisterPage = () => {
             <button
               type="button"
               onClick={() => navigate("/event")}
-              className="text-sm text-slate-400 hover:text-slate-600"
+              className="text-sm text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70"
             >
               Xem giải đấu khác
             </button>
@@ -178,8 +178,8 @@ const TournamentRegisterPage = () => {
       <div className="max-w-lg mx-auto px-4 py-12 content-dark">
         <div className="admin-card p-8 text-center">
           <CheckCircle size={56} className="mx-auto mb-4 text-emerald-500" />
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Đăng ký đã được ghi nhận!</h2>
-          <p className="text-slate-500 mb-2">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Đăng ký đã được ghi nhận!</h2>
+          <p className="text-slate-500 dark:text-white/60 mb-2">
             Đơn đăng ký của bạn đã lưu. Bạn cần thanh toán để xác nhận tham gia.
           </p>
           <div className="mb-6 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
@@ -264,7 +264,7 @@ const TournamentRegisterPage = () => {
       )}
 
       <div className="ui-stagger admin-card p-6" style={{ "--i": 3 }}>
-        <h2 className="text-base font-semibold text-slate-900 mb-5">Thông tin đăng ký</h2>
+        <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-5">Thông tin đăng ký</h2>
         <form onSubmit={handleSubmit} className="space-y-5">
           <RegistrationDynamicForm
             fields={formPreview.fields || []}
@@ -282,7 +282,7 @@ const TournamentRegisterPage = () => {
             />
           </div>
 
-          <div className="pt-2 border-t border-slate-100">
+          <div className="pt-2 border-t border-slate-100 dark:border-white/10">
             <button
               type="submit"
               className={`ui-press w-full py-3 text-base font-bold rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 ${
@@ -300,7 +300,7 @@ const TournamentRegisterPage = () => {
                 "Gửi đăng ký"
               )}
             </button>
-            <p className="text-xs text-slate-400 text-center mt-2">
+            <p className="text-xs text-slate-400 dark:text-white/40 text-center mt-2">
               {hasFee
                 ? "Bạn sẽ được tự động chuyển sang trang thanh toán PayOS ngay sau khi gửi."
                 : "Đăng ký xong sẽ được xét duyệt tự động theo số slot còn trống."}

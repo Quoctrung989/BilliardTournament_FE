@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, LayoutDashboard, LogOut, Moon, Search, Settings, Sun } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut, Moon, Search, Settings, Sun } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { useThemeStore } from "../../store/themeStore";
+import { useNotificationStore } from "../../store/notificationStore";
 import { ROLES } from "../../constants/auth";
 import { normalizeRole } from "../../utils/auth";
+import NotificationBell from "../shared/notifications/NotificationBell";
 
 const DASHBOARD_PATH_BY_ROLE = {
   [ROLES.ADMIN]: "/admin/dashboard",
@@ -33,6 +35,7 @@ const AdminHeader = ({
   const location = useLocation();
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
+  const resetNotifications = useNotificationStore((s) => s.reset);
   const isDark = theme === "dark";
 
   const breadcrumb =
@@ -50,6 +53,9 @@ const AdminHeader = ({
   }, []);
 
   const handleLogout = () => {
+    // Xoá cả mốc đã đọc — người khác đăng nhập trên cùng máy mà giữ mốc của chủ trước thì
+    // thông báo cũ hơn mốc đó bị coi là đã đọc dù họ chưa từng thấy
+    resetNotifications();
     logout();
     navigate("/login");
   };
@@ -106,13 +112,7 @@ const AdminHeader = ({
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
-        <button
-          type="button"
-          className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full hidden sm:flex"
-          aria-label="Thông báo"
-        >
-          <Bell size={20} />
-        </button>
+        <NotificationBell className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full flex" />
 
         <div className="relative" ref={menuRef}>
           <button

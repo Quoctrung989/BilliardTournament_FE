@@ -408,7 +408,7 @@ const EmailTemplateListPage = () => {
             <div>
               <p className="admin-label mb-1">Nội dung</p>
               <div
-                className="border border-slate-200 rounded-lg p-4 bg-white"
+                className="border border-slate-200 dark:border-white/10 rounded-lg p-4 bg-white dark:bg-[#0e1626]"
                 dangerouslySetInnerHTML={{ __html: preview.bodyHtml }}
               />
             </div>

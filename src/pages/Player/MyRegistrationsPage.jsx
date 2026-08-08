@@ -21,7 +21,7 @@ const STATUS_STYLES = {
   PAID:            { bg: "bg-blue-100 text-blue-800",       dot: "bg-blue-500",    bar: "#3b82f6" },
   APPROVED:        { bg: "bg-emerald-100 text-emerald-800", dot: "bg-emerald-500", bar: "#10b981" },
   REJECTED:        { bg: "bg-red-100 text-red-700",         dot: "bg-red-500",     bar: "#ef4444" },
-  CANCELLED:       { bg: "bg-slate-100 text-slate-500",     dot: "bg-slate-400",   bar: "#94a3b8" },
+  CANCELLED:       { bg: "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/60",     dot: "bg-slate-400",   bar: "#94a3b8" },
 };
 
 const fmtDate = (iso) => {
@@ -148,22 +148,22 @@ const MyRegistrationsPage = () => {
                       // Stagger ở lớp ngoài, hover ở lớp trong — gộp chung thì
                       // transition-delay của stagger sẽ rò sang hover.
                       <div key={row.id} className="ui-stagger flex" style={{ "--i": Math.min(index, 11) }}>
-                      <div className="ui-card group bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col w-full"
+                      <div className="ui-card group bg-white dark:bg-[#131c2e] border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden flex flex-col w-full"
                         style={{ boxShadow: "0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(15,23,42,0.04)" }}>
                         <div style={{ height: "4px", background: s.bar }} />
                         <div className="p-4 flex flex-col gap-2.5 flex-1">
                           <button type="button" className="text-left"
                             onClick={() => navigate(`/event/${row.tournamentId}`)}>
-                            <h3 className="font-semibold text-slate-900 text-sm leading-snug line-clamp-2 hover:text-indigo-600 transition-colors">
+                            <h3 className="font-semibold text-slate-900 dark:text-white text-sm leading-snug line-clamp-2 hover:text-indigo-600 transition-colors">
                               {row.tournamentName}
                             </h3>
                           </button>
                           <StatusBadge status={row.status} />
                           <div className="flex flex-col gap-1">
-                            <span className="flex items-center gap-1.5 text-xs text-slate-400">
+                            <span className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-white/40">
                               <Calendar size={11} />{fmtDate(row.createdAt)}
                             </span>
-                            <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                            <span className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-white/60">
                               <User size={11} />{row.playerFullName}
                             </span>
                           </div>
@@ -174,7 +174,7 @@ const MyRegistrationsPage = () => {
                             <span className="text-xs font-semibold text-red-600">✗ Không được tham dự</span>
                           )}
                         </div>
-                        <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/60 flex items-center gap-2">
+                        <div className="px-4 py-2.5 border-t border-slate-100 dark:border-white/10 bg-slate-50/60 flex items-center gap-2">
                           {row.status === "PENDING_PAYMENT" && (
                             <button type="button" disabled={payingId === row.id}
                               onClick={() => handlePayNow(row.id)}
@@ -185,7 +185,7 @@ const MyRegistrationsPage = () => {
                             </button>
                           )}
                           <button type="button" onClick={() => openDetail(row.id)}
-                            className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+                            className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-white/70 border border-slate-200 dark:border-white/10 bg-white dark:bg-[#131c2e] hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                             Chi tiết <ChevronRight size={12} className="ui-arrow-x" />
                           </button>
                         </div>
@@ -212,25 +212,25 @@ const MyRegistrationsPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="ui-modal-backdrop absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={closeDetail} role="presentation" />
 
-          <div className="ui-modal-panel relative bg-white border border-slate-200 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+          <div className="ui-modal-panel relative bg-white dark:bg-[#131c2e] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-200 shrink-0 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-900">Chi tiết đăng ký</h3>
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 shrink-0 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Chi tiết đăng ký</h3>
               <button type="button" onClick={closeDetail}
-                className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100">
+                className="text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70 transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10">
                 <X size={18} />
               </button>
             </div>
 
             {/* Body */}
             {detailLoading || detail.loading ? (
-              <div className="px-6 py-12 text-center text-slate-400 text-sm">Đang tải thông tin...</div>
+              <div className="px-6 py-12 text-center text-slate-400 dark:text-white/40 text-sm">Đang tải thông tin...</div>
             ) : (
               <>
-                <div className="px-6 py-4 text-sm text-slate-600 overflow-y-auto flex-1 space-y-4">
+                <div className="px-6 py-4 text-sm text-slate-600 dark:text-white/70 overflow-y-auto flex-1 space-y-4">
                   {/* Tournament + status */}
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                    <p className="font-semibold text-slate-900 mb-2">{detail.tournamentName}</p>
+                  <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                    <p className="font-semibold text-slate-900 dark:text-white mb-2">{detail.tournamentName}</p>
                     <StatusBadge status={detail.status} />
                     {detail.status === "APPROVED" && (
                       <p className="mt-2 text-xs font-semibold text-emerald-600">✓ Đã xác nhận tham dự — Chờ giải đấu bắt đầu</p>
@@ -239,24 +239,24 @@ const MyRegistrationsPage = () => {
 
                   {/* Info rows */}
                   <div>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Thông tin đăng ký</p>
+                    <p className="text-xs font-semibold text-slate-400 dark:text-white/40 uppercase tracking-wide mb-2">Thông tin đăng ký</p>
                     <div className="divide-y divide-slate-100">
                       <div className="flex justify-between py-2">
-                        <span className="text-slate-500">Người đăng ký</span>
-                        <span className="font-medium text-slate-900">{detail.playerFullName}</span>
+                        <span className="text-slate-500 dark:text-white/60">Người đăng ký</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{detail.playerFullName}</span>
                       </div>
                       <div className="flex justify-between py-2">
-                        <span className="text-slate-500">Số điện thoại</span>
-                        <span className="font-medium text-slate-900">{detail.playerPhone || "—"}</span>
+                        <span className="text-slate-500 dark:text-white/60">Số điện thoại</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{detail.playerPhone || "—"}</span>
                       </div>
                       <div className="flex justify-between py-2">
-                        <span className="text-slate-500">Ngày đăng ký</span>
-                        <span className="font-medium text-slate-900">{fmtDate(detail.createdAt)}</span>
+                        <span className="text-slate-500 dark:text-white/60">Ngày đăng ký</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{fmtDate(detail.createdAt)}</span>
                       </div>
                       {detail.note && (
                         <div className="flex justify-between py-2">
-                          <span className="text-slate-500">Ghi chú</span>
-                          <span className="font-medium text-slate-900 text-right max-w-[60%]">{detail.note}</span>
+                          <span className="text-slate-500 dark:text-white/60">Ghi chú</span>
+                          <span className="font-medium text-slate-900 dark:text-white text-right max-w-[60%]">{detail.note}</span>
                         </div>
                       )}
                     </div>
@@ -271,12 +271,12 @@ const MyRegistrationsPage = () => {
 
                   {detail.fieldValues?.length > 0 && (
                     <div>
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Thông tin đã điền</p>
+                      <p className="text-xs font-semibold text-slate-400 dark:text-white/40 uppercase tracking-wide mb-2">Thông tin đã điền</p>
                       <div className="divide-y divide-slate-100">
                         {detail.fieldValues.map((fv) => (
                           <div key={fv.fieldKey} className="flex justify-between py-2">
-                            <span className="text-slate-500">{fv.label}</span>
-                            <span className="font-medium text-slate-900 text-right max-w-[60%]">{fv.value || "—"}</span>
+                            <span className="text-slate-500 dark:text-white/60">{fv.label}</span>
+                            <span className="font-medium text-slate-900 dark:text-white text-right max-w-[60%]">{fv.value || "—"}</span>
                           </div>
                         ))}
                       </div>
@@ -285,16 +285,16 @@ const MyRegistrationsPage = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl shrink-0 flex justify-end gap-2 flex-wrap">
+                <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 rounded-b-xl shrink-0 flex justify-end gap-2 flex-wrap">
                   {detail.status === "PENDING_PAYMENT" && (
                     <button type="button" onClick={() => setCancelModal({ id: detail.id })}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg border border-red-200 text-red-600 bg-white hover:bg-red-50 transition-colors cursor-pointer">
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg border border-red-200 text-red-600 bg-white dark:bg-[#131c2e] hover:bg-red-50 transition-colors cursor-pointer">
                       Hủy đăng ký
                     </button>
                   )}
                   <button type="button"
                     onClick={() => navigate(`/event/${detail.tournamentId}`)}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white text-slate-900 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer">
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-[#131c2e] text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
                     Xem giải đấu
                   </button>
                   {detail.status === "PENDING_PAYMENT" && (
