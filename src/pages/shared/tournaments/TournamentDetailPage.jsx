@@ -381,7 +381,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
                   <div className="flex flex-wrap gap-2">
                     {detail.venue.images.map((img) => (
                       <img
-                        key={img.id}
+                        key={img.key || img.url}
                         src={img.url}
                         alt=""
                         className="h-16 w-16 rounded-lg object-cover border border-slate-200"
