@@ -1,4 +1,18 @@
-name: CI/CD Frontend
+# Frontend deploy trên Cloudflare Pages (2026-08-08) — Pages tự build khi có
+# push vào nhánh `prod`, không cần job deploy ở đây.
+#
+# Workflow này giờ chỉ còn vai trò CI: bắt lỗi build sớm trên PR, trước khi
+# Pages build bản thật.
+#
+# Job `deploy` cũ (self-hosted runner label `frontend` → docker compose up
+# frontend trên EC2) đã bị gỡ: service `frontend` không còn trong
+# /opt/deploy/docker-compose.yml, giữ lại sẽ fail mỗi lần push.
+#
+# Trên EC2 nhớ gỡ nốt self-hosted runner của repo này (~/actions-runner-fe) —
+# build FE bằng npm ngay trên EC2 là phần ngốn tài nguyên nhất của máy đó.
+#
+# Chi tiết: docs/deploy-cloudflare-pages.md
+name: CI Frontend
 
 on:
   push:
@@ -21,18 +35,6 @@ jobs:
           # CRA biến ESLint warning thành error khi CI=true; đây chỉ là warning
           # (a11y, unused-vars), không phải lỗi runtime, không nên chặn build.
           CI: false
+          # Chỉ để build thử trong CI. Giá trị thật dùng cho bản deploy nằm ở
+          # biến môi trường của Cloudflare Pages project, không phải ở đây.
           REACT_APP_API_URL: http://18.138.158.94:8080
-
-  deploy:
-    needs: build-check
-    if: github.ref == 'refs/heads/prod' && github.event_name == 'push'
-    runs-on: [self-hosted, frontend]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build & restart frontend container
-        run: |
-          docker compose -f /opt/deploy/docker-compose.yml --env-file /opt/deploy/.env up -d --build frontend
-
-      - name: Clean up dangling images
-        run: docker image prune -f
