@@ -94,7 +94,7 @@ const NewsListPage = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-[#010851] dark:text-white uppercase tracking-tight">Tin Tức & Bài Viết</h1>
+        <h1 className="text-3xl font-black text-[#010851] dark:text-white uppercase">Tin Tức &amp; Bài Viết</h1>
         <p className="text-slate-500 dark:text-white/60 mt-1">Cập nhật mới nhất từ thế giới bi-a</p>
       </div>
 
@@ -103,7 +103,7 @@ const NewsListPage = () => {
         <button
           type="button"
           onClick={() => { setCategoryId(""); setPage(0); }}
-          className={`ui-press px-4 py-1.5 rounded-full text-sm font-semibold ${!categoryId ? "bg-[#010851] dark:bg-white dark:text-[#0d1b2e] text-white" : "text-[#010851] dark:text-white/70 border border-[#010851]/20 dark:border-white/15 hover:border-[#010851] dark:hover:border-white/40"}`}
+          className={`ui-press px-4 py-1.5 rounded-full text-sm font-semibold ${!categoryId ? "bg-[#010851] dark:bg-white dark:text-[#0b0d12] text-white" : "text-[#010851] dark:text-white/70 border border-[#010851]/20 dark:border-white/15 hover:border-[#010851] dark:hover:border-white/40"}`}
         >
           Tất cả
         </button>
@@ -112,7 +112,7 @@ const NewsListPage = () => {
             key={c.id}
             type="button"
             onClick={() => { setCategoryId(String(c.id)); setPage(0); }}
-            className={`ui-press px-4 py-1.5 rounded-full text-sm font-semibold ${String(categoryId) === String(c.id) ? "bg-[#010851] dark:bg-white dark:text-[#0d1b2e] text-white" : "text-[#010851] dark:text-white/70 border border-[#010851]/20 dark:border-white/15 hover:border-[#010851] dark:hover:border-white/40"}`}
+            className={`ui-press px-4 py-1.5 rounded-full text-sm font-semibold ${String(categoryId) === String(c.id) ? "bg-[#010851] dark:bg-white dark:text-[#0b0d12] text-white" : "text-[#010851] dark:text-white/70 border border-[#010851]/20 dark:border-white/15 hover:border-[#010851] dark:hover:border-white/40"}`}
           >
             {c.name}
           </button>
@@ -128,7 +128,7 @@ const NewsListPage = () => {
               placeholder="Tìm bài viết..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="border border-gray-200 dark:border-white/15 bg-white dark:bg-[#0d1b2e] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/40 text-sm rounded-xl pl-8 pr-4 py-1.5 focus:outline-none focus:border-[#010851] dark:focus:border-white/40"
+              className="border border-gray-200 dark:border-white/15 bg-white dark:bg-[#161a22] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/40 text-sm rounded-xl pl-8 pr-4 py-1.5 focus:outline-none focus:border-[#010851] dark:focus:border-white/40"
             />
           </div>
         </form>
@@ -147,7 +147,7 @@ const NewsListPage = () => {
             <div key={post.id} className="ui-stagger flex" style={{ "--i": Math.min(index, 11) }}>
             <article
               onClick={() => navigate(`/news/${post.slug}`)}
-              className="ui-card group w-full bg-white dark:bg-[#0d1b2e] rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm overflow-hidden cursor-pointer"
+              className="ui-card group w-full bg-white dark:bg-[#161a22] rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm overflow-hidden cursor-pointer"
             >
               <div className="h-48 overflow-hidden bg-slate-100 dark:bg-white/5">
                 <img
@@ -163,7 +163,10 @@ const NewsListPage = () => {
                     {post.categoryName}
                   </span>
                 )}
-                <h3 className="font-bold text-[#010851] dark:text-white mt-1 leading-snug line-clamp-2 group-hover:text-[#EF342A] dark:group-hover:text-[#EF342A] transition-colors">
+                {/* `line-clamp` cắt bằng overflow:hidden nên dấu nặng ở dòng
+                    cuối ("ĐẸP", "LUẬT") bị xén mất. Nới leading và thêm đệm đáy
+                    vừa đủ chứa dấu — không làm đổi số dòng bị cắt. */}
+                <h3 className="font-bold text-[#010851] dark:text-white mt-1 leading-[1.45] line-clamp-2 pb-[0.14em] group-hover:text-[#EF342A] dark:group-hover:text-[#EF342A] transition-colors">
                   {post.title}
                 </h3>
                 <p className="text-xs text-slate-400 dark:text-white/40 mt-2">{fmtDate(post.publishedAt)}</p>

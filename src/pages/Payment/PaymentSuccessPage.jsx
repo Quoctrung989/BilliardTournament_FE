@@ -59,7 +59,7 @@ const PaymentSuccessPage = () => {
          style={{ background: "linear-gradient(135deg,#010851 0%,#0d1b2e 100%)" }}>
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl overflow-hidden shadow-2xl">
+        <div className="bg-white dark:bg-[#161a22] rounded-3xl overflow-hidden shadow-2xl">
           {/* Top stripe */}
           <div className={`h-2 w-full ${isSuccess ? "bg-emerald-400" : isCancelled ? "bg-amber-400" : "bg-slate-300"}`} />
 

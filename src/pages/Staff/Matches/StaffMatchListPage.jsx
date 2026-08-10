@@ -413,7 +413,7 @@ const StaffMatchListPage = () => {
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-indigo-500/90 mb-1">
               Trọng tài
             </p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
               Trận của tôi
             </h1>
             {!loading && !error && (

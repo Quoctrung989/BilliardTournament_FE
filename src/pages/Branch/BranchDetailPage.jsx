@@ -26,7 +26,7 @@ const mapsHref = (address) =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
 const StatFact = ({ label, value }) => (
-  <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d1b2e] px-4 py-3.5 shadow-sm">
+  <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] px-4 py-3.5 shadow-sm">
     <p className="text-[0.62rem] font-bold uppercase tracking-widest text-slate-400 dark:text-white/40">
       {label}
     </p>
@@ -56,7 +56,7 @@ const BranchDetailPage = () => {
   useEffect(() => { load(); }, [load]);
 
   if (loading) {
-    return <div className="w-full bg-white dark:bg-[#0a1220] py-24 text-center text-slate-400 dark:text-white/50">Đang tải...</div>;
+    return <div className="w-full bg-white dark:bg-[#0b0d12] py-24 text-center text-slate-400 dark:text-white/50">Đang tải...</div>;
   }
   if (!branch) return null;
 
@@ -65,9 +65,9 @@ const BranchDetailPage = () => {
   const region = extractRegionLabel(branch.address);
 
   return (
-    <div className="w-full bg-white dark:bg-[#0a1220] transition-colors duration-300">
+    <div className="w-full bg-white dark:bg-[#0b0d12] transition-colors duration-300">
       {/* ── Hero ── */}
-      <div className="relative overflow-hidden bg-white dark:bg-[#0a1220] border-b border-slate-100 dark:border-white/10">
+      <div className="relative overflow-hidden bg-white dark:bg-[#0b0d12] border-b border-slate-100 dark:border-white/10">
         <div className="relative max-w-[1300px] mx-auto px-8 pt-6 pb-10">
           <button
             type="button"
@@ -85,7 +85,7 @@ const BranchDetailPage = () => {
                   {region}
                 </p>
               )}
-              <h1 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white leading-[1.15]">
                 {branch.name}
               </h1>
               {branch.description && (
@@ -98,7 +98,7 @@ const BranchDetailPage = () => {
                 {branch.phone && (
                   <a
                     href={telHref(branch.phone)}
-                    className="inline-flex items-center gap-2 rounded-full bg-black dark:bg-white px-6 py-2.5 text-xs font-bold uppercase tracking-wide text-white dark:text-[#0a1220] transition-transform hover:scale-105"
+                    className="inline-flex items-center gap-2 rounded-full bg-black dark:bg-white px-6 py-2.5 text-xs font-bold uppercase tracking-wide text-white dark:text-[#0b0d12] transition-transform hover:scale-105"
                   >
                     <PhoneCall size={14} />
                     Gọi đặt bàn
@@ -140,7 +140,7 @@ const BranchDetailPage = () => {
         </div>
 
         {/* Address card */}
-        <div className="mt-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d1b2e] p-5 shadow-sm flex items-start gap-3">
+        <div className="mt-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] p-5 shadow-sm flex items-start gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white">
             <MapPin size={16} />
           </span>
@@ -162,7 +162,7 @@ const BranchDetailPage = () => {
         {images.length > 0 && (
           <div className="mt-10">
             <div className="mb-5 flex items-end justify-between">
-              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <ImageIcon size={22} className="text-slate-900 dark:text-white" />
                 Không gian quán
               </h2>
@@ -195,7 +195,7 @@ const BranchDetailPage = () => {
       {branch.phone && (
         <a
           href={telHref(branch.phone)}
-          className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full bg-black dark:bg-white px-5 py-3 text-xs font-bold uppercase tracking-wide text-white dark:text-[#0a1220] shadow-xl hover:scale-105 transition-transform"
+          className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full bg-black dark:bg-white px-5 py-3 text-xs font-bold uppercase tracking-wide text-white dark:text-[#0b0d12] shadow-xl hover:scale-105 transition-transform"
         >
           <Phone size={14} />
           Gọi ngay

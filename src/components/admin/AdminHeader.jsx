@@ -67,7 +67,7 @@ const AdminHeader = ({
 
   return (
     <header
-      className={`admin-header sticky top-0 z-30 bg-white/95 dark:bg-[#0b1424]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 ${
+      className={`admin-header sticky top-0 z-30 bg-white/95 dark:bg-[#0d1015]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 ${
         hasSubtitle ? "admin-header--tall" : ""
       }`}
     >
@@ -95,7 +95,7 @@ const AdminHeader = ({
             <input
               type="search"
               placeholder="Tìm kiếm nhanh..."
-              className="admin-input pl-10 py-2 h-10 bg-slate-50 border-slate-200 dark:bg-[#0e1626] dark:border-[#243049]"
+              className="admin-input pl-10 py-2 h-10 bg-slate-50 border-slate-200 dark:bg-[#101319] dark:border-[#2b3039]"
             />
           </div>
         </div>

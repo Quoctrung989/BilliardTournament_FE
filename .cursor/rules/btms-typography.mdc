@@ -36,6 +36,23 @@ Poppins cũng thiếu đúng khoảng đó. Be Vietnam Pro đứng sau nó trong
 
 Hệ quả: chữ thường tiếng Việt có dấu **thực chất đang hiện bằng Be Vietnam Pro**, chỉ ký tự không dấu mới ra Poppins. Hai font cùng kiểu geometric sans nên chỗ nối không lộ như trường hợp Bebas.
 
+## Chừa chỗ cho dấu tiếng Việt — ĐỪNG bóp tiêu đề lại
+
+> **Thêm 2026-08-10** sau khi hero và danh sách tin bị dính chữ, cụt dấu.
+
+Chữ hoa tiếng Việt chiếm nhiều chỗ hơn chữ hoa latin ở **cả hai chiều**. `Ệ` cần chỗ cho dấu mũ bên trên **và** dấu nặng bên dưới cùng lúc; Oswald lại là font condensed, cộng thêm nghiêng tổng hợp 14° của trình duyệt đẩy phần trên chữ sang phải.
+
+`global.css` đã đặt sàn cho `h1`–`h6`: `letter-spacing: 0.02em`, `line-height: 1.15`. Class trong JSX đè lên được, nên:
+
+| Đừng dùng cho tiêu đề có dấu | Vì sao |
+|---|---|
+| `tracking-tight`, `tracking-tighter` | giãn chữ **âm** — "BILLIARDS" dính liền nhau |
+| `leading-none`, `leading-[0.95]` | thấp hơn chiều cao chữ — cắt ngọn dấu trên `Ỉ`, `Ệ` |
+| `leading-tight` kèm `uppercase` | 1.25 là biên, dùng `leading-[1.3]` cho chắc |
+| `line-clamp-*` mà không có đệm đáy | `overflow: hidden` xén mất dấu nặng ở dòng cuối |
+
+Tiêu đề có `line-clamp` thì thêm `pb-[0.14em]` và để `leading` từ `1.45` — đệm nới đáy hộp vừa đủ chứa dấu mà không đổi số dòng bị cắt.
+
 ## Quy tắc
 
 - **Không** thêm `font-family` inline (`style={{ fontFamily: ... }}`) trên page/component.

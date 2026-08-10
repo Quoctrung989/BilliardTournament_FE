@@ -729,14 +729,14 @@ const DoubleEliminationBracketView = ({ stages, flashIds, feedersMap }) => {
 };
 
 const EmptyState = ({ onClear }) => (
-  <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm text-center py-16">
+  <div className="bg-white dark:bg-[#161a22] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm text-center py-16">
     <p className="text-gray-400 dark:text-white/50 text-sm font-light">Không tìm thấy trận đấu phù hợp.</p>
     {onClear && <button onClick={onClear} className="mt-2 text-[#ef342a] text-xs hover:underline">Xóa bộ lọc</button>}
   </div>
 );
 
 const NoBracket = () => (
-  <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm flex flex-col items-center justify-center py-28 gap-2">
+  <div className="bg-white dark:bg-[#161a22] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm flex flex-col items-center justify-center py-28 gap-2">
     <p className="text-gray-200 dark:text-white/15 text-4xl font-semibold">Lịch thi đấu</p>
     <p className="text-gray-400 dark:text-white/50 text-sm font-light">Bracket chưa được sinh hoặc chưa có trận nào</p>
   </div>
@@ -1071,7 +1071,7 @@ const MatchesTab = ({ tournament }) => {
 
       {/* Filters */}
       {showFilters && (
-        <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm px-5 py-4">
+        <div className="bg-white dark:bg-[#161a22] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm px-5 py-4">
           <div className="flex flex-wrap gap-2.5">
             <div className="relative flex-1 min-w-[160px]">
               <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none"/>

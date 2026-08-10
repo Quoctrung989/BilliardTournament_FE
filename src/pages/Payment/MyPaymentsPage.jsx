@@ -102,7 +102,7 @@ const MyPaymentsPage = () => {
                     const StatusIcon = s.Icon;
                     return (
                       <button key={row.id} type="button" onClick={() => setSelectedPayment(row)}
-                        className="text-left bg-white dark:bg-[#131c2e] border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden flex flex-col cursor-pointer hover:-translate-y-0.5 transition-transform"
+                        className="text-left bg-white dark:bg-[#161a22] border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden flex flex-col cursor-pointer hover:-translate-y-0.5 transition-transform"
                         style={{ boxShadow: "0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(15,23,42,0.04)" }}>
                         <div style={{ height: "4px", background: s.bar }} />
                         <div className="p-4 flex flex-col gap-2.5 flex-1">
@@ -115,7 +115,7 @@ const MyPaymentsPage = () => {
                               {fmtMoney(row.amount)}
                             </p>
                           </div>
-                          <h3 className="font-semibold text-slate-900 dark:text-white text-sm leading-snug line-clamp-2">
+                          <h3 className="font-semibold text-slate-900 dark:text-white text-sm leading-[1.45] line-clamp-2 pb-[0.14em]">
                             {row.tournamentName || "Giải đấu"}
                           </h3>
                           <StatusBadge status={row.status} />
@@ -153,7 +153,7 @@ const MyPaymentsPage = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setSelectedPayment(null)} role="presentation" />
 
-            <div className="relative bg-white dark:bg-[#131c2e] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+            <div className="relative bg-white dark:bg-[#161a22] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
               {/* Header */}
               <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 shrink-0 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Chi tiết giao dịch</h3>
@@ -214,7 +214,7 @@ const MyPaymentsPage = () => {
               {/* Footer */}
               <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 rounded-b-xl shrink-0 flex justify-end gap-2">
                 <button type="button" onClick={() => setSelectedPayment(null)}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-[#131c2e] text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-[#161a22] text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
                   Đóng
                 </button>
                 {row.status === "PENDING" && row.checkoutUrl && (

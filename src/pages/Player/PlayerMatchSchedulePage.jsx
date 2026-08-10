@@ -83,7 +83,7 @@ const PlayerMatchSchedulePage = () => {
                   const stageType = group.matches[0]?.stageType;
                   return (
                     <div key={tournamentId} className="ui-stagger flex" style={{ "--i": Math.min(groupIndex, 11) }}>
-                    <div className="ui-card bg-white dark:bg-[#131c2e] border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden w-full"
+                    <div className="ui-card bg-white dark:bg-[#161a22] border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden w-full"
                       style={{ boxShadow: "0 1px 3px rgba(15,23,42,0.06), 0 4px 12px rgba(15,23,42,0.04)" }}>
                       {/* Group header */}
                       <div className="px-4 py-3 bg-slate-800 flex items-center gap-3">
@@ -157,7 +157,7 @@ const PlayerMatchSchedulePage = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="ui-modal-backdrop absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setSelectedMatch(null)} role="presentation" />
 
-            <div className="ui-modal-panel relative bg-white dark:bg-[#131c2e] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+            <div className="ui-modal-panel relative bg-white dark:bg-[#161a22] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
               {/* Header */}
               <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 shrink-0 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Chi tiết trận đấu</h3>
@@ -241,7 +241,7 @@ const PlayerMatchSchedulePage = () => {
               {/* Footer */}
               <div className="px-6 py-4 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 rounded-b-xl shrink-0 flex justify-end gap-2">
                 <button type="button" onClick={() => setSelectedMatch(null)}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-[#131c2e] text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-[#161a22] text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
                   Đóng
                 </button>
                 <button type="button" onClick={() => navigate(`/event/${m.tournamentId}`)}

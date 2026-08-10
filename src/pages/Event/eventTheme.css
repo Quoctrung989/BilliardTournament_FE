@@ -11,7 +11,7 @@
      tươi (#f59e0b) trên trắng chỉ đạt ~2:1, dưới ngưỡng đọc được. */
   --evt-fee: #dc2626;
   --evt-prize: #b45309;
-  --evt-accent: #0c1527;
+  --evt-accent: #0e1116;
   --evt-heading: #010851;
   --evt-text: #1e293b;
   --evt-text-2: #475569;
@@ -28,8 +28,11 @@
 }
 
 :root.dark {
-  --evt-page-bg: #0a1220;
-  --evt-card-bg: linear-gradient(160deg, #0d1b2e 0%, #0f2237 100%);
+  --evt-page-bg: #0b0d12;
+  /* Bám đúng thẻ của landing (#161a22). Bản cũ đi từ #0d1b2e tới #0f2237 —
+     hiệu B−R lên tới 40, thành mảng xanh nổi trên nền đen #0b0d12 của trang.
+     Vẫn giữ gradient để card có chiều sâu, chỉ hạ độ xanh xuống đúng tông. */
+  --evt-card-bg: linear-gradient(160deg, #161a22 0%, #1b1f28 100%);
   --evt-card-border: rgba(255, 255, 255, 0.08);
   --evt-subtle: rgba(255, 255, 255, 0.08);
   --evt-box-bg: rgba(255, 255, 255, 0.05);
@@ -44,8 +47,8 @@
   --evt-text-4: rgba(255, 255, 255, 0.45);
   --evt-name: #ffffff;
   --evt-row-hover: rgba(255, 255, 255, 0.05);
-  --evt-filter-bg: #0d1b2e;
-  --evt-card-footer: #14202f;
+  --evt-filter-bg: #161a22;
+  --evt-card-footer: #191d26;
   --evt-bracket-line: rgba(255, 255, 255, 0.16);
 }
 
@@ -174,9 +177,12 @@
   border-radius: 1rem;
   overflow: hidden;
   cursor: pointer;
+  /* Khối vô địch tối ở CẢ hai chế độ nên màu để cứng. Điểm giữa cũ là #12253f,
+     hiệu B−R tới 45 — xanh nhất trang. Hạ về 26 cho khớp tông landing; ánh
+     vàng của lớp radial phía trên vẫn là thứ làm khối này nổi bật. */
   background:
     radial-gradient(120% 140% at 0% 50%, rgba(201, 162, 39, 0.22), transparent 55%),
-    linear-gradient(115deg, #07101c 0%, #12253f 48%, #0a1628 100%);
+    linear-gradient(115deg, #080a0e 0%, #1d212a 48%, #0f1218 100%);
   border: 1px solid rgba(201, 162, 39, 0.45);
   box-shadow: 0 12px 36px rgba(10, 22, 40, 0.28);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -466,6 +472,250 @@
   --evt-cta-text: #0d1b2e;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Card lật — trỏ vào thì khối ảnh quay 180° để lộ nút điều hướng
+
+   Chỉ khối ảnh (tỉ lệ 4/5) quay, dải ngày ở đáy đứng yên: quay cả card thì
+   dải xám lật theo trông rối, mà ngày tháng lại là thứ người dùng đang đọc
+   để so sánh giữa các giải.
+
+   Toàn bộ khối này nằm trong `@media (hover: hover)` — xem lý do ở cuối.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.evt-flip {
+  position: relative;
+  /* Nhỏ hơn thì méo mạnh, lớn hơn thì phẳng lì gần như không thấy chiều sâu */
+  perspective: 1200px;
+
+  /*
+   * Thời lượng lật khai MỘT chỗ vì nó dùng ở hai nơi: `transition` của phép
+   * quay, và `transition-delay` của `visibility` ở mặt sau. Lệch nhau là nút
+   * hiện ra hoặc biến mất giữa lúc card còn đang quay.
+   */
+  --evt-flip-ms: 880ms;
+}
+
+.evt-flip__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.evt-flip__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  /* Safari cũ bỏ qua bản không tiền tố */
+  -webkit-backface-visibility: hidden;
+  border-radius: 1rem 1rem 0 0;
+  overflow: hidden;
+}
+
+.evt-flip__back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 1rem;
+  /* Nền đặc phòng khi ảnh hỏng — không có nó thì nút chữ trắng nằm trên nền trong suốt */
+  background: #0b0d12;
+}
+
+/* Ảnh nền mờ ở mặt sau — lật xong vẫn nhận ra đang đứng ở giải nào */
+.evt-flip__back-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  filter: blur(3px) saturate(0.7);
+  opacity: 0.34;
+}
+
+/*
+ * Lớp phủ tối đặt bằng `::after` chứ không phải `background` của chính mặt sau.
+ *
+ * `rotateY` làm mặt sau thành một stacking context, nên ảnh với `z-index: -1`
+ * sẽ chui ra sau background của chính nó và mất hút. Xếp chồng bằng thứ tự DOM
+ * thì không dính bẫy đó: ảnh → lớp phủ → chữ và nút.
+ */
+.evt-flip__back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 18, 32, 0.55) 0%, rgba(10, 18, 32, 0.88) 100%);
+}
+
+/* Chữ và nút phải nổi lên trên lớp phủ */
+.evt-flip__title,
+.evt-flip__btn {
+  position: relative;
+  z-index: 1;
+}
+
+.evt-flip__title {
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  /* 1.35 chứ không sát hơn: chữ hoa tiếng Việt cần chỗ cho dấu — xem
+     .cursor/rules/btms-typography.mdc */
+  line-height: 1.35;
+  margin-bottom: 0.15rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/*
+ * Nút mặt sau — khối bấm được, không phải viên thuốc.
+ *
+ * Bo 11px chứ không phải 100px: mặt sau là một tấm phẳng đặt trong không gian
+ * 3D, nút bo tròn hẳn trôi nổi trên đó như nhãn dán. Góc vuông vừa phải cho
+ * cảm giác nút gắn vào mặt phẳng.
+ *
+ * KHÔNG có `border`. Viền vẽ một đường cứng quanh nút, phá mất ảo giác khối —
+ * vật thật không có nét kẻ bao quanh, nó lộ ra nhờ ánh sáng. Bề dày ở đây dựng
+ * hoàn toàn bằng bốn lớp chồng nhau:
+ *   1. gradient dọc       — mặt nút hứng sáng từ trên
+ *   2. inset trắng ở đỉnh — cạnh trên bắt sáng; đây là thứ thay vai trò viền
+ *   3. inset đen ở đáy    — cạnh dưới chìm vào bóng
+ *   4. bóng ngoài         — nút nổi khỏi mặt phẳng
+ */
+.evt-flip__btn {
+  display: block;
+  width: 100%;
+  /* Cộng thêm 1px vào padding để bù chỗ `border` vừa bỏ — không có nó thì nút
+     thấp đi trông thấy so với bản trước */
+  padding: calc(0.6rem + 1px) calc(0.9rem + 1px);
+  border-radius: 11px;
+  border: none;
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.07) 52%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  /* Inset trắng dày lên 1.5px vì giờ nó phải gánh cả việc tách nút khỏi nền */
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 4px 12px -3px rgba(0, 0, 0, 0.6);
+  /* Không transition `all`: nền là gradient, trình duyệt phải nội suy từng
+     điểm dừng và khung hình rớt thấy rõ trên máy yếu */
+  /* Không transition `all`: nền là gradient, trình duyệt phải nội suy từng
+     điểm dừng và khung hình rớt thấy rõ trên máy yếu */
+  transition:
+    box-shadow 200ms ease,
+    background-color 200ms ease;
+}
+
+/*
+ * Trỏ tới thì nút SÁNG LÊN, không nhấc khỏi mặt card.
+ *
+ * Nút đang nằm trên một tấm vừa quay 180° trong không gian 3D; cho nó bật lên
+ * nữa là hai chuyển động chồng nhau, mắt không biết bám vào đâu. Đổi màu và
+ * đậm bóng đã đủ báo "bấm được" mà mặt card vẫn phẳng như một tấm thật.
+ */
+.evt-flip__btn:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 5px 14px -3px rgba(0, 0, 0, 0.65);
+}
+
+/* Nhấn xuống thì lún vào trong: bóng ngoài tắt, inset đảo thành bóng đổ bên
+   trong. Vẫn không dịch chuyển — chiều sâu đổi, vị trí thì không. */
+.evt-flip__btn:active {
+  background-color: rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Nút chính: bóng ngoài ăn theo màu accent chứ không phải đen — khối màu đổ
+   bóng đen trông như dán lên, đổ bóng cùng sắc thì như tự phát sáng */
+.evt-flip__btn--primary {
+  background-color: var(--evt-accent);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
+    0 5px 16px -4px rgba(239, 52, 42, 0.75);
+}
+
+.evt-flip__btn--primary:hover {
+  background-color: var(--wnt25-color-red);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
+    0 12px 26px -6px rgba(239, 52, 42, 0.9);
+}
+
+.evt-flip__btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/*
+ * Hiệu ứng quay CHỈ bật trên thiết bị trỏ được thật.
+ *
+ * Màn cảm ứng không có trạng thái hover, nên nếu bật ở đó thì hai nút Đăng ký
+ * và Kết quả vĩnh viễn không bấm tới được. Trên điện thoại và tablet, card giữ
+ * nguyên nút ở dải đáy như trước — đó là lý do nút footer không bị xoá hẳn mà
+ * chỉ ẩn ở nhánh dưới đây.
+ */
+@media (hover: hover) and (pointer: fine) {
+  /*
+   * Đường cong đối xứng (ease-in-out) chứ không phải ease-out.
+   *
+   * Ease-out bung hết tốc ngay khung hình đầu, mắt đọc ra là "giật một cái rồi
+   * trôi" — đúng cảm giác nhanh mà nhóm phản ánh. Tấm card có bề dày thì phải
+   * ì lúc khởi động, nhanh nhất ở giữa vòng quay, rồi hãm lại khi áp mặt.
+   */
+  .evt-flip__inner {
+    transition: transform var(--evt-flip-ms) cubic-bezier(0.45, 0.05, 0.25, 1);
+  }
+
+  .evt-flip:hover .evt-flip__inner,
+  .evt-flip:focus-within .evt-flip__inner {
+    transform: rotateY(180deg);
+  }
+
+  /*
+   * `backface-visibility` giấu mặt sau khỏi MẮT nhưng không giấu khỏi BÀN PHÍM
+   * — thiếu dòng này thì tab vẫn nhảy vào hai nút đang khuất sau card.
+   *
+   * Độ trễ khớp đúng thời lượng quay: ẩn ngay lúc bắt đầu quay ngược thì nút
+   * biến mất giữa chừng, thấy rõ một nhịp giật.
+   */
+  .evt-flip__back {
+    visibility: hidden;
+    transition: visibility 0s linear var(--evt-flip-ms);
+  }
+
+  .evt-flip:hover .evt-flip__back,
+  .evt-flip:focus-within .evt-flip__back {
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  /* Nút ở dải đáy chỉ dành cho màn cảm ứng */
+  .evt-footer-cta {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .evt-status--live .evt-status__dot {
     animation: none;
@@ -476,5 +726,42 @@
   .group:hover .evt-cta,
   .group:hover .evt-status {
     transform: none;
+  }
+
+}
+
+/*
+ * Bỏ hẳn phép quay khi người dùng tắt chuyển động — mặt sau hiện bằng độ mờ.
+ *
+ * Ba điều kiện phải đi CÙNG NHAU trong một câu lệnh, không tách ra được: khối
+ * này gỡ `rotateY(180deg)` khỏi mặt sau, mà trên màn cảm ứng (nơi không có
+ * nhánh hover nào chạy) gỡ nó ra là mặt sau nằm đè lên mặt trước ngay từ đầu.
+ */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
+  .evt-flip__inner,
+  .evt-flip:hover .evt-flip__inner,
+  .evt-flip:focus-within .evt-flip__inner {
+    transform: none;
+    transition: none;
+  }
+
+  .evt-flip__back {
+    transform: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 120ms linear, visibility 0s linear 120ms;
+  }
+
+  .evt-flip:hover .evt-flip__back,
+  .evt-flip:focus-within .evt-flip__back {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  /* Mặt trước phải mờ đi, nếu không hai mặt chồng nhau và đọc xuyên qua */
+  .evt-flip:hover .evt-flip__front,
+  .evt-flip:focus-within .evt-flip__front {
+    opacity: 0;
   }
 }

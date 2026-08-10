@@ -116,7 +116,9 @@ const News = () => {
                     {fmtDate(lead.publishedAt)}
                   </span>
                 </div>
-                <h1 className="hm-title text-[33px] font-black uppercase leading-[1.05] tracking-tight text-[#1d2430] dark:text-gray-100">
+                {/* Không dùng tracking-tight và leading dưới 1.1 — cắt ngọn dấu
+                    trên chữ hoa. Xem chú thích khối h1–h6 ở global.css. */}
+                <h1 className="hm-title text-[33px] font-black uppercase leading-[1.15] text-[#1d2430] dark:text-gray-100">
                   {lead.title}
                 </h1>
               </div>
@@ -153,7 +155,10 @@ const News = () => {
                       <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         {fmtDate(item.publishedAt)}
                       </p>
-                      <h2 className="hm-title text-[12px] font-extrabold uppercase leading-[1.3] text-[#1d2430] dark:text-gray-100 line-clamp-3">
+                      {/* `line-clamp` cắt bằng overflow:hidden nên dấu nặng ở
+                          dòng cuối ("ĐẸP", "LUẬT") dễ bị xén mất. `pb-[0.14em]`
+                          nới đáy hộp vừa đủ chứa dấu, không đổi số dòng. */}
+                      <h2 className="hm-title text-[12px] font-extrabold uppercase leading-[1.45] text-[#1d2430] dark:text-gray-100 line-clamp-3 pb-[0.14em]">
                         {item.title}
                       </h2>
                     </div>

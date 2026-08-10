@@ -127,8 +127,11 @@ const Banner = () => {
             CAPSTONE • Mùa giải 2026
           </span>
 
+          {/* leading và tracking phải chừa chỗ cho dấu — xem chú thích ở
+              global.css, khối h1–h6. Bản cũ `leading-[0.95] tracking-tight`
+              làm "BILLIARDS" dính liền và cắt ngọn dấu trên "ĐỈNH", "VIỆT". */}
           <h1
-            className="hm-rise text-[40px] font-black uppercase leading-[0.95] tracking-tight text-white md:text-[68px]"
+            className="hm-rise text-[40px] font-black uppercase leading-[1.1] text-white md:text-[68px]"
             style={{ "--i": 1 }}
           >
             Sân chơi Billiards

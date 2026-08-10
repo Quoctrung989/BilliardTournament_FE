@@ -19,9 +19,9 @@
 }
 
 :root.dark {
-  --rnk-hero-bg: #131a26;
+  --rnk-hero-bg: #14171d;
   --rnk-hero-line: rgba(255, 255, 255, 0.05);
-  --rnk-card-bg: #0f1a2b;
+  --rnk-card-bg: #161a22;
   --rnk-card-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   --rnk-divider: rgba(255, 255, 255, 0.08);
   --rnk-row-hover: rgba(255, 255, 255, 0.045);
@@ -31,7 +31,7 @@
   --rnk-value: #8fb0e8;
   --rnk-photo-bg: rgba(255, 255, 255, 0.06);
   --rnk-tab-bg: rgba(255, 255, 255, 0.08);
-  --rnk-tab-active-bg: #0f1a2b;
+  --rnk-tab-active-bg: #161a22;
   --rnk-tab-text: rgba(255, 255, 255, 0.7);
 }
 

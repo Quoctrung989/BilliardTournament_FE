@@ -438,7 +438,7 @@ const PlayersTab = ({ participants }) => {
           position: "absolute", top: 0, left: "50%",
           transform: "translateX(-50%)", zIndex: 10,
           width: "min(560px, calc(100% - 4rem))",
-          background: "linear-gradient(180deg, #0d1b2e 0%, #152842 100%)",
+          background: "linear-gradient(180deg, #161a22 0%, #20242e 100%)",
           borderRadius: "0 0 0.75rem 0.75rem",
           padding: "0.7rem 2.5rem",
           boxShadow: "0 4px 16px rgba(13,27,46,0.25)",
@@ -754,7 +754,7 @@ const EventDetailPage = () => {
             style={{
               display: "inline-flex", alignItems: "center", gap: "0.5rem",
               background: "#fff", border: "1px solid #e2e8f0", borderRadius: "100px",
-              padding: "0.4rem 0.9rem", color: "#0d1b2e",
+              padding: "0.4rem 0.9rem", color: "#0b0d12",
               fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
               boxShadow: "0 1px 3px rgba(15,23,42,0.06)",
             }}>
@@ -847,13 +847,13 @@ const EventDetailPage = () => {
                 title={isDisabled ? "Lịch thi đấu chưa được xếp" : undefined}
                 className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl transition-all duration-200 ${
                   isDisabled ? "text-white/15 cursor-not-allowed"
-                  : isActive  ? "bg-white text-[#0d1b2e]"
+                  : isActive  ? "bg-white text-[#0b0d12]"
                   : "text-white/50 hover:text-white/80"
                 }`}>
                 <span className="relative">
                   <tab.Icon size={16} strokeWidth={isActive ? 2 : 1.5} />
                   {tab.live && isLive && (
-                    <span className={`absolute -top-0.5 -right-1.5 w-1.5 h-1.5 rounded-full bg-[#ef342a] border ${isActive ? "border-white" : "border-[#0d1b2e]"}`} />
+                    <span className={`absolute -top-0.5 -right-1.5 w-1.5 h-1.5 rounded-full bg-[#ef342a] border ${isActive ? "border-white" : "border-[#0b0d12]"}`} />
                   )}
                 </span>
                 <span className={`text-[10px] leading-none ${isActive ? "font-semibold" : "font-light"}`}>
