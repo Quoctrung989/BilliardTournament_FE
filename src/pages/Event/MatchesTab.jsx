@@ -980,6 +980,13 @@ const MatchesTab = ({ tournament }) => {
     setView("list");
   };
 
+  /* Options cho dropdown lọc vòng — PHẢI khớp namespace id với danh sách trận đang thực sự
+     lọc cho format hiện tại: single_elimination lọc trên koMatches/koRounds (id "rN" trần),
+     còn lại lọc trên allMatches/rounds (id "s{stageId}_rN" — prefix theo stage để tránh đụng
+     giữa các giai đoạn cùng loại). Dùng nhầm "rounds" (global) cho single_elimination khiến
+     value của <option> không bao giờ khớp roundId của koMatches → filter im lặng không lọc gì. */
+  const roundFilterOptions = format === "single_elimination" ? koRounds : rounds;
+
   /* Filtered for list view */
   const filteredMatches = useMemo(() => {
     const q = nameSearch.toLowerCase();
@@ -1079,18 +1086,20 @@ const MatchesTab = ({ tournament }) => {
                      onChange={e=>setNameSearch(e.target.value)}
                      className="w-full bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-8 pr-4 py-2 placeholder:text-gray-400 focus:outline-none focus:border-[#0d1b2e]/15 focus:bg-white transition-all dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 dark:border-white/10 dark:focus:bg-white/10 dark:focus:border-white/25"/>
             </div>
-            {format !== "group_stage" && rounds.length > 0 && (
+            {format !== "group_stage" && roundFilterOptions.length > 0 && (
               <div className="relative min-w-[140px]">
                 <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none"/>
                 <select value={roundFilter} onChange={e=>setRoundFilter(e.target.value)}
                         className="w-full appearance-none bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-4 pr-8 py-2 focus:outline-none focus:border-[#0d1b2e]/15 transition-all cursor-pointer dark:bg-white/5 dark:text-white dark:border-white/10 dark:[&>option]:text-slate-800">
                   <option value="">Tất cả vòng</option>
-                  {rounds.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}
+                  {roundFilterOptions.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}
                 </select>
               </div>
             )}
             <div className="flex items-center px-1">
-              <span className="text-[11px] text-gray-400 dark:text-white/50 font-light">{filteredMatches.length} trận</span>
+              <span className="text-[11px] text-gray-400 dark:text-white/50 font-light">
+                {(format === "single_elimination" ? filteredKo : filteredMatches).length} trận
+              </span>
             </div>
           </div>
         </div>
