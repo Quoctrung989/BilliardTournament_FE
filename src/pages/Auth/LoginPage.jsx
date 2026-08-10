@@ -218,10 +218,15 @@ const LoginPage = () => {
           {/* Legal */}
           <div>
             <h4 style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 12 }}>Pháp lý</h4>
+            {/* Chưa có trang đích — xem chú thích cùng khối ở ForgotPasswordPage */}
             {["Điều khoản & Điều kiện", "Chính sách bảo mật", "Chính sách Cookie"].map((item) => (
-              <a key={item} href="#" style={{ fontSize: 12.5, color: "#8a99b5", textDecoration: "none", display: "block", marginBottom: 6 }}>
+              <button
+                key={item}
+                type="button"
+                style={{ fontSize: 12.5, color: "#8a99b5", textDecoration: "none", display: "block", marginBottom: 6, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+              >
                 {item}
-              </a>
+              </button>
             ))}
           </div>
 

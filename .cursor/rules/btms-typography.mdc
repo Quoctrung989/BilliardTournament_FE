@@ -5,37 +5,67 @@ alwaysApply: true
 
 # Typography — BTMS
 
-Dự án dùng **một stack phông hệ thống** ổn định, không phụ thuộc Google Fonts.
+Dự án dùng **hai phông chính**: Poppins cho chữ thường, Oswald cho tiêu đề. Nạp từ Google Fonts trong `public/index.html`.
+
+> **Sửa 2026-08-10 (hai lần).** File này trước đây ghi "dùng stack phông hệ thống, không import Google Fonts" — đã sai từ commit `8762666` (31/07/2026). Cùng ngày, tiêu đề đổi từ Bebas Neue sang Oswald, xem mục dưới.
 
 ## Nguồn chuẩn
 
 Định nghĩa trong `src/styles/variables.css`:
 
 ```css
---font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+--font-sans: "Poppins", "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI",
+  Roboto, "Helvetica Neue", Arial, sans-serif;
+--font-display: "Oswald", "Be Vietnam Pro", system-ui, sans-serif;
 --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 ```
 
-`body` kế thừa qua `reset.css` / `global.css`. Tailwind: `font-sans`, `font-mono`.
+`body` kế thừa `--font-sans` qua `reset.css` / `global.css`; `h1`–`h6` đổi sang `--font-display` trong `global.css`. Tailwind: `font-sans`, `font-display`, `font-mono`.
+
+## ĐỪNG nạp lại Bebas Neue
+
+Bebas Neue là font tiêu đề cũ, **gỡ ngày 2026-08-10**. Nó thiếu khoảng U+1EA0–1EF1 — phần lớn nguyên âm có dấu tiếng Việt (ế ộ ữ ầ ắ ị ọ) — nên chữ có dấu rơi sang Oswald ở cuối stack. Hai font lệch cap-height, mà tiêu đề lại cỡ lớn nên chỗ nối lộ hẳn: trong "SÂN CHƠI BILLIARDS" thì Â và Ơ thụt xuống thấy rõ.
+
+Kèm theo là lỗi thứ hai: Bebas Neue toàn chữ hoa, nên tiêu đề viết thường không có lớp `uppercase` (`Quản lý nhân viên`) hiện ra `QUảN Lý NHâN VIêN` — ký tự có dấu rơi sang Oswald nên giữ nguyên chữ thường.
+
+Oswald có đủ subset vietnamese nên dùng một mình, mọi ký tự cùng một đường chân chữ.
+
+## Be Vietnam Pro KHÔNG được bỏ
+
+Poppins cũng thiếu đúng khoảng đó. Be Vietnam Pro đứng sau nó trong stack để đỡ; gỡ khỏi `index.html` là chữ có dấu rơi xuống font hệ thống, lệch kiểu ngay giữa một từ.
+
+Hệ quả: chữ thường tiếng Việt có dấu **thực chất đang hiện bằng Be Vietnam Pro**, chỉ ký tự không dấu mới ra Poppins. Hai font cùng kiểu geometric sans nên chỗ nối không lộ như trường hợp Bebas.
 
 ## Quy tắc
 
 - **Không** thêm `font-family` inline (`style={{ fontFamily: ... }}`) trên page/component.
-- **Không** import Google Fonts (Barlow, Inter, Poppins, Arvo, …) cho UI chung.
+- **Không** import thêm Google Fonts nào khác (Barlow, Inter, Arvo, …) cho UI chung.
 - Trang/section mới: kế thừa từ `body`; không override trừ khi có lý do rõ (ví dụ badge code).
+- Tiêu đề không phải thẻ `h1`–`h6`: dùng lớp `font-display`.
+- **Oswald là font condensed, đừng đặt `font-weight: 700/900` lên tiêu đề** — nét bết lại. `global.css` đã ép `font-weight: 500`, weight thật đã nạp và nặng xấp xỉ Bebas Neue cũ.
+- **Oswald có chữ thường**, khác Bebas Neue. Tiêu đề muốn hiện dạng hoa thì tự đặt `uppercase`, không còn được font lo hộ.
 - Input, button, textarea: dùng `font-family: inherit` nếu cần khai báo trong SCSS/CSS.
 - Admin (`admin.css`): dùng `var(--font-sans)`; code/ID dùng `var(--font-mono)`.
+
+## App mobile cố ý khác ở chữ thường
+
+`SU26_SEP490_G2_MOBILE` dùng **Be Vietnam Pro** cho chữ thường, không dùng Poppins. React Native không thay glyph từng ký tự như trình duyệt, nên chuỗi dự phòng ở trên không chạy được bên đó — mà chữ có dấu bên web đằng nào cũng đang là Be Vietnam Pro. **Đây không phải lệch chuẩn cần sửa.**
+
+Tiêu đề thì hai bên **dùng chung Oswald**. Mobile nghiêng bằng `skewX(-14deg)` — đúng phép biến hình trình duyệt dùng cho `font-style: italic` trên font không có bản nghiêng thật.
+
+Chi tiết: `docs/mobile/01-design-system.md` trong repo mobile.
 
 ## Ví dụ
 
 ```jsx
 // ❌ Không
 <div style={{ fontFamily: "'Barlow', sans-serif" }}>
-<div className="font-poppins">
+<h2 style={{ fontWeight: 900 }}>            // Bebas chỉ có 400 → đậm giả
 
 // ✅ Đúng — kế thừa global hoặc Tailwind
 <div className="min-h-screen">
 <p className="font-sans">
+<div className="font-display">              // tiêu đề không phải thẻ h*
 ```
 
 ```scss
