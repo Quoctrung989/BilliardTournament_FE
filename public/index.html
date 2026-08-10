@@ -31,19 +31,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!--
-      Bebas Neue (tiêu đề) và Poppins (chữ thường) đều KHÔNG có subset
-      `vietnamese`: latin-ext của chúng chứa U+1E00-1E9F và U+1EF2-1EFF nhưng
-      thiếu đúng khoảng U+1EA0-1EF1 — nơi có phần lớn nguyên âm có dấu tiếng
-      Việt (ế ộ ữ ầ ắ ị ọ...).
+      Poppins KHÔNG có subset `vietnamese`: latin-ext của nó chứa U+1E00-1E9F và
+      U+1EF2-1EFF nhưng thiếu đúng khoảng U+1EA0-1EF1 — nơi có phần lớn nguyên
+      âm có dấu tiếng Việt (ế ộ ữ ầ ắ ị ọ...). Nên nạp kèm Be Vietnam Pro đỡ cho
+      nó; hai font cùng kiểu geometric sans nên chỗ nối không lộ.
 
-      Nên nạp kèm hai font dự phòng CÓ subset vietnamese, hình dáng gần nhất:
-        · Be Vietnam Pro → đỡ cho Poppins (cùng kiểu geometric sans)
-        · Oswald 600     → đỡ cho Bebas Neue (cùng kiểu condensed display)
+      TIÊU ĐỀ: ĐỪNG NẠP LẠI BEBAS NEUE (gỡ 2026-08-10).
+      Bebas Neue cũng thiếu đúng khoảng đó, và nó là font display cỡ lớn nên chỗ
+      nối lộ hẳn ra: trong "SÂN CHƠI BILLIARDS" thì Â và Ơ rơi sang Oswald, hai
+      font lệch cap-height nên chữ thụt lên thụt xuống giữa dòng — nghiêng tổng
+      hợp còn làm rõ thêm. Oswald có đủ subset vietnamese nên dùng một mình,
+      mọi ký tự cùng một đường chân chữ.
+
       Trình duyệt tự lấy glyph từ font kế tiếp trong stack khi font đầu thiếu,
       nên chỉ những ký tự có dấu mới rơi sang font dự phòng.
     -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500&family=Poppins:wght@300;400;500;600;700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Poppins:wght@300;400;500;600;700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
   </head>

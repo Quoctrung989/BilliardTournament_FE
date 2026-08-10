@@ -98,7 +98,7 @@ const PlayerCard = ({ player, index }) => {
           </div>
 
           <div className="p-4 rounded-bl-[8px] border-b border-l border-gray-200 dark:border-white h-[70px]">
-            <h3 className="hm-title text-[15px] font-black uppercase leading-tight text-[#1d2430] dark:text-[var(--wnt25-color-light)] flex flex-col">
+            <h3 className="hm-title text-[15px] font-black uppercase leading-[1.3] text-[#1d2430] dark:text-[var(--wnt25-color-light)] flex flex-col">
               <span>{first}</span>
               <span>{last}</span>
             </h3>
@@ -115,7 +115,7 @@ const Ranked = () => {
 
   const header = (
     <div className="hm-reveal-left w-full bg-[var(--wnt25-color-dark)] p-4 rounded-md flex flex-wrap gap-3 justify-between items-center text-[var(--wnt25-color-light)]">
-      <h2 className="text-lg font-bold tracking-tight">
+      <h2 className="text-lg font-bold">
         Top {TOP_COUNT} tay cơ hàng đầu năm {new Date().getFullYear()}
       </h2>
       <Link
@@ -203,7 +203,7 @@ const Ranked = () => {
                 <p className="text-[20px] font-medium leading-none text-[#1d2430] dark:text-white">
                   {topName.first}
                 </p>
-                <h3 className="hm-title text-[36px] font-black uppercase leading-none text-[#1d2430] dark:text-white">
+                <h3 className="hm-title text-[36px] font-black uppercase leading-[1.15] text-[#1d2430] dark:text-white">
                   {topName.last}
                 </h3>
                 <p className="mt-2 text-sm font-bold text-[#ef342a]">

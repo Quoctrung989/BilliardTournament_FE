@@ -51,10 +51,10 @@ const BranchAssignmentFields = ({ value, onChange, branchOptions }) => {
   const selectedBranches = branchOptions.filter((b) => (value.branchIds || []).includes(b.id));
 
   return (
-    <div className="sm:col-span-2 pt-3 border-t border-slate-100">
+    <div className="sm:col-span-2 pt-3 border-t border-slate-100 dark:border-white/10">
       <label className="admin-label">Phạm vi quản lý chi nhánh</label>
       <div className="mt-2 space-y-2">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/80">
           <input
             type="radio"
             checked={value.manageAllBranches}
@@ -62,7 +62,7 @@ const BranchAssignmentFields = ({ value, onChange, branchOptions }) => {
           />
           Toàn chuỗi (tất cả chi nhánh, kể cả chi nhánh tạo sau này)
         </label>
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/80">
           <input
             type="radio"
             checked={!value.manageAllBranches}
@@ -98,7 +98,7 @@ const BranchAssignmentFields = ({ value, onChange, branchOptions }) => {
           <div className="relative">
             <Search
               size={14}
-              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40"
             />
             <input
               className="admin-input w-full pl-8 text-sm"
@@ -108,16 +108,16 @@ const BranchAssignmentFields = ({ value, onChange, branchOptions }) => {
             />
           </div>
 
-          <div className="flex flex-col gap-0.5 p-2 rounded-lg border border-slate-100 bg-slate-50/80 max-h-40 overflow-y-auto">
+          <div className="flex flex-col gap-0.5 p-2 rounded-lg border border-slate-100 dark:border-white/10 bg-slate-50/80 dark:bg-white/5 max-h-40 overflow-y-auto">
             {branchOptions.length === 0 ? (
-              <p className="text-xs text-slate-500 px-1">Chưa có chi nhánh nào. Tạo chi nhánh trước ở mục &quot;Chi nhánh&quot;.</p>
+              <p className="text-xs text-slate-500 dark:text-white/60 px-1">Chưa có chi nhánh nào. Tạo chi nhánh trước ở mục &quot;Chi nhánh&quot;.</p>
             ) : filteredBranches.length === 0 ? (
-              <p className="text-xs text-slate-500 px-1">Không tìm thấy chi nhánh phù hợp.</p>
+              <p className="text-xs text-slate-500 dark:text-white/60 px-1">Không tìm thấy chi nhánh phù hợp.</p>
             ) : (
               filteredBranches.map((b) => (
                 <label
                   key={b.id}
-                  className="flex items-center gap-2 text-sm text-slate-700 px-1.5 py-1 rounded hover:bg-white cursor-pointer"
+                  className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/80 px-1.5 py-1 rounded hover:bg-white dark:hover:bg-white/10 cursor-pointer"
                 >
                   <input
                     type="checkbox"
@@ -151,7 +151,7 @@ const StaffBranchField = ({ value, onChange, branchOptions }) => {
   };
 
   return (
-    <div className="sm:col-span-2 pt-3 border-t border-slate-100">
+    <div className="sm:col-span-2 pt-3 border-t border-slate-100 dark:border-white/10">
       <label className="admin-label">Chi nhánh làm việc (tùy chọn)</label>
 
       <div className="mt-2 space-y-2">
@@ -174,7 +174,7 @@ const StaffBranchField = ({ value, onChange, branchOptions }) => {
         <div className="relative">
           <Search
             size={14}
-            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40"
           />
           <input
             className="admin-input w-full pl-8 text-sm"
@@ -184,16 +184,16 @@ const StaffBranchField = ({ value, onChange, branchOptions }) => {
           />
         </div>
 
-        <div className="flex flex-col gap-0.5 p-2 rounded-lg border border-slate-100 bg-slate-50/80 max-h-40 overflow-y-auto">
+        <div className="flex flex-col gap-0.5 p-2 rounded-lg border border-slate-100 dark:border-white/10 bg-slate-50/80 dark:bg-white/5 max-h-40 overflow-y-auto">
           {branchOptions.length === 0 ? (
-            <p className="text-xs text-slate-500 px-1">Chưa có chi nhánh nào. Tạo chi nhánh trước ở mục &quot;Chi nhánh&quot;.</p>
+            <p className="text-xs text-slate-500 dark:text-white/60 px-1">Chưa có chi nhánh nào. Tạo chi nhánh trước ở mục &quot;Chi nhánh&quot;.</p>
           ) : filteredBranches.length === 0 ? (
-            <p className="text-xs text-slate-500 px-1">Không tìm thấy chi nhánh phù hợp.</p>
+            <p className="text-xs text-slate-500 dark:text-white/60 px-1">Không tìm thấy chi nhánh phù hợp.</p>
           ) : (
             filteredBranches.map((b) => (
               <label
                 key={b.id}
-                className="flex items-center gap-2 text-sm text-slate-700 px-1.5 py-1 rounded hover:bg-white cursor-pointer"
+                className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/80 px-1.5 py-1 rounded hover:bg-white dark:hover:bg-white/10 cursor-pointer"
               >
                 <input
                   type="radio"
@@ -602,7 +602,7 @@ const AccountManagementPage = ({ config }) => {
                   }
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-white/10">
                 <AdminButton variant="secondary" onClick={closeCreate} disabled={saving}>
                   Hủy
                 </AdminButton>
@@ -664,7 +664,7 @@ const AccountManagementPage = ({ config }) => {
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-white/10">
                 <AdminButton variant="secondary" onClick={closeCreate} disabled={saving}>
                   Hủy
                 </AdminButton>
@@ -689,7 +689,7 @@ const AccountManagementPage = ({ config }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
                 <label className="admin-label">Email</label>
-                <input className="admin-input mt-1 bg-slate-50" value={editTarget.email || ""} readOnly />
+                <input className="admin-input mt-1 bg-slate-50 dark:bg-white/5" value={editTarget.email || ""} readOnly />
               </div>
               <EmployeeProfileFields
                 form={editForm}
@@ -720,7 +720,7 @@ const AccountManagementPage = ({ config }) => {
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-white/10">
               <AdminButton variant="secondary" onClick={closeEditInfo} disabled={editSaving}>
                 Hủy
               </AdminButton>
@@ -737,7 +737,7 @@ const AccountManagementPage = ({ config }) => {
   return (
     <div className="space-y-6">
       <AdminCard padding={false}>
-        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="flex flex-wrap gap-4 flex-1 min-w-0">
             <form
               onSubmit={handleSearchSubmit}
@@ -750,7 +750,7 @@ const AccountManagementPage = ({ config }) => {
                 <div className="relative flex-1 min-w-0">
                   <Search
                     size={16}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40"
                   />
                   <input
                     id="account-search"
@@ -866,13 +866,13 @@ const AccountManagementPage = ({ config }) => {
                           {row.fullName || row.displayName || "—"}
                         </span>
                         {row.displayName && row.fullName && (
-                          <span className="block text-xs text-slate-500 truncate">
+                          <span className="block text-xs text-slate-500 dark:text-white/60 truncate">
                             @{row.displayName}
                           </span>
                         )}
                       </td>
                       <td>
-                        <span className="text-slate-700 truncate block" title={row.email}>
+                        <span className="text-slate-700 dark:text-white/80 truncate block" title={row.email}>
                           {row.email}
                         </span>
                       </td>
@@ -903,14 +903,14 @@ const AccountManagementPage = ({ config }) => {
                                 ? "bg-rose-50 text-rose-700 ring-rose-200"
                                 : row.status === "PENDING"
                                   ? "bg-amber-50 text-amber-700 ring-amber-200"
-                                  : "bg-slate-100 text-slate-600 ring-slate-200"
+                                  : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 ring-slate-200"
                           }`}
                         >
                           {ACCOUNT_STATUS_LABELS[row.status] ?? row.status}
                         </span>
                       </td>
                       <td>
-                        <span className="text-slate-600">{row.phone || "—"}</span>
+                        <span className="text-slate-600 dark:text-white/70">{row.phone || "—"}</span>
                       </td>
                       <td className="align-right">
                         <div className="admin-table-actions">

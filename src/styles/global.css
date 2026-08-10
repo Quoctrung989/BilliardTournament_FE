@@ -9,14 +9,21 @@ body {
 }
 
 /* ===================================================================
-   Tiêu đề — Bebas Neue nghiêng.
+   Tiêu đề — Oswald nghiêng.
 
-   Bebas Neue chỉ có duy nhất weight 400. Nếu để nguyên `font-weight: 700/900`
-   mà nhiều nơi trong dự án đang dùng, trình duyệt sẽ tự làm đậm (faux bold) và
-   nét bị bết lại. Nên ép về 400 và bù độ "nặng" bằng letter-spacing.
+   Đổi 2026-08-10: trước đây là Bebas Neue với Oswald đỡ phần chữ có dấu. Hai
+   font lệch cap-height nên tiêu đề tiếng Việt bị thụt lên thụt xuống giữa
+   dòng. Oswald có đủ subset vietnamese nên giờ dùng một mình.
 
-   Bebas Neue cũng là font toàn chữ hoa — mọi tiêu đề sẽ hiển thị dạng hoa dù
-   nội dung viết thường. Đó là đặc tính của font, không phải lỗi CSS.
+   Ép `font-weight: 500` chứ không để 700/900 mà nhiều nơi trong dự án đang
+   dùng: 500 là weight thật đã nạp, còn 700/900 trên font condensed sẽ bết nét.
+   Oswald 500 nặng xấp xỉ Bebas Neue cũ.
+
+   Oswald KHÔNG có bản italic thật nên `font-style: italic` vẫn là nghiêng tổng
+   hợp — nhưng giờ chỉ còn một font nên cả dòng nghiêng đều một góc.
+
+   Khác Bebas Neue: Oswald có chữ thường. Tiêu đề muốn hiện dạng hoa thì phải
+   tự đặt `text-transform: uppercase`, không còn được font lo hộ.
    =================================================================== */
 h1,
 h2,
@@ -26,8 +33,24 @@ h5,
 h6 {
   font-family: var(--font-display);
   font-style: italic;
-  font-weight: 400;
-  letter-spacing: 0.01em;
+  font-weight: 500;
+
+  /* ── Hai giá trị dưới đây là để chừa chỗ cho DẤU TIẾNG VIỆT, đừng bóp lại ──
+     Sửa 2026-08-10.
+
+     Chữ hoa tiếng Việt chiếm nhiều chỗ hơn chữ hoa latin ở CẢ HAI CHIỀU:
+     - Chiều dọc: `Ệ` cần chỗ cho dấu mũ bên trên VÀ dấu nặng bên dưới cùng lúc
+     - Chiều ngang: Oswald là font condensed, lại thêm nghiêng tổng hợp 14 độ
+       của trình duyệt đẩy phần trên chữ sang phải, nên chữ dễ chạm nhau
+
+     `letter-spacing` nới từ 0.01em: ở 0.01em thì "BILLIARDS" dính liền nhau.
+     `line-height` đặt sàn 1.15: thiếu nó thì dấu trên `Ỉ` `Ệ` bị cắt ngọn.
+
+     Trang nào cần khít hơn thì đè bằng class, nhưng ĐỪNG dùng `tracking-tight`
+     (âm) hay `leading` dưới 1.1 cho tiêu đề có dấu — đó chính là thứ vừa phải
+     đi gỡ khỏi chín chỗ. */
+  letter-spacing: 0.02em;
+  line-height: 1.15;
 }
 
 /* Ô nhập và nút giữ font chữ thường — tiêu đề dạng display rất khó đọc ở cỡ
@@ -158,7 +181,7 @@ label {
    =================================================================== */
 /* Nền tối mặc định khi dark — cho trang không tự set nền (vd register, payment).
    Trang có nền riêng (public/admin) sẽ phủ lên bình thường. */
-.dark body { background-color: #0a1220; }
+.dark body { background-color: #0b0d12; }
 
 /* Biến màu cho các trang player dùng inline-style (vd PlayerTournamentDetail),
    vì inline style không thể override bằng class. Dùng var() trong inline. */
@@ -172,16 +195,16 @@ label {
 }
 
 .dark .content-dark {
-  --pd-page: #0a1220;
-  --pd-card: #131c2e;
-  --pd-subtle: #0e1626;
-  --pd-border: #243049;
+  --pd-page: #0b0d12;
+  --pd-card: #161a22;
+  --pd-subtle: #101319;
+  --pd-border: #2b3039;
   --pd-text: #e2e8f0;
   --pd-heading: #c7d2fe;
   /* cấp biến --admin-* để admin-card / admin-input / admin-pagination
      dùng trong player hoạt động đúng trên nền tối */
-  --admin-surface: #131c2e;
-  --admin-border: #243049;
+  --admin-surface: #161a22;
+  --admin-border: #2b3039;
   --admin-text: #e2e8f0;
   --admin-muted: #94a3b8;
   --admin-accent: #6366f1;
@@ -190,9 +213,9 @@ label {
 
 /* Nền trang & card (profile.scss) */
 .dark .content-dark.profile-page,
-.dark .content-dark .profile-page { background: #0a1220; }
+.dark .content-dark .profile-page { background: #0b0d12; }
 .dark .content-dark .profile-prefs-card {
-  background: #131c2e;
+  background: #161a22;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 .dark .content-dark .profile-prefs-lead,
@@ -201,20 +224,20 @@ label {
 .dark .content-dark .profile-form-section-desc { color: #94a3b8; }
 .dark .content-dark .profile-field-label { color: #cbd5e1; }
 .dark .content-dark .profile-input {
-  background: #0e1626;
-  border-color: #243049;
+  background: #101319;
+  border-color: #2b3039;
   color: #e2e8f0;
 }
-.dark .content-dark .profile-input--readonly { background: #0b1220; color: #64748b; }
+.dark .content-dark .profile-input--readonly { background: #0d0f14; color: #64748b; }
 .dark .content-dark .profile-btn-secondary {
-  background: #131c2e;
+  background: #161a22;
   color: #cbd5e1;
-  border-color: #243049;
+  border-color: #2b3039;
 }
-.dark .content-dark .profile-btn-secondary:hover:not(:disabled) { background: #1b2740; }
+.dark .content-dark .profile-btn-secondary:hover:not(:disabled) { background: #20242e; }
 
 /* Tailwind hardcode trong player/payment pages */
-.dark .content-dark .bg-white { background-color: #131c2e; }
+.dark .content-dark .bg-white { background-color: #161a22; }
 .dark .content-dark .text-slate-900,
 .dark .content-dark .text-gray-900 { color: #f1f5f9; }
 .dark .content-dark .text-slate-800,

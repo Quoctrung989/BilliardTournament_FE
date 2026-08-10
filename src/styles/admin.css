@@ -243,7 +243,7 @@
   border-radius: 8px;
 }
 .dark .admin-rte-content {
-  background: #0e1626;
+  background: #101319;
   color: var(--admin-text);
 }
 
@@ -746,23 +746,23 @@
    (áp dụng chung cho Admin / Owner / Manager / Staff)
    =================================================================== */
 .dark .admin-shell {
-  --admin-bg: #0a1220;
-  --admin-surface: #131c2e;
-  --admin-sidebar: #0b1424;
-  --admin-sidebar-hover: #1b2740;
-  --admin-sidebar-active: #24304d;
+  --admin-bg: #0b0d12;
+  --admin-surface: #161a22;
+  --admin-sidebar: #0d1015;
+  --admin-sidebar-hover: #20242e;
+  --admin-sidebar-active: #2f3540;
   --admin-text: #e2e8f0;
   --admin-muted: #94a3b8;
-  --admin-border: #243049;
+  --admin-border: #2b3039;
   --admin-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 /* Nút phụ + hover */
 .dark .admin-btn-secondary:hover {
-  background: #1b2740;
+  background: #20242e;
 }
 .dark .admin-btn-ghost:hover {
-  background: #1b2740;
+  background: #20242e;
   color: var(--admin-text);
 }
 .dark .admin-btn-success:disabled {
@@ -773,7 +773,7 @@
 /* Input / select */
 .dark .admin-input,
 .dark .admin-select {
-  background: #0e1626;
+  background: #101319;
   border-color: var(--admin-border);
   color: var(--admin-text);
 }
@@ -788,13 +788,13 @@
 
 /* Bảng */
 .dark .admin-table thead {
-  background: #0e1626;
+  background: #101319;
 }
 .dark .admin-table tbody tr:hover {
-  background: #0e1626;
+  background: #101319;
 }
 .dark .admin-table-code {
-  background: #1b2740;
+  background: #20242e;
   color: #cbd5e1;
 }
 .dark .admin-table-num {
@@ -815,7 +815,7 @@
 
 /* Toolbar */
 .dark .admin-toolbar {
-  background: linear-gradient(180deg, #131c2e 0%, #0e1626 100%);
+  background: linear-gradient(180deg, #161a22 0%, #101319 100%);
   border-color: var(--admin-border);
 }
 .dark .admin-toolbar-label {
@@ -824,7 +824,7 @@
 
 /* Skeleton */
 .dark .admin-skeleton {
-  background: linear-gradient(90deg, #1b2740 25%, #24304d 50%, #1b2740 75%);
+  background: linear-gradient(90deg, #20242e 25%, #2f3540 50%, #20242e 75%);
   background-size: 200% 100%;
 }
 
@@ -836,23 +836,23 @@
 /* Catalog detail — modal cấu hình (Admin) */
 .dark .catalog-detail-hero,
 .dark .catalog-detail-accent--string {
-  background: linear-gradient(135deg, #131c2e 0%, #0e1626 70%);
+  background: linear-gradient(135deg, #161a22 0%, #101319 70%);
   border-color: var(--admin-border);
 }
 .dark .catalog-detail-accent--boolean {
-  background: linear-gradient(135deg, #1e1b4b 0%, #131c2e 65%);
+  background: linear-gradient(135deg, #1e1b4b 0%, #161a22 65%);
   border-color: #3730a3;
 }
 .dark .catalog-detail-accent--int {
-  background: linear-gradient(135deg, #083344 0%, #131c2e 65%);
+  background: linear-gradient(135deg, #083344 0%, #161a22 65%);
   border-color: #155e75;
 }
 .dark .catalog-detail-accent--enum {
-  background: linear-gradient(135deg, #2e1065 0%, #131c2e 65%);
+  background: linear-gradient(135deg, #2e1065 0%, #161a22 65%);
   border-color: #6d28d9;
 }
 .dark .catalog-detail-hero-icon {
-  background: #0e1626;
+  background: #101319;
   border-color: rgba(99, 102, 241, 0.35);
 }
 .dark .catalog-detail-hero-key {
@@ -862,11 +862,11 @@
 }
 .dark .catalog-detail-chip,
 .dark .catalog-detail-enum-list li {
-  background: #0e1626;
+  background: #101319;
   border-color: var(--admin-border);
 }
 .dark .catalog-detail-section {
-  background: #131c2e;
+  background: #161a22;
   border-color: var(--admin-border);
 }
 .dark .catalog-detail-section-head {
@@ -877,7 +877,7 @@
   color: #cbd5e1;
 }
 .dark .catalog-detail-spec-code {
-  background: #1b2740;
+  background: #20242e;
   color: #cbd5e1;
 }
 .dark .catalog-detail-enum-index {
@@ -918,7 +918,7 @@
 .dark .admin-content .border-slate-200,
 .dark .admin-content .border-gray-200 { border-color: rgba(255, 255, 255, 0.10); }
 
-.dark .admin-content .bg-white { background-color: #131c2e; }
+.dark .admin-content .bg-white { background-color: #161a22; }
 .dark .admin-content .bg-slate-50,
 .dark .admin-content .bg-gray-50 { background-color: rgba(255, 255, 255, 0.03); }
 .dark .admin-content .bg-slate-100,

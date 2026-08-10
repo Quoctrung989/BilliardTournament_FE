@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { listPublicTournaments } from "../../api/publicTournamentApi";
 import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
-import { buildListParams, DEFAULT_PAGE_SIZE } from "../../utils/pagination";
+import { buildListParams } from "../../utils/pagination";
 import { useReveal } from "../../hooks/useReveal";
 import { TOURNAMENT_STATUS_LABELS } from "../../constants/tournamentConfig";
 import "./eventTheme.css";
@@ -56,6 +56,30 @@ const fmtDateShort = (iso) => {
   });
 };
 
+/**
+ * Khoảng ngày viết gọn cho dải đáy card.
+ *
+ * Ghép thẳng hai ngày đầy đủ ra "25 thg 7, 2026 – 31 thg 7, 2026" — dài gần
+ * bằng cả bề ngang card khi lưới chuyển sang bốn cột. Giải nào cũng gói gọn
+ * trong một năm, nên ghi năm hai lần là thừa: bỏ ở vế đầu khi trùng năm.
+ */
+const fmtDateRange = (startIso, endIso) => {
+  const start = startIso ? new Date(startIso) : null;
+  const end = endIso ? new Date(endIso) : null;
+
+  if (!start) return fmtDateShort(endIso) || "—";
+  if (!end) return fmtDateShort(startIso);
+
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const startStr = start.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "short",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+
+  return `${startStr} – ${fmtDateShort(endIso)}`;
+};
+
 const isFull = (t) =>
   t.approvedCount != null && t.maxParticipants > 0 && t.approvedCount >= t.maxParticipants;
 
@@ -82,14 +106,36 @@ const StatusPill = ({ badge }) => (
   </span>
 );
 
+/**
+ * Hành động thứ hai ở mặt sau card, đổi theo trạng thái giải.
+ *
+ * `null` nghĩa là giải đang ở trạng thái chẳng có gì để làm thêm (đóng đăng ký,
+ * đã huỷ) — lúc đó mặt sau chỉ có một nút, đừng bịa ra nút thứ hai cho cân.
+ *
+ * Hai đường dẫn cuối dùng `?tab=` vì `EventDetailPage` đọc tham số đó lúc dựng
+ * state (xem `useState(searchParams.get("tab") || "info")`), nên vào thẳng đúng
+ * tab chứ không phải bấm thêm một nhịp.
+ */
+const secondaryAction = (t) => {
+  if (t.status === "OPEN_FOR_REGISTRATION" && !isFull(t))
+    return { label: "Đăng ký ngay", to: `/player/tournaments/${t.id}/register` };
+
+  if (t.status === "IN_PROGRESS")
+    return { label: "Tỷ số trực tiếp", to: `/event/${t.id}?tab=matches` };
+
+  if (t.status === "COMPLETED" || t.status === "DRAW_DONE")
+    return { label: "Kết quả", to: `/event/${t.id}?tab=ranking` };
+
+  return null;
+};
+
 /* ── WNT-style card ── */
 const TournamentCard = ({ tournament, index }) => {
   const navigate = useNavigate();
   const badge = getBadge(tournament);
-  const startStr = fmtDateShort(tournament.startAt);
-  const endStr   = fmtDateShort(tournament.endAt);
-  const dateStr  = startStr && endStr ? `${startStr} – ${endStr}` : startStr || "—";
+  const dateStr = fmtDateRange(tournament.startAt, tournament.endAt);
   const isCompleted = tournament.status === "COMPLETED" || tournament.status === "DRAW_DONE";
+  const second = secondaryAction(tournament);
 
   return (
     // Stagger ở lớp ngoài, hover ở lớp trong — gộp chung thì transition-delay
@@ -102,8 +148,11 @@ const TournamentCard = ({ tournament, index }) => {
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && navigate(`/event/${tournament.id}`)}
     >
-      {/* Image card */}
-      <div className="relative overflow-hidden rounded-t-2xl" style={{ aspectRatio: "4/5" }}>
+      {/* Khối ảnh — đây là phần quay khi trỏ vào. Dải ngày bên dưới đứng yên.
+          3/4: dọc hơn 4/5 cũ nhưng không kéo lưới dài như 9/16 đã thử. */}
+      <div className="evt-flip rounded-t-2xl" style={{ aspectRatio: "3/4" }}>
+      <div className="evt-flip__inner">
+      <div className="evt-flip__face evt-flip__front">
         <img
           src={tournament.thumbnailUrl || bannerFor(tournament.id)}
           alt={tournament.name}
@@ -148,6 +197,39 @@ const TournamentCard = ({ tournament, index }) => {
         </div>
       </div>
 
+      {/* Mặt sau — chỉ thấy được trên thiết bị trỏ được thật */}
+      <div className="evt-flip__face evt-flip__back">
+        <img
+          src={tournament.thumbnailUrl || bannerFor(tournament.id)}
+          alt=""
+          aria-hidden
+          className="evt-flip__back-img"
+          onError={(e) => { e.currentTarget.src = bannerFor(tournament.id); }}
+        />
+
+        <p className="evt-flip__title">{tournament.name}</p>
+
+        <button
+          type="button"
+          className="evt-flip__btn"
+          onClick={(e) => { e.stopPropagation(); navigate(`/event/${tournament.id}`); }}
+        >
+          Xem chi tiết
+        </button>
+
+        {second && (
+          <button
+            type="button"
+            className="evt-flip__btn evt-flip__btn--primary"
+            onClick={(e) => { e.stopPropagation(); navigate(second.to); }}
+          >
+            {second.label}
+          </button>
+        )}
+      </div>
+      </div>
+      </div>
+
       {/* Below card: date + action button — grey background */}
       <div className="flex items-center justify-between px-3 py-2.5 rounded-b-2xl"
         style={{ background: "var(--evt-card-footer)" }}>
@@ -155,9 +237,11 @@ const TournamentCard = ({ tournament, index }) => {
           {dateStr}
         </span>
 
+        {/* Chỉ hiện trên màn cảm ứng — nơi không lật card được. CSS ẩn nó đi
+            trong `@media (hover: hover)`, xem eventTheme.css. */}
         <button
           type="button"
-          className="evt-cta"
+          className="evt-cta evt-footer-cta"
           onClick={(e) => { e.stopPropagation(); navigate(`/event/${tournament.id}`); }}
         >
           🎱 {isCompleted ? "Kết quả" : "Xem"}
@@ -177,7 +261,10 @@ const EventPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  /* 12 chứ không phải DEFAULT_PAGE_SIZE (9): lưới ở đây bốn cột, mà 9 chia cho
+     4 dư 1 nên trang nào cũng kết thúc bằng một hàng lẻ loi. 12 cho đúng ba
+     hàng đầy. Các màn khác vẫn ba cột nên giữ nguyên mặc định chung. */
+  const [pageSize, setPageSize] = useState(12);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -215,10 +302,10 @@ const EventPage = () => {
   };
 
   return (
-    <div className="w-full bg-white dark:bg-[#0a1220]">
+    <div className="w-full bg-white dark:bg-[#0b0d12]">
 
       {/* ── Hero banner ── */}
-      <div className="w-full h-[280px] bg-[#0c1527] relative overflow-hidden">
+      <div className="w-full h-[280px] bg-[#0e1116] relative overflow-hidden">
         <img
           src="/images/tournaments/pool-6.jpg"
           alt=""
@@ -230,7 +317,7 @@ const EventPage = () => {
             <p className="text-[#ef342a] text-xs font-bold uppercase tracking-widest mb-1">
               World Nineball Tour
             </p>
-            <h1 className="text-4xl font-black text-white uppercase italic tracking-tight">
+            <h1 className="text-4xl font-black text-white uppercase">
               Giải Đấu Bi-a
             </h1>
           </div>
@@ -238,7 +325,7 @@ const EventPage = () => {
       </div>
 
       {/* ── Filter bar ── */}
-      <div className="bg-[#f7f7f7] dark:bg-[#0d1b2e] border-b border-gray-200 dark:border-white/10 sticky top-[64px] z-30">
+      <div className="bg-[#f7f7f7] dark:bg-[#161a22] border-b border-gray-200 dark:border-white/10 sticky top-[64px] z-30">
         <div className="max-w-[1600px] mx-auto px-8 py-3">
           <div className="flex flex-col lg:flex-row lg:items-center gap-3">
             <div className="flex gap-2 flex-wrap">
@@ -248,7 +335,7 @@ const EventPage = () => {
                   onClick={() => handleStatusChange(f.value)}
                   className={`ui-press px-4 py-1.5 rounded-full text-sm font-semibold ${
                     statusFilter === f.value
-                      ? "bg-[#0c1527] text-white dark:bg-white dark:text-[#0d1b2e]"
+                      ? "bg-[#0e1116] text-white dark:bg-white dark:text-[#0b0d12]"
                       : "text-[#333] border border-gray-300 hover:border-[#0c1527] dark:text-white/70 dark:border-white/20 dark:hover:border-white/60"
                   }`}
                 >
@@ -299,7 +386,10 @@ const EventPage = () => {
             </button>
           </div>
         ) : (
-          <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          /* Bốn cột từ lg trở lên: card nhỏ lại nhưng một màn chứa được gấp
+             rưỡi số giải, đỡ phải cuộn. Khe hở hạ từ 32 xuống 24 để bù lại bề
+             ngang mà cột thứ tư lấy mất. */
+          <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {items.map((t, i) => (
               <TournamentCard key={t.id} tournament={t} index={i} />
             ))}

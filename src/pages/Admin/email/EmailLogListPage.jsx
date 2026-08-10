@@ -323,7 +323,7 @@ const EmailLogListPage = () => {
             <div>
               <p className="admin-label mb-1">Nội dung đã gửi</p>
               <div
-                className="border border-slate-200 rounded-lg p-4 bg-white"
+                className="border border-slate-200 dark:border-white/10 rounded-lg p-4 bg-white dark:bg-[#101319]"
                 dangerouslySetInnerHTML={{ __html: detail.bodyRendered }}
               />
             </div>

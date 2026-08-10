@@ -118,7 +118,7 @@ const Dashboard = () => {
 
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">Phân tích nhanh</h2>
+          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Phân tích nhanh</h2>
           <p className="text-xs text-slate-500 mt-0.5">Dữ liệu mẫu — kết nối API sau</p>
         </div>
         <select className="admin-select w-full sm:w-48" defaultValue="current-week">

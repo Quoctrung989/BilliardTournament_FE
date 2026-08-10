@@ -154,6 +154,7 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
   const [branchIdFilter, setBranchIdFilter] = useState("");
   const [gameTypes, setGameTypes] = useState([]);
   const [branches, setBranches] = useState([]);
+  const [visibilitySavingId, setVisibilitySavingId] = useState(null);
 
   useEffect(() => {
     api
@@ -213,6 +214,22 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
     e.preventDefault();
     setSearchApplied(searchInput.trim());
     setPage(0);
+  };
+
+  const handleToggleVisibility = async (row) => {
+    const next = !row.isShowTournament;
+    setVisibilitySavingId(row.id);
+    try {
+      await api.patchVisibility(row.id, { isShowTournament: next });
+      setTournaments((prev) =>
+        prev.map((t) => (t.id === row.id ? { ...t, isShowTournament: next } : t))
+      );
+      toast.success(next ? "Đã hiển thị giải đấu công khai" : "Đã ẩn giải đấu khỏi trang công khai");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setVisibilitySavingId(null);
+    }
   };
 
   const resetFilters = () => {
@@ -336,13 +353,14 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
           ) : (
             <table className="admin-table">
               <colgroup>
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "13%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "7%" }} />
+                <col style={{ width: "18%" }} />
                 <col style={{ width: "12%" }} />
-                <col style={{ width: "8%" }} />
+                <col style={{ width: "12%" }} />
                 <col style={{ width: "7%" }} />
+                <col style={{ width: "11%" }} />
+                <col style={{ width: "7%" }} />
+                <col style={{ width: "6%" }} />
+                <col style={{ width: "8%" }} />
                 <col style={{ width: "12%" }} />
                 <col style={{ width: "7%" }} />
               </colgroup>
@@ -355,6 +373,7 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
                   <th className="align-center">Trạng thái</th>
                   <th className="align-center">Cấu hình</th>
                   <th className="align-center">Đăng ký</th>
+                  <th className="align-center">Công khai</th>
                   <th>Thời gian</th>
                   <th className="align-right">Thao tác</th>
                 </tr>
@@ -421,6 +440,26 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
                         }`}
                       >
                         {row.isRegister ? "Online" : "Không"}
+                      </span>
+                    </td>
+                    <td className="align-center">
+                      <span className="admin-table-toggle-wrap">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={!!row.isShowTournament}
+                          className="admin-toggle"
+                          data-on={!!row.isShowTournament}
+                          disabled={visibilitySavingId === row.id}
+                          onClick={() => handleToggleVisibility(row)}
+                          title={
+                            row.isShowTournament
+                              ? "Nhấn để ẩn khỏi trang công khai"
+                              : "Nhấn để hiển thị công khai"
+                          }
+                        >
+                          <span className="admin-toggle-knob" />
+                        </button>
                       </span>
                     </td>
                     <td>

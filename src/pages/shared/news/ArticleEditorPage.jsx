@@ -234,7 +234,7 @@ const ArticleEditorPage = ({ api, basePath }) => {
                 onChange={(html) => setForm((f) => ({ ...f, content: html }))}
               />
             </div>
-            <p className="text-xs text-slate-400 mt-1">Xuất bản sau khi lưu.</p>
+            <p className="text-xs text-slate-400 mt-1">Lưu dưới dạng nháp — bấm "Xuất bản" ở danh sách bài viết để công khai.</p>
           </div>
         </div>
 

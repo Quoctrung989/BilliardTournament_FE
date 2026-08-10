@@ -423,85 +423,6 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
 
 const DEFAULT_AVATAR = "/player-default.webp";
 
-/* Split "Nguyen Van A" → { first: "Nguyen Van", last: "A" } */
-const splitName = (full = "") => {
-  const parts = full.trim().split(" ");
-  if (parts.length <= 1) return { first: "", last: full };
-  const last = parts.pop();
-  return { first: parts.join(" "), last };
-};
-
-/* ── Player detail modal (WNT style) ── */
-const PlayerModal = ({ player, onClose }) => {
-  const { first, last } = splitName(player.displayName);
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 200,
-        background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)",
-        display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%", maxWidth: "640px",
-          background: "#152840", borderRadius: "0.75rem",
-          overflow: "hidden", display: "flex", position: "relative",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
-        }}
-      >
-        {/* Left: avatar */}
-        <div style={{ width: "45%", flexShrink: 0, position: "relative", minHeight: "300px" }}>
-          <img
-            src={player.avatarUrl || player.avtarUrl || DEFAULT_AVATAR}
-            alt={player.displayName}
-            onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-          />
-          {/* subtle right-edge fade */}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent 60%, #152840 100%)" }} />
-        </div>
-
-        {/* Vertical divider */}
-        <div style={{ width: "1px", background: "rgba(255,255,255,0.08)", flexShrink: 0 }} />
-
-        {/* Right: info */}
-        <div style={{ flex: 1, padding: "2rem 2rem 2rem 1.75rem", display: "flex", flexDirection: "column", justifyContent: "center", gap: "0.5rem" }}>
-          {/* Name */}
-          <div>
-            {first && (
-              <p style={{ margin: "0 0 0.15rem", color: "rgba(148,178,218,0.75)", fontWeight: 600, fontStyle: "italic", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                {first}
-              </p>
-            )}
-            <p style={{ margin: 0, color: "#fff", fontWeight: 900, fontStyle: "italic", fontSize: "1.2rem", textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.2 }}>
-              {last}
-            </p>
-          </div>
-
-          {/* Divider */}
-          <div style={{ width: "2.5rem", height: "2px", background: "#EF342A", borderRadius: "2px", margin: "0.5rem 0" }} />
-
-        </div>
-
-        {/* Close button */}
-        <button type="button" className="ui-press" onClick={onClose}
-          style={{
-            position: "absolute", top: "0.75rem", right: "0.75rem",
-            background: "rgba(255,255,255,0.1)", border: "none",
-            color: "rgba(255,255,255,0.7)", borderRadius: "50%",
-            width: "2rem", height: "2rem", cursor: "pointer",
-            fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-          ✕
-        </button>
-      </div>
-    </div>
-  );
-};
-
 /* ── Players tab ── */
 const PlayersTab = ({ participants }) => {
   const playersRef = useReveal({ threshold: 0.05 });
@@ -517,7 +438,7 @@ const PlayersTab = ({ participants }) => {
           position: "absolute", top: 0, left: "50%",
           transform: "translateX(-50%)", zIndex: 10,
           width: "min(560px, calc(100% - 4rem))",
-          background: "linear-gradient(180deg, #0d1b2e 0%, #152842 100%)",
+          background: "linear-gradient(180deg, #161a22 0%, #20242e 100%)",
           borderRadius: "0 0 0.75rem 0.75rem",
           padding: "0.7rem 2.5rem",
           boxShadow: "0 4px 16px rgba(13,27,46,0.25)",
@@ -833,7 +754,7 @@ const EventDetailPage = () => {
             style={{
               display: "inline-flex", alignItems: "center", gap: "0.5rem",
               background: "#fff", border: "1px solid #e2e8f0", borderRadius: "100px",
-              padding: "0.4rem 0.9rem", color: "#0d1b2e",
+              padding: "0.4rem 0.9rem", color: "#0b0d12",
               fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
               boxShadow: "0 1px 3px rgba(15,23,42,0.06)",
             }}>
@@ -926,13 +847,13 @@ const EventDetailPage = () => {
                 title={isDisabled ? "Lịch thi đấu chưa được xếp" : undefined}
                 className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl transition-all duration-200 ${
                   isDisabled ? "text-white/15 cursor-not-allowed"
-                  : isActive  ? "bg-white text-[#0d1b2e]"
+                  : isActive  ? "bg-white text-[#0b0d12]"
                   : "text-white/50 hover:text-white/80"
                 }`}>
                 <span className="relative">
                   <tab.Icon size={16} strokeWidth={isActive ? 2 : 1.5} />
                   {tab.live && isLive && (
-                    <span className={`absolute -top-0.5 -right-1.5 w-1.5 h-1.5 rounded-full bg-[#ef342a] border ${isActive ? "border-white" : "border-[#0d1b2e]"}`} />
+                    <span className={`absolute -top-0.5 -right-1.5 w-1.5 h-1.5 rounded-full bg-[#ef342a] border ${isActive ? "border-white" : "border-[#0b0d12]"}`} />
                   )}
                 </span>
                 <span className={`text-[10px] leading-none ${isActive ? "font-semibold" : "font-light"}`}>

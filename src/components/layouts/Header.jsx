@@ -4,6 +4,7 @@ import { useAuthStore } from "../../store/authStore";
 import { normalizeRole } from "../../utils/auth";
 import { ROLES } from "../../constants/auth";
 import { useThemeStore } from "../../store/themeStore";
+import { useNotificationStore } from "../../store/notificationStore";
 import {
   AiOutlineUser,
   AiOutlineLogout,
@@ -13,6 +14,7 @@ import {
   AiOutlineDashboard,
 } from "react-icons/ai";
 import { FiSun, FiMoon } from "react-icons/fi";
+import NotificationBell from "../shared/notifications/NotificationBell";
 
 const DASHBOARD_PATH_BY_ROLE = {
   [ROLES.ADMIN]: "/admin/dashboard",
@@ -40,6 +42,9 @@ const Header = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
+  // Xoá cả mốc đã đọc khi đăng xuất — người khác đăng nhập trên cùng máy mà giữ mốc của chủ
+  // trước thì thông báo cũ hơn mốc đó bị coi là đã đọc dù họ chưa từng thấy
+  const resetNotifications = useNotificationStore((s) => s.reset);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -96,6 +101,12 @@ const Header = () => {
             {theme === "dark" ? <FiSun size={18} /> : <FiMoon size={18} />}
           </button>
 
+          {/* Chỉ dựng khi đã đăng nhập: chuông tự hỏi lại số chưa đọc theo nhịp,
+              để nó chạy lúc chưa có phiên thì chỉ nhận 401 liên tục */}
+          {isAuthenticated && user && (
+            <NotificationBell className="flex items-center justify-center h-9 w-9 rounded-full text-[#1a1a2e] dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors" />
+          )}
+
           {isAuthenticated && user ? (
             <div className="relative flex items-center gap-1 h-full" ref={menuRef}>
               <button
@@ -147,7 +158,7 @@ const Header = () => {
                   <div className="my-1 border-t border-slate-100 dark:border-white/10" />
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); logout(); navigate("/"); }}
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); resetNotifications(); logout(); navigate("/"); }}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-colors text-left"
                   >
                     <AiOutlineLogout size={15} />

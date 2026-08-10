@@ -110,7 +110,7 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
 
   return (
     <aside
-      className={`admin-shell fixed left-0 top-0 z-40 flex h-screen flex-col bg-white dark:bg-[#0b1424] text-slate-800 dark:text-white border-r border-slate-200 dark:border-white/10 transition-all duration-250 ease-in-out ${
+      className={`admin-shell fixed left-0 top-0 z-40 flex h-screen flex-col bg-white dark:bg-[#0d1015] text-slate-800 dark:text-white border-r border-slate-200 dark:border-white/10 transition-all duration-250 ease-in-out ${
         collapsed ? "w-16" : "w-[var(--admin-sidebar-w)]"
       }`}
     >

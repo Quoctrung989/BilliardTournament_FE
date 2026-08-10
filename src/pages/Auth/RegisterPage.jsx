@@ -227,9 +227,24 @@ const RegisterPage = () => {
                 />
                 <label htmlFor="agreeTerms" className="text-xs text-gray-600 cursor-pointer leading-relaxed">
                   Tôi đã đọc và đồng ý với{" "}
-                  <a href="#" className="text-blue-600 hover:underline">Điều khoản sử dụng</a>{" "}
+                  {/* Hai nút này nằm TRONG <label> nên phải chặn nổi bọt: không
+                      chặn thì bấm vào chữ "Điều khoản" lại tick/bỏ tick ô đồng ý.
+                      Cỡ chữ phải khai lại vì <button> không kế thừa font-size. */}
+                  <button
+                    type="button"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs text-blue-600 hover:underline align-baseline"
+                  >
+                    Điều khoản sử dụng
+                  </button>{" "}
                   và{" "}
-                  <a href="#" className="text-blue-600 hover:underline">Chính sách bảo mật</a>
+                  <button
+                    type="button"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs text-blue-600 hover:underline align-baseline"
+                  >
+                    Chính sách bảo mật
+                  </button>
                 </label>
               </div>
               {touched.agreeTerms && errors.agreeTerms && <p className="text-red-500 text-xs mt-1">{errors.agreeTerms}</p>}
@@ -303,10 +318,15 @@ const RegisterPage = () => {
           </div>
           <div>
             <h4 style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 12 }}>Pháp lý</h4>
+            {/* Chưa có trang đích — xem chú thích cùng khối ở ForgotPasswordPage */}
             {["Điều khoản & Điều kiện", "Chính sách bảo mật", "Chính sách Cookie"].map((item) => (
-              <a key={item} href="#" style={{ fontSize: 12.5, color: "#8a99b5", textDecoration: "none", display: "block", marginBottom: 6 }}>
+              <button
+                key={item}
+                type="button"
+                style={{ fontSize: 12.5, color: "#8a99b5", textDecoration: "none", display: "block", marginBottom: 6, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+              >
                 {item}
-              </a>
+              </button>
             ))}
           </div>
           <div>

@@ -1,19 +1,58 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { ArrowLeft, CheckCircle, CreditCard, Loader } from "lucide-react";
+import { ArrowLeft, CheckCircle, CreditCard, Loader, UserCheck } from "lucide-react";
 import {
   getTournamentRegistrationForm,
   submitTournamentRegistration,
 } from "../../api/playerRegistrationApi";
 import { createCheckout } from "../../api/paymentApi";
+import { getProfile } from "../../api/profileApi";
 import RegistrationDynamicForm from "../../components/registration-form/RegistrationDynamicForm";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { useReveal } from "../../hooks/useReveal";
+import { useAuthStore } from "../../store/authStore";
 
 const fmtMoney = (v) => {
   if (!v || Number(v) === 0) return "Miễn phí";
   return `${Number(v).toLocaleString("vi-VN")} đ`;
+};
+
+/**
+ * Những trường lấy được từ hồ sơ người đang đăng nhập.
+ *
+ * Khớp bằng `fieldKey` CHÍNH XÁC, không suy từ `uiComponent`. Template giải đôi
+ * có `player2_phone` cũng là `PHONE_INPUT`; đoán theo kiểu ô thì số của người
+ * đăng ký chui thẳng vào ô của đồng đội.
+ *
+ * Hai key này do `DataInitializer` bên backend đặt cho hai template có sẵn.
+ * Owner tự dựng template với key khác thì không tự điền — thà để trống còn hơn
+ * điền nhầm chỗ.
+ *
+ * Họ tên chỉ có ở hồ sơ (`GET /profile`); `GET /auth/me` không trả trường đó,
+ * nên tài khoản chưa tạo hồ sơ thì chỉ điền được số điện thoại.
+ *
+ * Giữ khớp với `TournamentRegisterView.jsx` bên mobile — hai bên lệch nhau thì
+ * cùng một người đăng ký trên hai thiết bị lại ra hai form khác nhau.
+ */
+const PREFILL_FROM_PROFILE = {
+  player_full_name: (profile) => profile?.fullName || "",
+  player_phone: (profile, user) => profile?.phone || user?.phone || "",
+};
+
+/** Giá trị điền sẵn cho các trường của giải, bỏ qua trường không có dữ liệu */
+const buildPrefill = (fields, profile, user) => {
+  const prefill = {};
+
+  (fields || []).forEach((field) => {
+    const source = PREFILL_FROM_PROFILE[field.fieldKey];
+    if (!source) return;
+
+    const value = source(profile, user);
+    if (value) prefill[field.fieldKey] = String(value);
+  });
+
+  return prefill;
 };
 
 const TournamentRegisterPage = () => {
@@ -22,26 +61,52 @@ const TournamentRegisterPage = () => {
   const pageRef = useReveal({ threshold: 0 });
   const tournamentId = Number(id);
 
+  const user = useAuthStore((s) => s.user);
+
   const [loading, setLoading] = useState(true);
   const [formPreview, setFormPreview] = useState(null);
   const [values, setValues] = useState({});
   const [note, setNote] = useState("");
+  /** Có điền hộ được ô nào không — quyết định việc hiện dòng nhắc phía trên form */
+  const [prefilled, setPrefilled] = useState(false);
+
+  /* Điền hộ đúng MỘT lần. `load` chạy lại thì việc điền lại sẽ xoá những gì
+     người dùng vừa gõ, kể cả khi họ cố ý sửa tên để đăng ký cho người khác. */
+  const prefilledOnce = useRef(false);
 
   /* Trạng thái submit */
   const [submitState, setSubmitState] = useState("idle");
   // idle | submitting | paying | success_free | success_paid_retry
   const [registrationId, setRegistrationId] = useState(null);
-  const [checkoutUrl, setCheckoutUrl] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getTournamentRegistrationForm(tournamentId);
+      const [data, profile] = await Promise.all([
+        getTournamentRegistrationForm(tournamentId),
+        // Hồ sơ chỉ dùng để điền hộ. Tài khoản chưa tạo hồ sơ thì backend trả
+        // 404 — nuốt lỗi tại đây, vì không có nó form vẫn phải mở được bình thường
+        getProfile().catch(() => null),
+      ]);
       setFormPreview(data);
+
       const initial = {};
       (data.fields || []).forEach((f) => {
         if (f.defaultValue) initial[f.fieldKey] = f.defaultValue;
       });
+
+      /* Hồ sơ đè lên defaultValue của template: giá trị mặc định do Owner đặt
+         là ví dụ chung cho mọi người, còn đây là dữ liệu thật của người đang điền */
+      if (!prefilledOnce.current) {
+        prefilledOnce.current = true;
+
+        const prefill = buildPrefill(data.fields, profile, user);
+        if (Object.keys(prefill).length > 0) {
+          Object.assign(initial, prefill);
+          setPrefilled(true);
+        }
+      }
+
       setValues(initial);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -49,7 +114,7 @@ const TournamentRegisterPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [tournamentId, navigate]);
+  }, [tournamentId, navigate, user]);
 
   useEffect(() => {
     if (tournamentId) load();
@@ -83,9 +148,9 @@ const TournamentRegisterPage = () => {
           window.location.href = co.checkoutUrl;
           // Không set state thêm vì browser sẽ redirect
         } catch (payErr) {
-          // Checkout thất bại — lưu lại để user thử lại
+          // Checkout thất bại. Đăng ký đã lưu rồi nên đừng quay về "idle" —
+          // chuyển sang màn cho trả tiền lại, `registrationId` ở trên đủ để thử lại
           toast.error("Tạo đơn thanh toán thất bại. Bạn có thể thử lại bên dưới.");
-          setCheckoutUrl(null);
           setSubmitState("success_paid_retry");
         }
       } else {
@@ -121,7 +186,7 @@ const TournamentRegisterPage = () => {
   /* ── Loading ── */
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-slate-400 content-dark">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-slate-400 dark:text-white/40 content-dark">
         Đang tải form đăng ký...
       </div>
     );
@@ -134,8 +199,8 @@ const TournamentRegisterPage = () => {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center content-dark">
         <Loader size={48} className="mx-auto mb-4 text-indigo-500 animate-spin" />
-        <h2 className="text-xl font-bold text-slate-900 mb-2">Đang chuyển tới cổng thanh toán...</h2>
-        <p className="text-slate-500">Vui lòng không đóng trang này.</p>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Đang chuyển tới cổng thanh toán...</h2>
+        <p className="text-slate-500 dark:text-white/60">Vui lòng không đóng trang này.</p>
       </div>
     );
   }
@@ -146,8 +211,8 @@ const TournamentRegisterPage = () => {
       <div className="max-w-lg mx-auto px-4 py-12 content-dark">
         <div className="admin-card p-8 text-center">
           <CheckCircle size={56} className="mx-auto mb-4 text-emerald-500" />
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Đăng ký thành công!</h2>
-          <p className="text-slate-500 mb-6">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Đăng ký thành công!</h2>
+          <p className="text-slate-500 dark:text-white/60 mb-6">
             Đây là giải đấu miễn phí. Bạn đã được tự động xác nhận tham gia nếu còn slot.
             Kiểm tra lại trạng thái trong mục "Đăng ký của tôi".
           </p>
@@ -162,7 +227,7 @@ const TournamentRegisterPage = () => {
             <button
               type="button"
               onClick={() => navigate("/event")}
-              className="text-sm text-slate-400 hover:text-slate-600"
+              className="text-sm text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70"
             >
               Xem giải đấu khác
             </button>
@@ -178,8 +243,8 @@ const TournamentRegisterPage = () => {
       <div className="max-w-lg mx-auto px-4 py-12 content-dark">
         <div className="admin-card p-8 text-center">
           <CheckCircle size={56} className="mx-auto mb-4 text-emerald-500" />
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Đăng ký đã được ghi nhận!</h2>
-          <p className="text-slate-500 mb-2">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Đăng ký đã được ghi nhận!</h2>
+          <p className="text-slate-500 dark:text-white/60 mb-2">
             Đơn đăng ký của bạn đã lưu. Bạn cần thanh toán để xác nhận tham gia.
           </p>
           <div className="mb-6 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
@@ -264,7 +329,19 @@ const TournamentRegisterPage = () => {
       )}
 
       <div className="ui-stagger admin-card p-6" style={{ "--i": 3 }}>
-        <h2 className="text-base font-semibold text-slate-900 mb-5">Thông tin đăng ký</h2>
+        <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-5">Thông tin đăng ký</h2>
+
+        {/* Nói rõ vì sao ô đã có sẵn chữ, và rằng sửa được. Không có dòng này
+            thì người đăng ký hộ bạn mình sẽ tưởng form khoá cứng theo tài khoản */}
+        {prefilled && (
+          <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 px-3.5 py-3">
+            <UserCheck size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-white/40" />
+            <p className="text-sm text-slate-500 dark:text-white/60">
+              Đã điền sẵn từ hồ sơ của bạn — sửa lại nếu bạn đăng ký cho người khác.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <RegistrationDynamicForm
             fields={formPreview.fields || []}
@@ -282,7 +359,7 @@ const TournamentRegisterPage = () => {
             />
           </div>
 
-          <div className="pt-2 border-t border-slate-100">
+          <div className="pt-2 border-t border-slate-100 dark:border-white/10">
             <button
               type="submit"
               className={`ui-press w-full py-3 text-base font-bold rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 ${
@@ -300,7 +377,7 @@ const TournamentRegisterPage = () => {
                 "Gửi đăng ký"
               )}
             </button>
-            <p className="text-xs text-slate-400 text-center mt-2">
+            <p className="text-xs text-slate-400 dark:text-white/40 text-center mt-2">
               {hasFee
                 ? "Bạn sẽ được tự động chuyển sang trang thanh toán PayOS ngay sau khi gửi."
                 : "Đăng ký xong sẽ được xét duyệt tự động theo số slot còn trống."}

@@ -123,6 +123,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
   const [raceToOpen, setRaceToOpen] = useState(true);
   const [auditLogs, setAuditLogs] = useState(null);
   const [auditLoading, setAuditLoading] = useState(false);
+  const [visibilitySaving, setVisibilitySaving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -172,6 +173,20 @@ const TournamentDetailPage = ({ api, basePath }) => {
       setAuditLoading(false);
     }
   }, [api, tournamentId]);
+
+  const handleToggleVisibility = async () => {
+    const next = !detail.isShowTournament;
+    setVisibilitySaving(true);
+    try {
+      await api.patchVisibility(tournamentId, { isShowTournament: next });
+      setDetail((d) => ({ ...d, isShowTournament: next }));
+      toast.success(next ? "Đã hiển thị giải đấu công khai" : "Đã ẩn giải đấu khỏi trang công khai");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setVisibilitySaving(false);
+    }
+  };
 
   const toggleAudit = () => {
     const next = !auditOpen;
@@ -224,9 +239,32 @@ const TournamentDetailPage = ({ api, basePath }) => {
           <div className="min-w-0">
             <h2 className="text-xl font-bold text-slate-900">{detail.name}</h2>
           </div>
-          <span className={`shrink-0 px-3 py-1 rounded-full text-sm font-semibold ${statusStyle}`}>
-            {statusLabel}
-          </span>
+          <div className="shrink-0 flex items-center gap-3">
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusStyle}`}>
+              {statusLabel}
+            </span>
+            <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer select-none">
+              <span className="admin-table-toggle-wrap">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={!!detail.isShowTournament}
+                  className="admin-toggle"
+                  data-on={!!detail.isShowTournament}
+                  disabled={visibilitySaving}
+                  onClick={handleToggleVisibility}
+                  title={
+                    detail.isShowTournament
+                      ? "Nhấn để ẩn khỏi trang công khai"
+                      : "Nhấn để hiển thị công khai"
+                  }
+                >
+                  <span className="admin-toggle-knob" />
+                </button>
+              </span>
+              Hiển thị công khai
+            </label>
+          </div>
         </div>
 
         {/* Slot progress */}
@@ -381,7 +419,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
                   <div className="flex flex-wrap gap-2">
                     {detail.venue.images.map((img) => (
                       <img
-                        key={img.id}
+                        key={img.key || img.url}
                         src={img.url}
                         alt=""
                         className="h-16 w-16 rounded-lg object-cover border border-slate-200"
