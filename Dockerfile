@@ -1,3 +1,15 @@
+# ⚠️  KHÔNG DÙNG TRONG PRODUCTION — giữ làm phương án dự phòng.
+#
+# Từ 08/08/2026 frontend deploy trên Cloudflare Pages: Pages tự build từ nhánh
+# `prod`, EC2 không tham gia. Service `frontend` đã xoá khỏi docker-compose.yml,
+# job deploy đã gỡ khỏi workflow, và container này chưa từng được tạo trên server.
+#
+# Lý do chuyển: build FE bằng npm ngay trên EC2 là phần ngốn tài nguyên nhất của
+# máy (lúc đó chỉ có 1.9 GiB RAM).
+#
+# Chỉ dùng lại nếu cần dựng frontend trên EC2 khi Cloudflare có sự cố. Khi đó nhớ
+# truyền REACT_APP_API_URL đúng và trả port 80 lại cho Caddy.
+
 # ---- Stage 1: build ----
 FROM node:20-alpine AS build
 WORKDIR /app
