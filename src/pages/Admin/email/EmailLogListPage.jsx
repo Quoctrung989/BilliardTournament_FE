@@ -220,13 +220,13 @@ const EmailLogListPage = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-6 text-slate-400">
+                  <td colSpan={8} className="text-center py-6 text-slate-400 dark:text-white/40">
                     Đang tải...
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-6 text-slate-400">
+                  <td colSpan={8} className="text-center py-6 text-slate-400 dark:text-white/40">
                     Chưa có nhật ký
                   </td>
                 </tr>
@@ -289,7 +289,7 @@ const EmailLogListPage = () => {
         }
       >
         {detailLoading || !detail ? (
-          <p className="text-slate-400 text-sm">Đang tải...</p>
+          <p className="text-slate-400 dark:text-white/40 text-sm">Đang tải...</p>
         ) : (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3 text-xs">

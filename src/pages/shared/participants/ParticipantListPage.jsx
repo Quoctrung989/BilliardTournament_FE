@@ -186,12 +186,12 @@ const ParticipantListPage = ({ api, basePath }) => {
       </AdminButton>
 
       <AdminCard padding={false}>
-        <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
+        <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-white/10">
           <div>
-            <h2 className="font-semibold text-slate-900">
+            <h2 className="font-semibold text-slate-900 dark:text-white">
               Người tham gia chính thức
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">
               {active} ACTIVE · {items.length} tổng · {ranked} đã có hạng
             </p>
           </div>
@@ -232,7 +232,7 @@ const ParticipantListPage = ({ api, basePath }) => {
                 </AdminButton>
               </>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100">
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 dark:text-white/40 px-3 py-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
                 <Lock size={13} />
                 Giải đã lên bracket — không thể thêm người tham gia mới
               </span>
@@ -265,23 +265,23 @@ const ParticipantListPage = ({ api, basePath }) => {
               <tbody>
                 {items.map((p, idx) => (
                   <tr key={p.id} className={p.status === "WITHDRAWN" ? "opacity-50" : ""}>
-                    <td className="text-slate-400">{idx + 1}</td>
+                    <td className="text-slate-400 dark:text-white/40">{idx + 1}</td>
                     <td>
                       <span className="admin-table-name" title={p.displayName}>{p.displayName}</span>
                     </td>
                     <td>{p.phone || "—"}</td>
                     <td>
-                      <span className="text-xs font-semibold text-slate-700">
+                      <span className="text-xs font-semibold text-slate-700 dark:text-white/75">
                         {billiardRankShort(p.billiardRank)}
                       </span>
                     </td>
                     <td>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-slate-500 dark:text-white/60">
                         {SOURCE_LABELS[p.source] || p.source}
                       </span>
                     </td>
                     <td>
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[p.status] || "bg-slate-100 text-slate-600"}`}>
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[p.status] || "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70"}`}>
                         {p.status === "ACTIVE" ? "Tham gia" : "Rút lui"}
                       </span>
                     </td>
@@ -312,8 +312,8 @@ const ParticipantListPage = ({ api, basePath }) => {
         <AdminCard>
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-semibold text-slate-900 mb-1">Kết quả import</p>
-              <p className="text-sm text-slate-600">
+              <p className="font-semibold text-slate-900 dark:text-white mb-1">Kết quả import</p>
+              <p className="text-sm text-slate-600 dark:text-white/70">
                 ✓ Import thành công: <strong>{importResult.imported}</strong> người ·
                 Bỏ qua: <strong>{importResult.skipped}</strong>
               </p>
@@ -325,7 +325,7 @@ const ParticipantListPage = ({ api, basePath }) => {
             </div>
             <button
               type="button"
-              className="text-slate-400 hover:text-slate-600 text-xs"
+              className="text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70 text-xs"
               onClick={() => setImportResult(null)}
             >
               Đóng
@@ -357,7 +357,7 @@ const ParticipantListPage = ({ api, basePath }) => {
       >
         {previewData && (
           <div className="space-y-3">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-white/70">
               Tổng <strong>{previewData.totalRows}</strong> dòng ·{" "}
               <span className="text-emerald-600">{previewData.validCount} hợp lệ</span> ·{" "}
               <span className="text-red-600">{previewData.invalidCount} lỗi</span>
@@ -378,7 +378,7 @@ const ParticipantListPage = ({ api, basePath }) => {
                 <tbody>
                   {previewData.rows.map((r) => (
                     <tr key={r.rowNo} className={r.valid ? "" : "bg-red-50"}>
-                      <td className="text-slate-400">{r.rowNo}</td>
+                      <td className="text-slate-400 dark:text-white/40">{r.rowNo}</td>
                       <td>{r.name1 || "—"}</td>
                       <td>{r.phone1 || "—"}</td>
                       {isDouble && <td>{r.name2 || "—"}</td>}
@@ -446,13 +446,13 @@ const ParticipantListPage = ({ api, basePath }) => {
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 dark:text-white/40 mt-1">
               Dùng để xếp cặp khi giải chọn phương thức "Theo hạng cơ thủ". Để "Chưa xếp hạng" nếu
               không rõ trình độ.
             </p>
           </div>
           {isDouble && (
-            <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+            <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100 dark:border-white/10">
               <div className="col-span-2 -mb-1 mt-3">
                 <label className="admin-label">Người chơi 2</label>
               </div>
@@ -474,7 +474,7 @@ const ParticipantListPage = ({ api, basePath }) => {
               </div>
             </div>
           )}
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 dark:text-white/40">
             Import nhiều người cùng lúc → dùng nút "Import Excel". Tải template từ nút bên phải.
           </p>
         </div>

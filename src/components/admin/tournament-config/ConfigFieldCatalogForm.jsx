@@ -158,7 +158,7 @@ const ConfigFieldCatalogForm = ({ mode = "create", initialItem, onSubmit, formId
             <p className="text-xs text-rose-600 mt-1">{errors.fieldKey}</p>
           )}
           {!isEdit && (
-            <p className="text-xs text-slate-500 mt-1">Chữ thường, số, gạch dưới — không đổi sau khi tạo.</p>
+            <p className="text-xs text-slate-500 dark:text-white/60 mt-1">Chữ thường, số, gạch dưới — không đổi sau khi tạo.</p>
           )}
         </div>
 
@@ -215,7 +215,7 @@ const ConfigFieldCatalogForm = ({ mode = "create", initialItem, onSubmit, formId
         <div>
           <label className="admin-label">Thành phần UI *</label>
           <input
-            className="admin-input mt-1 bg-slate-50"
+            className="admin-input mt-1 bg-slate-50 dark:bg-white/5"
             value={CATALOG_UI_LABELS[form.uiComponent] || form.uiComponent}
             readOnly
           />
@@ -248,7 +248,7 @@ const ConfigFieldCatalogForm = ({ mode = "create", initialItem, onSubmit, formId
             {errors.enumOptionsText && (
               <p className="text-xs text-rose-600 mt-1">{errors.enumOptionsText}</p>
             )}
-            <p className="text-xs text-slate-500 mt-1">Mỗi dòng một giá trị, hoặc cách nhau bởi dấu phẩy.</p>
+            <p className="text-xs text-slate-500 dark:text-white/60 mt-1">Mỗi dòng một giá trị, hoặc cách nhau bởi dấu phẩy.</p>
           </div>
         )}
 

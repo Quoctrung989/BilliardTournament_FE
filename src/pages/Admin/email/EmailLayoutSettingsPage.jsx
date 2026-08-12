@@ -101,7 +101,7 @@ const EmailLayoutSettingsPage = () => {
   if (loading) {
     return (
       <AdminCard>
-        <p className="text-slate-400 text-sm">Đang tải...</p>
+        <p className="text-slate-400 dark:text-white/40 text-sm">Đang tải...</p>
       </AdminCard>
     );
   }
@@ -110,7 +110,7 @@ const EmailLayoutSettingsPage = () => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <AdminCard title="Khung header / footer chung">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-white/60">
             Phần header và footer này được chèn vào mọi email gửi ra (phía trên và dưới nội dung
             từng mẫu email). Bố cục bảng/màu nền responsive được giữ cố định để đảm bảo hiển thị
             đúng trên các ứng dụng email — bạn chỉ chỉnh nội dung bên trong.
@@ -164,7 +164,7 @@ const EmailLayoutSettingsPage = () => {
       </AdminCard>
 
       <AdminCard title="Xem trước">
-        <div className="rounded-xl overflow-hidden border border-slate-200" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
+        <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-white/10" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
           <div
             style={{ background: "linear-gradient(135deg,#010851,#241c7a)", padding: "28px 32px", color: "#ffffff" }}
             dangerouslySetInnerHTML={{ __html: previewHeader }}
@@ -184,14 +184,14 @@ const EmailLayoutSettingsPage = () => {
             dangerouslySetInnerHTML={{ __html: previewFooter }}
           />
         </div>
-        <p className="text-xs text-slate-400 mt-2">
+        <p className="text-xs text-slate-400 dark:text-white/40 mt-2">
           Bản xem trước dùng giá trị mẫu cho các biến {"{{system.*}}"} — nội dung thật sẽ lấy từ cấu
           hình hệ thống lúc gửi.
         </p>
 
-        <div className="mt-4 pt-4 border-t border-slate-100">
+        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/10">
           <label className="admin-label">Gửi thử tới hộp thư thật</label>
-          <p className="text-xs text-slate-500 mt-1 mb-2">
+          <p className="text-xs text-slate-500 dark:text-white/60 mt-1 mb-2">
             Gửi email mẫu dùng đúng nội dung header/footer đang soạn ở trên (chưa cần bấm Lưu) để
             kiểm tra hiển thị thực tế trên Gmail/Outlook...
           </p>

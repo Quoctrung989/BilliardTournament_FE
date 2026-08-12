@@ -4,7 +4,7 @@ import { ACCOUNT_STATUS_LABELS } from "../../../constants/accountConfig";
 const styles = {
   ACTIVE: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   LOCKED: "bg-rose-50 text-rose-700 ring-rose-200",
-  INACTIVE: "bg-slate-100 text-slate-600 ring-slate-200",
+  INACTIVE: "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 ring-slate-200 dark:ring-white/15",
   PENDING: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 

@@ -38,7 +38,7 @@ const Footer = () => {
           <div className="flex items-center">
             <Link
               to="/"
-              aria-label="Về trang chủ CAPSTONE"
+              aria-label="Về trang chủ BTMS"
               className="ui-logo-zoom text-[60px] font-black italic leading-none tracking-tight text-[#2b2b2b] dark:text-white"
             >
               CAPS<span className="text-red-500">.</span>
@@ -67,7 +67,7 @@ const Footer = () => {
               href="https://www.facebook.com/profile.php?id=61591577595713"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Trang Facebook CAPSTONE"
+              aria-label="Trang Facebook BTMS"
               className="ui-icon-lift"
             >
               <FaFacebook size={22} />

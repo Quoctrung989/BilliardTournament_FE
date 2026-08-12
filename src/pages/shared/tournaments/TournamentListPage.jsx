@@ -75,7 +75,7 @@ const RowMenu = ({ row, basePath, navigate }) => {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-white/70 bg-white dark:bg-[#161a22] border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 hover:border-slate-300 dark:hover:border-white/15 transition-colors shadow-sm"
       >
         Thao tác
         <ChevronDown
@@ -85,18 +85,18 @@ const RowMenu = ({ row, basePath, navigate }) => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1.5 z-50 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1 overflow-hidden">
+        <div className="absolute right-0 top-full mt-1.5 z-50 w-48 bg-white dark:bg-[#161a22] rounded-xl shadow-lg border border-slate-100 dark:border-white/10 py-1 overflow-hidden">
           {/* Chi tiết */}
           <button
             type="button"
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors"
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-white/75 hover:bg-indigo-50 dark:hover:bg-indigo-500/12 hover:text-indigo-700 dark:hover:text-indigo-300 text-left transition-colors"
             onClick={() => go(`${basePath}/${row.id}`)}
           >
             <Eye size={15} className="shrink-0 text-indigo-400" />
             Chi tiết
           </button>
 
-              <div className="my-1 border-t border-slate-100" />
+              <div className="my-1 border-t border-slate-100 dark:border-white/10" />
 
           {isDraft && (
             <button
@@ -112,10 +112,10 @@ const RowMenu = ({ row, basePath, navigate }) => {
           {row.isRegister && (
             <button
               type="button"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 text-left transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-white/75 hover:bg-slate-50 dark:hover:bg-white/5 text-left transition-colors"
               onClick={() => go(`${basePath}/${row.id}/registrations`)}
             >
-              <FileText size={15} className="shrink-0 text-slate-400" />
+              <FileText size={15} className="shrink-0 text-slate-400 dark:text-white/40" />
               Đơn đăng ký
             </button>
           )}
@@ -123,10 +123,10 @@ const RowMenu = ({ row, basePath, navigate }) => {
           {!isDraft && (
             <button
               type="button"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 text-left transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-white/75 hover:bg-slate-50 dark:hover:bg-white/5 text-left transition-colors"
               onClick={() => go(`${basePath}/${row.id}/participants`)}
             >
-              <Users size={15} className="shrink-0 text-slate-400" />
+              <Users size={15} className="shrink-0 text-slate-400 dark:text-white/40" />
               Người tham gia
             </button>
           )}
@@ -247,7 +247,7 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
     <div className="space-y-6">
       <AdminCard padding={false}>
         {/* Toolbar */}
-        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="flex flex-wrap gap-4 flex-1 min-w-0">
             <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[200px] max-w-md">
               <label className="admin-label">Tìm theo tên</label>
@@ -390,23 +390,23 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
                       >
                         {row.name}
                       </button>
-                      <span className="block text-xs text-slate-400">#{row.id}</span>
+                      <span className="block text-xs text-slate-400 dark:text-white/40">#{row.id}</span>
                     </td>
                     <td>
-                      <span className="text-sm text-slate-700">{row.gameType || "—"}</span>
+                      <span className="text-sm text-slate-700 dark:text-white/75">{row.gameType || "—"}</span>
                       {(row.formatName || row.format) && (
-                        <span className="block text-xs text-slate-400">
+                        <span className="block text-xs text-slate-400 dark:text-white/40">
                           {row.formatName || row.format}
                         </span>
                       )}
                     </td>
                     <td>
-                      <span className="text-sm text-slate-700 truncate block" title={row.venueName}>
+                      <span className="text-sm text-slate-700 dark:text-white/75 truncate block" title={row.venueName}>
                         {row.venueName || "—"}
                       </span>
                     </td>
                     <td className="align-center">
-                      <span className="text-sm text-slate-600">
+                      <span className="text-sm text-slate-600 dark:text-white/70">
                         {PARTICIPANT_LABELS[row.participantType] || row.participantType || "—"}
                       </span>
                     </td>
@@ -414,7 +414,7 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
                       <span
                         className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
                           TOURNAMENT_STATUS_STYLES[row.status] ||
-                          "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
+                          "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 ring-1 ring-slate-200 dark:ring-white/15"
                         }`}
                       >
                         {TOURNAMENT_STATUS_LABELS[row.status] || row.status}
@@ -436,7 +436,7 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
                         className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ring-1 ${
                           row.isRegister
                             ? "bg-indigo-50 text-indigo-700 ring-indigo-200"
-                            : "bg-slate-100 text-slate-500 ring-slate-200"
+                            : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/60 ring-slate-200 dark:ring-white/15"
                         }`}
                       >
                         {row.isRegister ? "Online" : "Không"}
@@ -464,17 +464,17 @@ const TournamentListPage = ({ api, branchApi, basePath }) => {
                     </td>
                     <td>
                       {row.registrationDeadline && (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-white/60">
                           Hạn ĐK: {fmtDate(row.registrationDeadline)}
                         </p>
                       )}
                       {row.startAt && (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-white/60">
                           Bắt đầu: {fmtDate(row.startAt)}
                         </p>
                       )}
                       {!row.registrationDeadline && !row.startAt && (
-                        <span className="text-xs text-slate-400">—</span>
+                        <span className="text-xs text-slate-400 dark:text-white/40">—</span>
                       )}
                     </td>
                     <td className="align-right">

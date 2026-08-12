@@ -112,7 +112,7 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
       </div>
 
       <AdminCard padding={false}>
-        <div className="p-5 border-b border-slate-100">
+        <div className="p-5 border-b border-slate-100 dark:border-white/10">
           <div className="w-full sm:w-52">
             <label className="admin-label">Trạng thái</label>
             <select
@@ -158,7 +158,7 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
                     <td>{row.playerPhone}</td>
                     <td>{row.registrationType}</td>
                     <td>
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${REGISTRATION_STATUS_STYLES[row.status] || "bg-slate-100 text-slate-600"}`}>
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${REGISTRATION_STATUS_STYLES[row.status] || "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70"}`}>
                         {REGISTRATION_STATUS_LABELS[row.status] || row.status}
                       </span>
                     </td>
@@ -228,29 +228,29 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
         ) : detail ? (
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">{detail.playerFullName}</h3>
-              <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${REGISTRATION_STATUS_STYLES[detail.status] || "bg-slate-100 text-slate-600"}`}>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{detail.playerFullName}</h3>
+              <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${REGISTRATION_STATUS_STYLES[detail.status] || "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70"}`}>
                 {REGISTRATION_STATUS_LABELS[detail.status] || detail.status}
               </span>
             </div>
             <dl className="text-sm space-y-2">
               <div>
-                <dt className="text-slate-500">SĐT</dt>
-                <dd className="font-medium text-slate-900">{detail.playerPhone}</dd>
+                <dt className="text-slate-500 dark:text-white/60">SĐT</dt>
+                <dd className="font-medium text-slate-900 dark:text-white">{detail.playerPhone}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Ghi chú</dt>
-                <dd className="font-medium text-slate-900">{detail.note || "—"}</dd>
+                <dt className="text-slate-500 dark:text-white/60">Ghi chú</dt>
+                <dd className="font-medium text-slate-900 dark:text-white">{detail.note || "—"}</dd>
               </div>
             </dl>
             {detail.fieldValues?.length > 0 && (
               <div>
-                <p className="text-xs uppercase text-slate-500 mb-2">Thông tin form</p>
+                <p className="text-xs uppercase text-slate-500 dark:text-white/60 mb-2">Thông tin form</p>
                 <ul className="space-y-2 text-sm">
                   {detail.fieldValues.map((fv) => (
-                    <li key={fv.fieldKey} className="border-b border-slate-100 pb-2">
-                      <span className="text-slate-500">{fv.label}</span>
-                      <p className="font-medium text-slate-900">{fv.value}</p>
+                    <li key={fv.fieldKey} className="border-b border-slate-100 dark:border-white/10 pb-2">
+                      <span className="text-slate-500 dark:text-white/60">{fv.label}</span>
+                      <p className="font-medium text-slate-900 dark:text-white">{fv.value}</p>
                     </li>
                   ))}
                 </ul>

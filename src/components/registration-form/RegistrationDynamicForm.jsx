@@ -1,6 +1,6 @@
 const RegistrationDynamicForm = ({ fields, values, onChange, disabled }) => {
   if (!fields?.length) {
-    return <p className="text-sm text-slate-500">Form đăng ký chưa được cấu hình.</p>;
+    return <p className="text-sm text-slate-500 dark:text-white/60">Form đăng ký chưa được cấu hình.</p>;
   }
 
   const setValue = (fieldKey, value) => {
@@ -124,7 +124,7 @@ const RegistrationDynamicForm = ({ fields, values, onChange, disabled }) => {
             {field.isRequired && <span className="text-red-500">*</span>}
           </label>
           {field.description && (
-            <p className="text-xs text-slate-500 mb-1">{field.description}</p>
+            <p className="text-xs text-slate-500 dark:text-white/60 mb-1">{field.description}</p>
           )}
           {renderInput(field)}
         </div>

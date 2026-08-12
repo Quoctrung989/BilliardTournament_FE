@@ -5,6 +5,7 @@ import { X, Swords, Calendar } from "lucide-react";
 import { getMyMatches } from "../../api/matchApi";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { useReveal } from "../../hooks/useReveal";
+import { USE_MOCK_MY_MATCHES, MOCK_MY_MATCHES } from "../../mock/myMatchesMock";
 import "../Profile/profile.scss";
 
 const STATUS_CFG = {
@@ -42,6 +43,13 @@ const PlayerMatchSchedulePage = () => {
   const [selectedMatch, setSelectedMatch] = useState(null);
 
   useEffect(() => {
+    // Dữ liệu giả để chụp ảnh tài liệu — tắt bằng USE_MOCK_MY_MATCHES trong src/mock/myMatchesMock.js
+    if (USE_MOCK_MY_MATCHES) {
+      setMatches(MOCK_MY_MATCHES);
+      setLoading(false);
+      return;
+    }
+
     getMyMatches()
       .then((data) => setMatches(Array.isArray(data) ? data : []))
       .catch((err) => toast.error(getApiErrorMessage(err)))
@@ -103,7 +111,7 @@ const PlayerMatchSchedulePage = () => {
                       </div>
 
                       {/* Match rows */}
-                      <div className="divide-y divide-slate-100">
+                      <div className="divide-y divide-slate-100 dark:divide-white/10">
                         {group.matches
                           .sort((a, b) => a.roundNo - b.roundNo || a.positionNo - b.positionNo)
                           .map((m) => {
@@ -217,7 +225,7 @@ const PlayerMatchSchedulePage = () => {
                 {/* Info rows */}
                 <div>
                   <p className="text-xs font-semibold text-slate-400 dark:text-white/40 uppercase tracking-wide mb-2">Thông tin trận đấu</p>
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-100 dark:divide-white/10">
                     <div className="flex justify-between py-2">
                       <span className="text-slate-500 dark:text-white/60">Lịch thi đấu</span>
                       <span className="font-medium text-slate-900 dark:text-white">{fmtDate(m.scheduledAt)}</span>

@@ -180,7 +180,7 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50 ">
-      <div className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-xl z-50 overflow-y-auto max-h-screen ">
+      <div className="relative bg-white dark:bg-[#161a22] p-6 rounded-lg shadow-lg w-full max-w-xl z-50 overflow-y-auto max-h-screen ">
         <button
           type="button"
           onClick={closeModal}
@@ -333,9 +333,9 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
                   value="MALE"
                   checked={gender === "MALE"}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/15 focus:ring-blue-500"
                 />
-                <span className="ms-2 text-sm font-medium text-gray-900">
+                <span className="ms-2 text-sm font-medium text-gray-900 dark:text-white">
                   Nam
                 </span>
               </label>
@@ -347,9 +347,9 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
                   value="FEMALE"
                   checked={gender === "FEMALE"}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/15 focus:ring-blue-500"
                 />
-                <span className="ms-2 text-sm font-medium text-gray-900">
+                <span className="ms-2 text-sm font-medium text-gray-900 dark:text-white">
                   Nữ
                 </span>
               </label>

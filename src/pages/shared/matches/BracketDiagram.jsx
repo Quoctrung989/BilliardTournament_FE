@@ -34,7 +34,7 @@ const STATUS_LABEL = {
 };
 const STATUS_DOT = {
   PENDING: "bg-slate-300", IN_PROGRESS: "bg-blue-500 animate-pulse",
-  COMPLETED: "bg-emerald-500", WALKOVER: "bg-amber-500", BYE: "bg-slate-200",
+  COMPLETED: "bg-emerald-500", WALKOVER: "bg-amber-500", BYE: "bg-slate-200 dark:bg-white/10",
 };
 
 function MiniAvatar({ name, id }) {
@@ -60,14 +60,14 @@ const MatchNode = ({ match, nodeRef, onStart, onScore, onComplete, starting, fla
     <div
       ref={nodeRef}
       className={[
-        "group w-56 rounded-lg border bg-white shadow-sm text-xs shrink-0 transition-all",
-        isBye ? "opacity-60 border-slate-100" : "border-slate-200",
+        "group w-56 rounded-lg border bg-white dark:bg-[#161a22] shadow-sm text-xs shrink-0 transition-all",
+        isBye ? "opacity-60 border-slate-100 dark:border-white/10" : "border-slate-200 dark:border-white/10",
         flashing ? "ws-flash" : "",
       ].join(" ")}
     >
-      <div className="flex items-center justify-between px-2 py-1 border-b border-slate-100 bg-slate-50 rounded-t-lg">
-        <span className="font-mono text-[10px] text-slate-400">{match.matchCode}</span>
-        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500">
+      <div className="flex items-center justify-between px-2 py-1 border-b border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5 rounded-t-lg">
+        <span className="font-mono text-[10px] text-slate-400 dark:text-white/40">{match.matchCode}</span>
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 dark:text-white/60">
           <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[match.status] ?? "bg-slate-300"}`} />
           {STATUS_LABEL[match.status] ?? match.status}
         </span>
@@ -79,12 +79,12 @@ const MatchNode = ({ match, nodeRef, onStart, onScore, onComplete, starting, fla
         return (
           <div key={slot} className={`flex items-center gap-1.5 px-2 py-1 ${isW ? "bg-emerald-50" : ""}`}>
             <MiniAvatar name={p?.displayName} id={p?.id} />
-            <span className={`flex-1 truncate ${isW ? "font-bold text-emerald-700" : p ? "text-slate-700" : "text-slate-300 italic"}`}>
+            <span className={`flex-1 truncate ${isW ? "font-bold text-emerald-700" : p ? "text-slate-700 dark:text-white/75" : "text-slate-300 italic"}`}>
               {p?.displayName ?? (feeder ? `${feeder.type === "win" ? "Thắng" : "Thua"} ${feeder.code}` : "TBD")}
               {isW && " ✓"}
             </span>
             {["IN_PROGRESS", "COMPLETED", "WALKOVER"].includes(match.status) && (
-              <span className="font-mono text-slate-500 shrink-0">
+              <span className="font-mono text-slate-500 dark:text-white/60 shrink-0">
                 {slot === "player1" ? match.player1Score : match.player2Score}
               </span>
             )}
@@ -214,27 +214,27 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
     return (
       <AdminCard padding={false}>
         <div className="px-5 py-4 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">{meta.icon}</div>
-          <div><p className="font-semibold text-slate-900 text-sm">{stage.name}</p><p className="text-xs text-slate-400">{stage.stageType}</p></div>
+          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-white/60">{meta.icon}</div>
+          <div><p className="font-semibold text-slate-900 dark:text-white text-sm">{stage.name}</p><p className="text-xs text-slate-400 dark:text-white/40">{stage.stageType}</p></div>
         </div>
-        <p className="text-sm text-slate-400 text-center pb-6">Chưa có trận nào.</p>
+        <p className="text-sm text-slate-400 dark:text-white/40 text-center pb-6">Chưa có trận nào.</p>
       </AdminCard>
     );
   }
 
   return (
     <AdminCard padding={false}>
-      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
+      <div className="px-5 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">{meta.icon}</div>
+          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-white/60">{meta.icon}</div>
           <div>
-            <p className="font-semibold text-slate-900 text-sm">{stage.name}</p>
-            <p className="text-xs text-slate-400">{stage.stageType}</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-sm">{stage.name}</p>
+            <p className="text-xs text-slate-400 dark:text-white/40">{stage.stageType}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/60">
           <span>{doneCount}/{matches.length}</span>
-          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="w-16 h-1.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
             <div className="h-full bg-indigo-400 rounded-full" style={{ width: `${Math.round(doneCount / matches.length * 100)}%` }} />
           </div>
         </div>
@@ -245,7 +245,7 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
         <div className="relative flex gap-14 px-6 py-6 min-w-max" style={{ zIndex: 1 }}>
           {sortedRounds.map(([roundNo, ms]) => (
             <div key={roundNo} className="flex flex-col" style={{ width: 224 }}>
-              <div className="text-center text-xs font-semibold text-slate-500 mb-3">
+              <div className="text-center text-xs font-semibold text-slate-500 dark:text-white/60 mb-3">
                 {roundLabel(Number(roundNo), totalRounds)}
               </div>
               <div className="flex-1 flex flex-col justify-around gap-5">
@@ -302,11 +302,11 @@ const BracketDiagram = ({ stages, startingId, flashIds, onStart, onScore, onComp
           const m = stage.matches?.[0];
           return (
             <AdminCard key={stage.id} padding={false}>
-              <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
+              <div className="px-5 py-4 border-b border-slate-100 dark:border-white/10 flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
                   <Trophy size={14} />
                 </div>
-                <div><p className="font-semibold text-slate-900 text-sm">{stage.name}</p><p className="text-xs text-slate-400">{stage.stageType}</p></div>
+                <div><p className="font-semibold text-slate-900 dark:text-white text-sm">{stage.name}</p><p className="text-xs text-slate-400 dark:text-white/40">{stage.stageType}</p></div>
               </div>
               <div className="flex justify-center py-8">
                 {m ? (
@@ -320,7 +320,7 @@ const BracketDiagram = ({ stages, startingId, flashIds, onStart, onScore, onComp
                     onComplete={onComplete}
                     feeders={feedersMap.get(m.id)}
                   />
-                ) : <p className="text-sm text-slate-400">Chưa có trận nào.</p>}
+                ) : <p className="text-sm text-slate-400 dark:text-white/40">Chưa có trận nào.</p>}
               </div>
             </AdminCard>
           );

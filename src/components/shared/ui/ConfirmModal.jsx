@@ -43,8 +43,8 @@ const ConfirmModal = ({
             }
         >
             <div className="space-y-2">
-                {message && <p className="text-slate-700">{message}</p>}
-                {details && <p className="text-sm text-slate-500">{details}</p>}
+                {message && <p className="text-slate-700 dark:text-white/75">{message}</p>}
+                {details && <p className="text-sm text-slate-500 dark:text-white/60">{details}</p>}
                 {errorMessage && (
                     <div className="p-3 rounded-lg bg-red-50 border border-red-200">
                         <p className="text-sm text-red-700">{errorMessage}</p>

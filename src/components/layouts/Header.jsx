@@ -72,7 +72,7 @@ const Header = () => {
           onClick={() => navigate("/")}
           className="ui-logo-zoom text-[28px] font-black italic tracking-tight text-[#1a1a2e] dark:text-white shrink-0 mr-8 leading-none select-none cursor-pointer"
         >
-          CAPSTONE<span className="text-[#EF342A]">.</span>
+          BTMS<span className="text-[#EF342A]">.</span>
         </div>
 
         {/* Nav links */}
@@ -124,7 +124,7 @@ const Header = () => {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate("/profile"); }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/5 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
                   >
                     <AiOutlineUser size={15} />
                     Hồ sơ
@@ -133,7 +133,7 @@ const Header = () => {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate(dashboardPath); }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/5 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
                     >
                       <AiOutlineDashboard size={15} />
                       Quản lý
@@ -147,7 +147,7 @@ const Header = () => {
                           key={path}
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate(path); }}
-                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/5 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
                         >
                           <Icon size={15} />
                           {label}

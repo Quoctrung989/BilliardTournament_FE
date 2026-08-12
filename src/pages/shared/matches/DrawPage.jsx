@@ -30,15 +30,15 @@ const ROUND_STYLE = {
   final:   { label: "🏆 Chung kết",  bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-200" },
   semi:    { label: "Bán kết",        bg: "bg-violet-50",  text: "text-violet-700", border: "border-violet-200" },
   quarter: { label: "Tứ kết",         bg: "bg-blue-50",    text: "text-blue-700",   border: "border-blue-200" },
-  round:   { label: "Vòng",           bg: "bg-slate-50",   text: "text-slate-600",  border: "border-slate-200" },
+  round:   { label: "Vòng",           bg: "bg-slate-50 dark:bg-white/5",   text: "text-slate-600 dark:text-white/70",  border: "border-slate-200 dark:border-white/10" },
 };
 
 const STATUS_CFG = {
-  PENDING:     { label: "Chờ",           dot: "bg-slate-400",    pill: "bg-slate-100 text-slate-600" },
+  PENDING:     { label: "Chờ",           dot: "bg-slate-400",    pill: "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70" },
   IN_PROGRESS: { label: "Đang diễn ra",  dot: "bg-blue-500 animate-pulse", pill: "bg-blue-100 text-blue-800" },
   COMPLETED:   { label: "Hoàn thành",    dot: "bg-emerald-500",  pill: "bg-emerald-100 text-emerald-800" },
   WALKOVER:    { label: "Walkover",       dot: "bg-amber-500",    pill: "bg-amber-100 text-amber-800" },
-  BYE:         { label: "BYE",           dot: "bg-slate-300",    pill: "bg-slate-100 text-slate-400" },
+  BYE:         { label: "BYE",           dot: "bg-slate-300",    pill: "bg-slate-100 dark:bg-white/10 text-slate-400 dark:text-white/40" },
 };
 
 /* Stage vòng tròn (mỗi cặp gặp nhau 1 lần) — mọi vòng chỉ là "Vòng N", KHÔNG có tứ/bán/chung kết. */
@@ -843,7 +843,7 @@ const DrawPage = ({ api, basePath }) => {
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-24 gap-3">
       <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-      <p className="text-sm text-slate-400">Đang tải bracket...</p>
+      <p className="text-sm text-slate-400 dark:text-white/40">Đang tải bracket...</p>
     </div>
   );
 
@@ -860,12 +860,12 @@ const DrawPage = ({ api, basePath }) => {
             <SocketConnectionBadge connectionState={connectionState} compact />
           )}
           {!noDrawYet && (
-            <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white p-0.5 text-sm">
+            <div className="inline-flex items-center rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] p-0.5 text-sm">
               <button
                 onClick={() => setViewMode("list")}
                 className={[
                   "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-semibold transition-colors",
-                  viewMode === "list" ? "bg-indigo-600 text-white" : "text-slate-500 hover:text-slate-700",
+                  viewMode === "list" ? "bg-indigo-600 text-white" : "text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white/75",
                 ].join(" ")}>
                 <List size={14} /> Danh sách
               </button>
@@ -873,7 +873,7 @@ const DrawPage = ({ api, basePath }) => {
                 onClick={() => setViewMode("diagram")}
                 className={[
                   "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-semibold transition-colors",
-                  viewMode === "diagram" ? "bg-indigo-600 text-white" : "text-slate-500 hover:text-slate-700",
+                  viewMode === "diagram" ? "bg-indigo-600 text-white" : "text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white/75",
                 ].join(" ")}>
                 <GitBranch size={14} /> Sơ đồ
               </button>
@@ -904,7 +904,7 @@ const DrawPage = ({ api, basePath }) => {
                   "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all border",
                   editMode
                     ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
-                    : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                    : "bg-white dark:bg-[#161a22] text-slate-700 dark:text-white/75 border-slate-200 dark:border-white/10 hover:border-indigo-300 hover:text-indigo-700",
                 ].join(" ")}>
                 <ArrowLeftRight size={14} />
                 {editMode ? "Đang chỉnh sửa…" : "Chỉnh sửa cặp đấu"}
@@ -921,10 +921,10 @@ const DrawPage = ({ api, basePath }) => {
           {!noDrawYet && !isPreview && (
             <div className="flex items-center gap-3 flex-wrap">
               {/* Progress bar */}
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <span className="font-semibold text-slate-800">{doneMatches}</span>
-                <span className="text-slate-400">/{totalMatches} trận</span>
-                <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-white/60">
+                <span className="font-semibold text-slate-800 dark:text-white/85">{doneMatches}</span>
+                <span className="text-slate-400 dark:text-white/40">/{totalMatches} trận</span>
+                <div className="w-24 h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                   <div className="h-full bg-emerald-500 rounded-full transition-all"
                        style={{ width: `${progress}%` }} />
                 </div>
@@ -937,7 +937,7 @@ const DrawPage = ({ api, basePath }) => {
                   "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all border",
                   bulkMode
                     ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
-                    : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                    : "bg-white dark:bg-[#161a22] text-slate-700 dark:text-white/75 border-slate-200 dark:border-white/10 hover:border-indigo-300 hover:text-indigo-700",
                 ].join(" ")}>
                 <CheckSquare size={14} />
                 {bulkMode ? "Đang chọn nhiều…" : "Chọn nhiều — gán bàn/giờ"}
@@ -1004,7 +1004,7 @@ const DrawPage = ({ api, basePath }) => {
           "rounded-xl border px-4 py-3 transition-all",
           swapFirst
             ? "bg-indigo-50 border-indigo-300"
-            : "bg-slate-50 border-slate-200",
+            : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10",
         ].join(" ")}>
           <div className="flex items-center gap-2 text-sm">
             {swapFirst ? (
@@ -1024,10 +1024,10 @@ const DrawPage = ({ api, basePath }) => {
               </>
             ) : (
               <>
-                <ArrowLeftRight size={14} className="text-slate-500 shrink-0" />
-                <span className="text-slate-600">
+                <ArrowLeftRight size={14} className="text-slate-500 dark:text-white/60 shrink-0" />
+                <span className="text-slate-600 dark:text-white/70">
                   Chế độ chỉnh sửa đang bật — <strong>kéo thả</strong> hoặc <strong>click</strong> vào người chơi ở Vòng 1 để đổi chỗ.
-                  Nhấn <kbd className="px-1 py-0.5 bg-white border border-slate-200 rounded text-xs font-mono">🔍</kbd> để tìm kiếm.
+                  Nhấn <kbd className="px-1 py-0.5 bg-white dark:bg-[#161a22] border border-slate-200 dark:border-white/10 rounded text-xs font-mono">🔍</kbd> để tìm kiếm.
                 </span>
               </>
             )}
@@ -1061,7 +1061,7 @@ const DrawPage = ({ api, basePath }) => {
       {!noDrawYet && !isPreview && (
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[200px] max-w-xs">
-            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40" />
             <input
               type="text"
               className="admin-input w-full pl-8 pr-8 text-sm"
@@ -1072,7 +1072,7 @@ const DrawPage = ({ api, basePath }) => {
             {matchQuery && (
               <button
                 onClick={() => setMatchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 dark:text-white/30 hover:text-slate-500 dark:hover:text-white/60"
                 aria-label="Xoá tìm kiếm"
               >
                 <X size={13} />
@@ -1088,7 +1088,7 @@ const DrawPage = ({ api, basePath }) => {
                   "px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors",
                   statusFilter === f.key
                     ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                    : "bg-white dark:bg-[#161a22] text-slate-600 dark:text-white/70 border-slate-200 dark:border-white/10 hover:border-indigo-300 hover:text-indigo-700",
                 ].join(" ")}
               >
                 {f.label}
@@ -1102,12 +1102,12 @@ const DrawPage = ({ api, basePath }) => {
       {noDrawYet ? (
         <AdminCard>
           <div className="py-20 text-center space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto">
-              <Swords size={28} className="text-slate-400" />
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/10 flex items-center justify-center mx-auto">
+              <Swords size={28} className="text-slate-400 dark:text-white/40" />
             </div>
             <div>
-              <p className="font-semibold text-slate-700">Chưa có bracket</p>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="font-semibold text-slate-700 dark:text-white/75">Chưa có bracket</p>
+              <p className="text-sm text-slate-400 dark:text-white/40 mt-1">
                 Đảm bảo giải đang ở trạng thái <span className="font-medium">Đóng đăng ký</span> và có ít nhất 2 người tham gia.
               </p>
             </div>
@@ -1157,7 +1157,7 @@ const DrawPage = ({ api, basePath }) => {
                       "shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all",
                       active
                         ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
-                        : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                        : "bg-white dark:bg-[#161a22] text-slate-600 dark:text-white/70 border-slate-200 dark:border-white/10 hover:border-indigo-300 hover:text-indigo-700",
                     ].join(" ")}
                   >
                     <span className="truncate max-w-[180px]">{stage.name}</span>
@@ -1165,7 +1165,7 @@ const DrawPage = ({ api, basePath }) => {
                       "text-[11px] font-medium px-1.5 py-0.5 rounded-md",
                       active ? "bg-white/15 text-white"
                         : isDone ? "bg-emerald-100 text-emerald-700"
-                        : "bg-slate-100 text-slate-500",
+                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/60",
                     ].join(" ")}>
                       {done}/{total}
                     </span>
@@ -1229,7 +1229,7 @@ const DrawPage = ({ api, basePath }) => {
           </>
         }
       >
-        <p className="text-sm text-slate-600">{confirmModal?.body}</p>
+        <p className="text-sm text-slate-600 dark:text-white/70">{confirmModal?.body}</p>
       </AdminModal>
 
       {/* PROGRESSIVE: standings từng giai đoạn (read-only) */}
@@ -1240,9 +1240,9 @@ const DrawPage = ({ api, basePath }) => {
         size="lg"
         footer={<AdminButton variant="secondary" onClick={() => setProgStandings(null)}>Đóng</AdminButton>}
       >
-        <div className="max-h-72 overflow-y-auto border border-slate-100 rounded-xl">
+        <div className="max-h-72 overflow-y-auto border border-slate-100 dark:border-white/10 rounded-xl">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
+            <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase">
               <tr>
                 <th className="px-3 py-2 text-left">#</th>
                 <th className="px-3 py-2 text-left">Cơ thủ</th>
@@ -1254,18 +1254,18 @@ const DrawPage = ({ api, basePath }) => {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {loadingProgStd ? (
-                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 text-xs">Đang tải...</td></tr>
+                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 dark:text-white/40 text-xs">Đang tải...</td></tr>
               ) : (progStandings?.rows || []).length === 0 ? (
-                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 text-xs">Chưa có kết quả</td></tr>
+                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 dark:text-white/40 text-xs">Chưa có kết quả</td></tr>
               ) : progStandings.rows.map(s => (
                 <tr key={s.participantId} className={s.advancesToPlayoff ? "bg-emerald-50" : (s.advancesToPlayoff === false ? "bg-red-50/40" : "")}>
-                  <td className="px-3 py-2 font-mono text-slate-500">{s.rank}</td>
-                  <td className="px-3 py-2 font-medium text-slate-800">{s.displayName}</td>
-                  <td className="px-3 py-2 text-center text-slate-700">{s.wins}</td>
+                  <td className="px-3 py-2 font-mono text-slate-500 dark:text-white/60">{s.rank}</td>
+                  <td className="px-3 py-2 font-medium text-slate-800 dark:text-white/85">{s.displayName}</td>
+                  <td className="px-3 py-2 text-center text-slate-700 dark:text-white/75">{s.wins}</td>
                   <td className={`px-3 py-2 text-center font-medium ${s.frameDiff >= 0 ? "text-emerald-600" : "text-red-500"}`}>
                     {s.frameDiff >= 0 ? "+" : ""}{s.frameDiff}
                   </td>
-                  <td className="px-3 py-2 text-center text-slate-500">{s.framesWon}</td>
+                  <td className="px-3 py-2 text-center text-slate-500 dark:text-white/60">{s.framesWon}</td>
                   <td className="px-3 py-2 text-center">
                     {s.advancesToPlayoff === true ? (
                       <span className="text-emerald-600 text-xs font-semibold">Đi tiếp</span>
@@ -1278,7 +1278,7 @@ const DrawPage = ({ api, basePath }) => {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-xs text-slate-400">
+        <p className="mt-3 text-xs text-slate-400 dark:text-white/40">
           Tiêu chí: Điểm (thắng) → Hiệu số rack → Rack thắng → Đối đầu trực tiếp. Hàng xanh = nhóm đi tiếp.
         </p>
       </AdminModal>
@@ -1302,17 +1302,17 @@ const DrawPage = ({ api, basePath }) => {
           </>
         }
       >
-        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+        <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-lg">
           <PlayerAvatar name={swapConfirm?.first.playerName} size="md" />
           <div className="text-sm">
-            <p className="font-semibold text-slate-800">{swapConfirm?.first.playerName}</p>
-            <p className="text-xs text-slate-400 font-mono">{swapConfirm?.first.matchCode} · {swapConfirm?.first.slot === "player1" ? "P1" : "P2"}</p>
+            <p className="font-semibold text-slate-800 dark:text-white/85">{swapConfirm?.first.playerName}</p>
+            <p className="text-xs text-slate-400 dark:text-white/40 font-mono">{swapConfirm?.first.matchCode} · {swapConfirm?.first.slot === "player1" ? "P1" : "P2"}</p>
           </div>
           <ArrowLeftRight size={16} className="text-indigo-400 mx-auto" />
           <PlayerAvatar name={swapConfirm?.second.playerName} size="md" />
           <div className="text-sm">
-            <p className="font-semibold text-slate-800">{swapConfirm?.second.playerName}</p>
-            <p className="text-xs text-slate-400 font-mono">{swapConfirm?.second.matchCode} · {swapConfirm?.second.slot === "player1" ? "P1" : "P2"}</p>
+            <p className="font-semibold text-slate-800 dark:text-white/85">{swapConfirm?.second.playerName}</p>
+            <p className="text-xs text-slate-400 dark:text-white/40 font-mono">{swapConfirm?.second.matchCode} · {swapConfirm?.second.slot === "player1" ? "P1" : "P2"}</p>
           </div>
         </div>
       </AdminModal>
@@ -1338,7 +1338,7 @@ const DrawPage = ({ api, basePath }) => {
 
           {/* Search box */}
           <div className="relative">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40" />
             <input
               type="text"
               className="admin-input pl-9"
@@ -1350,11 +1350,11 @@ const DrawPage = ({ api, basePath }) => {
           </div>
 
           {/* Participant list */}
-          <div className="max-h-72 overflow-y-auto divide-y divide-slate-50 border border-slate-100 rounded-xl">
+          <div className="max-h-72 overflow-y-auto divide-y divide-slate-50 border border-slate-100 dark:border-white/10 rounded-xl">
             {loadingPtcp ? (
-              <div className="py-6 text-center text-sm text-slate-400">Đang tải...</div>
+              <div className="py-6 text-center text-sm text-slate-400 dark:text-white/40">Đang tải...</div>
             ) : filteredPtcp.length === 0 ? (
-              <div className="py-6 text-center text-sm text-slate-400">Không tìm thấy</div>
+              <div className="py-6 text-center text-sm text-slate-400 dark:text-white/40">Không tìm thấy</div>
             ) : filteredPtcp.map(p => {
               const pos = r1PlayerMap.get(p.id);
               const isCurrent = pos && pos.matchId === searchModal?.matchId && pos.slot === searchModal?.slot;
@@ -1367,14 +1367,14 @@ const DrawPage = ({ api, basePath }) => {
                     "w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors",
                     isCurrent
                       ? "bg-indigo-50 cursor-default"
-                      : "hover:bg-slate-50 active:bg-slate-100 cursor-pointer",
+                      : "hover:bg-slate-50 dark:hover:bg-white/5 active:bg-slate-100 dark:active:bg-white/10 cursor-pointer",
                   ].join(" ")}
                 >
                   <PlayerAvatar name={p.displayName} id={p.id} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-800 truncate">{p.displayName}</p>
+                    <p className="font-medium text-slate-800 dark:text-white/85 truncate">{p.displayName}</p>
                     {pos && (
-                      <p className="text-xs text-slate-400 font-mono">
+                      <p className="text-xs text-slate-400 dark:text-white/40 font-mono">
                         {pos.matchCode} · {pos.slot === "player1" ? "P1" : "P2"}
                       </p>
                     )}
@@ -1391,7 +1391,7 @@ const DrawPage = ({ api, basePath }) => {
               );
             })}
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 dark:text-white/40">
             <Users size={11} className="inline mr-1" />
             {filteredPtcp.length} người chơi · Click để đổi chỗ với người chơi đã chọn
           </p>
@@ -1425,7 +1425,7 @@ const DrawPage = ({ api, basePath }) => {
             </div>
           ))}
         </div>
-        <p className="text-xs text-slate-400 mt-3">Đánh tới: {scoreModal?.raceTo} ván</p>
+        <p className="text-xs text-slate-400 dark:text-white/40 mt-3">Đánh tới: {scoreModal?.raceTo} ván</p>
       </AdminModal>
 
       {/* Complete / Walkover */}
@@ -1435,13 +1435,13 @@ const DrawPage = ({ api, basePath }) => {
         title={`Kết thúc trận — ${completeModal?.matchCode}`}
         footer={<AdminButton variant="secondary" onClick={() => setCompleteModal(null)}>Đóng</AdminButton>}
       >
-        <p className="text-sm text-slate-500 mb-4">Chọn người thắng trận này:</p>
+        <p className="text-sm text-slate-500 dark:text-white/60 mb-4">Chọn người thắng trận này:</p>
         <div className="space-y-2">
           {[completeModal?.player1, completeModal?.player2].filter(Boolean).map(p => (
             <div key={p.id}
-                 className="flex items-center gap-3 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+                 className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-4 py-3 rounded-xl border border-slate-100 dark:border-white/10">
               <PlayerAvatar name={p.displayName} id={p.id} size="sm" />
-              <span className="flex-1 font-medium text-slate-800">{p.displayName}</span>
+              <span className="flex-1 font-medium text-slate-800 dark:text-white/85">{p.displayName}</span>
               <div className="flex gap-2">
                 <AdminButton variant="primary" disabled={saving} onClick={() => handleComplete(p.id)}
                              className="flex items-center gap-1">
@@ -1464,22 +1464,22 @@ const DrawPage = ({ api, basePath }) => {
         footer={<AdminButton variant="secondary" onClick={() => { setEventsModal(null); setEvents([]); }}>Đóng</AdminButton>}
       >
         {events.length === 0 ? (
-          <p className="text-slate-400 text-sm text-center py-6">Chưa có cập nhật nào.</p>
+          <p className="text-slate-400 dark:text-white/40 text-sm text-center py-6">Chưa có cập nhật nào.</p>
         ) : (
           <div className="space-y-1.5 max-h-72 overflow-y-auto">
             {events.map(ev => (
               <div key={ev.id}
-                   className="flex items-center gap-3 text-sm bg-slate-50 px-3 py-2 rounded-lg">
+                   className="flex items-center gap-3 text-sm bg-slate-50 dark:bg-white/5 px-3 py-2 rounded-lg">
                 <span className={`px-2 py-0.5 rounded text-xs font-medium shrink-0 ${
                   ev.eventType === "MATCH_END" ? "bg-emerald-100 text-emerald-800"
                   : ev.eventType === "WALKOVER" ? "bg-amber-100 text-amber-800"
                   : "bg-blue-100 text-blue-800"}`}>
                   {ev.eventType}
                 </span>
-                <span className="font-mono font-bold text-slate-700">
+                <span className="font-mono font-bold text-slate-700 dark:text-white/75">
                   {ev.player1ScoreAfter} — {ev.player2ScoreAfter}
                 </span>
-                <span className="text-slate-400 text-xs ml-auto truncate">
+                <span className="text-slate-400 dark:text-white/40 text-xs ml-auto truncate">
                   {ev.createdByName} · {ev.createdAt
                     ? new Date(ev.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
                     : "—"}
@@ -1526,7 +1526,7 @@ const DrawPage = ({ api, basePath }) => {
               disabled={assignForm.clearTable}
               onChange={(e) => setAssignForm(f => ({ ...f, tableNo: e.target.value }))}
             />
-            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500">
+            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500 dark:text-white/60">
               <input
                 type="checkbox"
                 checked={assignForm.clearTable}
@@ -1547,11 +1547,11 @@ const DrawPage = ({ api, basePath }) => {
               onChange={(e) => setAssignForm(f => ({ ...f, scheduledAt: e.target.value }))}
             />
             {tournament?.startAt && (
-              <p className="mt-1 text-[11px] text-slate-400">
+              <p className="mt-1 text-[11px] text-slate-400 dark:text-white/40">
                 Không sớm hơn giờ bắt đầu giải: {formatScheduledAt(tournament.startAt)}
               </p>
             )}
-            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500">
+            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500 dark:text-white/60">
               <input
                 type="checkbox"
                 checked={assignForm.clearScheduledAt}
@@ -1562,7 +1562,7 @@ const DrawPage = ({ api, basePath }) => {
           </div>
 
           {assignModal?.matchIds.length > 1 && (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 dark:text-white/40">
               Chỉ những trường có thay đổi (không để trống, không tick &quot;Bỏ&quot;) mới được áp dụng cho tất cả các trận đã chọn.
             </p>
           )}
@@ -1602,7 +1602,7 @@ const DrawPage = ({ api, basePath }) => {
           const hiddenCount = referees.length - available.length;
           return (
             <div className="space-y-3">
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-white/60">
                 Trận <span className="font-mono font-semibold">{target.matchCode}</span>
                 {target.tableNo != null && <> · Bàn {target.tableNo}</>}
                 {target.scheduledAt && <> · {formatScheduledAt(target.scheduledAt)}</>}
@@ -1625,7 +1625,7 @@ const DrawPage = ({ api, basePath }) => {
                   Chi nhánh của giải chưa có nhân viên (staff) nào để làm trọng tài.
                 </p>
               ) : (
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-400 dark:text-white/40">
                   Chỉ hiện trọng tài đang rảnh. {hiddenCount > 0 && <>({hiddenCount} người đang bận đã bị ẩn.)</>}
                   {" "}Một trọng tài không thể phụ trách 2 trận cùng lúc.
                 </p>
@@ -1686,19 +1686,19 @@ export const StageSection = ({
   return (
     <AdminCard padding={false}>
       {/* Stage header */}
-      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
+      <div className="px-5 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
+          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-white/60">
             {STAGE_ICON[stage.stageType] ?? <Swords size={14} />}
           </div>
           <div>
-            <p className="font-semibold text-slate-900 text-sm">{stage.name}</p>
-            <p className="text-xs text-slate-400">{stage.stageType}</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-sm">{stage.name}</p>
+            <p className="text-xs text-slate-400 dark:text-white/40">{stage.stageType}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/60">
           <span>{doneCount}/{totalCount}</span>
-          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="w-16 h-1.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
             <div className="h-full bg-indigo-400 rounded-full"
                  style={{ width: totalCount ? `${Math.round(doneCount/totalCount*100)}%` : "0%" }} />
           </div>
@@ -1720,7 +1720,7 @@ export const StageSection = ({
                   "shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors",
                   active
                     ? `${rStyle.bg} ${rStyle.text} ${rStyle.border} ring-1 ring-inset ring-current/20`
-                    : "bg-white text-slate-400 border-slate-200 hover:border-slate-300 hover:text-slate-600",
+                    : "bg-white dark:bg-[#161a22] text-slate-400 dark:text-white/40 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/15 hover:text-slate-600 dark:hover:text-white/70",
                 ].join(" ")}
               >
                 {rStyle.label}
@@ -1733,9 +1733,9 @@ export const StageSection = ({
 
       {/* Rounds */}
       {totalCount === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-8">Chưa có trận nào.</p>
+        <p className="text-sm text-slate-400 dark:text-white/40 text-center py-8">Chưa có trận nào.</p>
       ) : filteredRounds.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-8">
+        <p className="text-sm text-slate-400 dark:text-white/40 text-center py-8">
           Không có trận nào khớp bộ lọc.
         </p>
       ) : filteredRounds.map(([roundNo, matches]) => {
@@ -1816,7 +1816,7 @@ const MatchRow = ({
 
   return (
     <div className={`rounded-xl my-1 transition-all ${isBye ? "opacity-60" : ""} ${
-      canEdit ? "hover:bg-slate-50/80" : ""
+      canEdit ? "hover:bg-slate-50/80 dark:hover:bg-white/5" : ""
     } ${isFlashing ? "ws-flash" : ""}`}>
       <div className="flex items-center gap-3 px-3 py-2.5">
 
@@ -1824,14 +1824,14 @@ const MatchRow = ({
         {bulkMode && assignable && (
           <input
             type="checkbox"
-            className="shrink-0 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            className="shrink-0 w-4 h-4 rounded border-slate-300 dark:border-white/15 text-indigo-600 focus:ring-indigo-500"
             checked={!!isSelected}
             onChange={() => onToggleSelect(match.id)}
           />
         )}
 
         {/* Match code */}
-        <span className="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md shrink-0 w-[4.5rem] text-center">
+        <span className="text-xs font-mono bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/60 px-2 py-0.5 rounded-md shrink-0 w-[4.5rem] text-center">
           {match.matchCode}
         </span>
 
@@ -1871,21 +1871,21 @@ const MatchRow = ({
           {/* Score */}
           {["IN_PROGRESS","COMPLETED","WALKOVER"].includes(match.status) && (
             <div className="flex items-center gap-1.5 mt-1">
-              <span className="text-xs font-mono font-bold text-slate-700">
+              <span className="text-xs font-mono font-bold text-slate-700 dark:text-white/75">
                 {match.player1Score} — {match.player2Score}
               </span>
-              <span className="text-xs text-slate-400">/ {match.raceTo}</span>
+              <span className="text-xs text-slate-400 dark:text-white/40">/ {match.raceTo}</span>
             </div>
           )}
 
           {/* Bàn & giờ thi đấu */}
           {!isBye && (
             <div className="flex items-center gap-1.5 mt-1 text-[11px]">
-              <span className={tableLabel ? "text-slate-500 font-medium" : "text-slate-300"}>
+              <span className={tableLabel ? "text-slate-500 dark:text-white/60 font-medium" : "text-slate-300"}>
                 {tableLabel || "Chưa gán bàn"}
               </span>
               <span className="text-slate-300">·</span>
-              <span className={scheduledLabel ? "text-slate-500 font-medium" : "text-slate-300"}>
+              <span className={scheduledLabel ? "text-slate-500 dark:text-white/60 font-medium" : "text-slate-300"}>
                 {scheduledLabel || "Chưa xếp giờ"}
               </span>
               {isScheduleLocked && (
@@ -1941,11 +1941,11 @@ const MatchRow = ({
             )}
             {assignable && (
               <ActionBtn icon={<UserCheck size={13} />} title="Gán trọng tài"
-                         cls={match.assignedStaff ? "text-indigo-700 bg-indigo-50 hover:bg-indigo-100" : "text-slate-400 hover:bg-slate-100"}
+                         cls={match.assignedStaff ? "text-indigo-700 bg-indigo-50 hover:bg-indigo-100" : "text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10"}
                          onClick={() => onOpenReferee(match)} />
             )}
             <ActionBtn icon={<Trophy size={12} />} title="Lịch sử tỷ số"
-                       cls="text-slate-400 hover:bg-slate-100"
+                       cls="text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10"
                        onClick={() => onEvents(match.id, match.matchCode)} />
           </div>
         )}
@@ -1969,13 +1969,13 @@ const PlayerSlot = ({
           ? "cursor-pointer group"
           : "",
         isDragSrc
-          ? "opacity-40 scale-95 bg-slate-100"
+          ? "opacity-40 scale-95 bg-slate-100 dark:bg-white/10"
           : isDropTarget
           ? "ring-2 ring-indigo-400 bg-indigo-50"
           : isSelected
           ? "ring-2 ring-blue-500 bg-blue-50"
           : canEdit
-          ? "hover:bg-slate-100"
+          ? "hover:bg-slate-100 dark:hover:bg-white/10"
           : "",
       ].join(" ")}
       draggable={canEdit}
@@ -2001,7 +2001,7 @@ const PlayerSlot = ({
         player
           ? isWinner
             ? "font-bold text-emerald-700"
-            : "text-slate-800"
+            : "text-slate-800 dark:text-white/85"
           : "text-slate-300 italic",
       ].join(" ")}>
         {player?.displayName ?? (feeder ? `${feeder.type === "win" ? "Thắng" : "Thua"} ${feeder.code}` : "TBD")}
@@ -2014,7 +2014,7 @@ const PlayerSlot = ({
           onClick={e => { e.stopPropagation(); onSearch(); }}
           title="Tìm kiếm người chơi"
           className="shrink-0 w-5 h-5 rounded flex items-center justify-center text-slate-300
-                     group-hover:text-slate-500 hover:!text-indigo-600 hover:bg-indigo-50 transition-colors">
+                     group-hover:text-slate-500 dark:group-hover:text-white/60 hover:!text-indigo-600 dark:hover:!text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/12 transition-colors">
           <Search size={11} />
         </button>
       )}

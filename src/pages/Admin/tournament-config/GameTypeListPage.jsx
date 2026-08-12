@@ -154,13 +154,13 @@ const GameTypeListPage = () => {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-slate-600 dark:text-white/70">
         Cấu hình loại bi mặc định — Owner chọn khi tạo giải. Tắt active sẽ ẩn khỏi danh sách
         chọn giải.
       </p>
 
       <AdminCard padding={false}>
-        <div className="p-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="w-full sm:w-44">
             <label className="admin-label">Trạng thái</label>
             <select
@@ -219,7 +219,7 @@ const GameTypeListPage = () => {
                       <span className="admin-table-name">{row.name}</span>
                     </td>
                     <td>
-                      <span className="block text-slate-600 truncate" title={row.description}>
+                      <span className="block text-slate-600 dark:text-white/70 truncate" title={row.description}>
                         {row.description || "—"}
                       </span>
                     </td>
@@ -227,7 +227,7 @@ const GameTypeListPage = () => {
                       <span className="admin-table-num">{row.defaultRaceTo ?? "—"}</span>
                     </td>
                     <td>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-slate-500 dark:text-white/60">
                         {(row.compatibleTableTypes || [])
                           .map((t) => TABLE_TYPE_LABELS[t] || t)
                           .join(", ") || "—"}

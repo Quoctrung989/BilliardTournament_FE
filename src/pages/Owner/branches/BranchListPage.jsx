@@ -187,13 +187,13 @@ const OwnerBranchListPage = () => {
   return (
     <div className="space-y-6">
       <AdminCard padding={false}>
-        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="flex flex-wrap gap-4 flex-1 min-w-0">
             <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[220px] max-w-xl">
               <label className="admin-label">Tìm kiếm</label>
               <div className="flex gap-2">
                 <div className="relative flex-1 min-w-0">
-                  <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40" />
                   <input
                     className="admin-input w-full pl-9"
                     placeholder="Tìm tên hoặc địa chỉ…"
@@ -264,7 +264,7 @@ const OwnerBranchListPage = () => {
                         {row.thumbnailUrl ? (
                           <img src={row.thumbnailUrl} alt="" className="h-9 w-9 rounded-lg object-cover mx-auto" />
                         ) : (
-                          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-400 text-xs mx-auto">
+                          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-white/10 text-slate-400 dark:text-white/40 text-xs mx-auto">
                             —
                           </span>
                         )}
@@ -273,12 +273,12 @@ const OwnerBranchListPage = () => {
                         <span className="admin-table-name" title={row.name}>{row.name}</span>
                       </td>
                       <td>
-                        <span className="text-slate-600 truncate block" title={row.address}>
+                        <span className="text-slate-600 dark:text-white/70 truncate block" title={row.address}>
                           {row.address}
                         </span>
                       </td>
                       <td>
-                        <span className="text-slate-600">{row.phone || "—"}</span>
+                        <span className="text-slate-600 dark:text-white/70">{row.phone || "—"}</span>
                       </td>
                       <td className="align-center">
                         <span className="admin-table-toggle-wrap">
@@ -353,7 +353,7 @@ const OwnerBranchListPage = () => {
         }
       >
         {formLoading ? (
-          <p className="text-slate-500 py-6 text-center">Đang tải...</p>
+          <p className="text-slate-500 dark:text-white/60 py-6 text-center">Đang tải...</p>
         ) : (
           <BranchForm
             form={form}

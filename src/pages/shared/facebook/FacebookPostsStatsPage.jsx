@@ -41,10 +41,10 @@ const fmtDateTime = (iso) => {
 const MetricCard = ({ icon: Icon, label, value, tone = "slate" }) => {
   const tones = {
     slate: {
-      card: "border-slate-200 bg-white shadow-sm shadow-slate-200/60 ring-1 ring-slate-100",
+      card: "border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] shadow-sm shadow-slate-200/60 ring-1 ring-slate-100",
       icon: "bg-slate-900 text-white",
-      label: "text-slate-500",
-      value: "text-slate-900",
+      label: "text-slate-500 dark:text-white/60",
+      value: "text-slate-900 dark:text-white",
     },
     sky: {
       card: "border-sky-200 bg-gradient-to-br from-sky-50 to-white shadow-md shadow-sky-100 ring-1 ring-sky-100",
@@ -138,7 +138,7 @@ const FacebookPostsStatsPage = ({ basePath }) => {
           </AdminButton>
         }
       >
-        <p className="text-sm text-slate-500 mb-4">
+        <p className="text-sm text-slate-500 dark:text-white/60 mb-4">
           Số liệu tương tác lấy từ cache DB (nhanh). Vào chi tiết rồi bấm &quot;Làm mới&quot; để đồng bộ lại từ Facebook.
         </p>
 
@@ -158,13 +158,13 @@ const FacebookPostsStatsPage = ({ basePath }) => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-slate-400">
+                  <td colSpan={7} className="text-center py-8 text-slate-400 dark:text-white/40">
                     Đang tải danh sách...
                   </td>
                 </tr>
               ) : posts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-slate-400">
+                  <td colSpan={7} className="text-center py-8 text-slate-400 dark:text-white/40">
                     Chưa có bài đăng Facebook nào. Mở đăng ký giải để hệ thống tự đăng bài.
                   </td>
                 </tr>
@@ -181,20 +181,20 @@ const FacebookPostsStatsPage = ({ basePath }) => {
                       <td className="whitespace-nowrap text-sm">{fmtDateTime(post.postedAt)}</td>
                       <td className="text-sm">
                         {post.tournamentName || (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-slate-400 dark:text-white/40">—</span>
                         )}
                       </td>
                       <td>
-                        <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700">
+                        <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white/75">
                           {POST_TYPE_LABELS[post.postType] || post.postType}
                         </span>
                       </td>
                       <td className="max-w-xs">
-                        <p className="text-sm text-slate-700 line-clamp-2 whitespace-pre-wrap">
+                        <p className="text-sm text-slate-700 dark:text-white/75 line-clamp-2 whitespace-pre-wrap">
                           {preview}
                         </p>
                       </td>
-                      <td className="text-xs text-slate-600 whitespace-nowrap">
+                      <td className="text-xs text-slate-600 dark:text-white/70 whitespace-nowrap">
                         {synced ? (
                           <div className="space-y-0.5 tabular-nums">
                             <div>Like: {post.likes ?? 0}</div>
@@ -202,10 +202,10 @@ const FacebookPostsStatsPage = ({ basePath }) => {
                             <div>Share: {post.shares ?? 0}</div>
                           </div>
                         ) : (
-                          <span className="text-slate-400">Chưa đồng bộ</span>
+                          <span className="text-slate-400 dark:text-white/40">Chưa đồng bộ</span>
                         )}
                       </td>
-                      <td className="text-sm text-slate-600 max-w-[140px] truncate">
+                      <td className="text-sm text-slate-600 dark:text-white/70 max-w-[140px] truncate">
                         {post.postedByEmail || "—"}
                       </td>
                       <td>

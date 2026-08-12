@@ -22,7 +22,7 @@ const SectionHeader = () => (
     style={{ "--i": 1 }}
   >
     <h2 className="text-lg font-bold dark:text-gray-100">
-      Tin mới nhất từ CAPSTONE
+      Tin mới nhất từ BTMS
     </h2>
     <Link
       to="/news"

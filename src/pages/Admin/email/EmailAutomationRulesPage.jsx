@@ -130,13 +130,13 @@ const EmailAutomationRulesPage = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-6 text-slate-400">
+                  <td colSpan={7} className="text-center py-6 text-slate-400 dark:text-white/40">
                     Đang tải...
                   </td>
                 </tr>
               ) : rules.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-6 text-slate-400">
+                  <td colSpan={7} className="text-center py-6 text-slate-400 dark:text-white/40">
                     Chưa có quy tắc tự động
                   </td>
                 </tr>
@@ -155,7 +155,7 @@ const EmailAutomationRulesPage = () => {
                     <td>
                       <span
                         className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          row.isEnabled ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"
+                          row.isEnabled ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700 dark:text-white/75"
                         }`}
                       >
                         {row.isEnabled ? "Đang bật" : "Đang tắt"}

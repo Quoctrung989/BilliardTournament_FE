@@ -148,22 +148,22 @@ const NewsTaxonomyPage = ({ api }) => {
         <button
           type="button"
           onClick={() => setTab("categories")}
-          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${isCategoryTab ? "bg-[#010851] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${isCategoryTab ? "bg-[#010851] text-white" : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-200 dark:hover:bg-white/10"}`}
         >
           Danh mục
         </button>
         <button
           type="button"
           onClick={() => setTab("tags")}
-          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${!isCategoryTab ? "bg-[#010851] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${!isCategoryTab ? "bg-[#010851] text-white" : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-200 dark:hover:bg-white/10"}`}
         >
           Thẻ
         </button>
       </div>
 
       <AdminCard padding={false}>
-        <div className="p-5 flex items-center justify-between border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900">{isCategoryTab ? "Danh mục bài viết" : "Thẻ bài viết"}</h2>
+        <div className="p-5 flex items-center justify-between border-b border-slate-100 dark:border-white/10">
+          <h2 className="font-semibold text-slate-900 dark:text-white">{isCategoryTab ? "Danh mục bài viết" : "Thẻ bài viết"}</h2>
           <AdminButton variant="primary" onClick={openCreate} className="flex items-center gap-1.5">
             <Plus size={15} />
             {isCategoryTab ? "Tạo danh mục" : "Tạo thẻ"}
@@ -189,8 +189,8 @@ const NewsTaxonomyPage = ({ api }) => {
                 <tbody>
                   {categories.map((row) => (
                     <tr key={row.id}>
-                      <td className="font-medium text-slate-900">{row.name}</td>
-                      <td className="text-sm text-slate-500">{row.slug}</td>
+                      <td className="font-medium text-slate-900 dark:text-white">{row.name}</td>
+                      <td className="text-sm text-slate-500 dark:text-white/60">{row.slug}</td>
                       <td className="align-center">
                         <button
                           type="button"
@@ -231,8 +231,8 @@ const NewsTaxonomyPage = ({ api }) => {
               <tbody>
                 {tags.map((row) => (
                   <tr key={row.id}>
-                    <td className="font-medium text-slate-900">{row.name}</td>
-                    <td className="text-sm text-slate-500">{row.slug}</td>
+                    <td className="font-medium text-slate-900 dark:text-white">{row.name}</td>
+                    <td className="text-sm text-slate-500 dark:text-white/60">{row.slug}</td>
                     <td className="align-right">
                       <div className="admin-table-actions">
                         <button type="button" className="admin-table-action" title="Sửa" onClick={() => openEdit(row)}>
@@ -306,7 +306,7 @@ const NewsTaxonomyPage = ({ api }) => {
           </>
         }
       >
-        <p className="text-slate-600">Xoá thẻ <strong>"{deleteTagModal?.name}"</strong>?</p>
+        <p className="text-slate-600 dark:text-white/70">Xoá thẻ <strong>"{deleteTagModal?.name}"</strong>?</p>
       </AdminModal>
     </div>
   );

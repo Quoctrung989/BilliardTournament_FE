@@ -1,7 +1,7 @@
 const TournamentConfigFieldForm = ({ fields, onChange }) => {
   if (!fields?.length) {
     return (
-      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white">
+      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white dark:bg-[#161a22]">
         Chưa có trường cấu hình cho thể thức này
       </p>
     );
@@ -43,7 +43,7 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
           >
             <span className="admin-toggle-knob" />
           </button>
-          <span className={`text-sm font-medium ${checked ? "text-green-700" : "text-slate-400"}`}>
+          <span className={`text-sm font-medium ${checked ? "text-green-700" : "text-slate-400 dark:text-white/40"}`}>
             {checked ? "Kích hoạt" : "Tắt"}
           </span>
         </div>
@@ -83,18 +83,18 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
         <div key={field.fieldKey ?? index} className="admin-card p-4">
           <div className="mb-3">
             <div className="flex items-start justify-between gap-2">
-              <p className="font-medium text-slate-800 text-sm leading-snug">
+              <p className="font-medium text-slate-800 dark:text-white/85 text-sm leading-snug">
                 {field.label || field.fieldKey}
                 {field.isRequired && <span className="text-red-500 ml-1">*</span>}
               </p>
               {field.source && (
-                <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-slate-400 dark:text-white/40 bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded">
                   {field.source === "TOURNAMENT" ? "Đã chỉnh" : "Mặc định"}
                 </span>
               )}
             </div>
             {field.description && (
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">{field.description}</p>
+              <p className="text-xs text-slate-500 dark:text-white/60 mt-1 leading-relaxed">{field.description}</p>
             )}
           </div>
           <div>{renderValueInput(field, index)}</div>

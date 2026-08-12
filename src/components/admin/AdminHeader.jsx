@@ -74,7 +74,7 @@ const AdminHeader = ({
       <div className="admin-header-titles">
         {!hideBreadcrumb && (
           <p className="admin-header-eyebrow">
-            <span className="text-slate-400 font-medium">BTMS Admin</span>
+            <span className="text-slate-400 dark:text-white/40 font-medium">BTMS Admin</span>
             <span className="mx-1.5 text-slate-300" aria-hidden>
               /
             </span>
@@ -89,7 +89,7 @@ const AdminHeader = ({
         <div className="hidden lg:flex items-center flex-1 max-w-sm mx-2">
           <div className="relative w-full">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40 pointer-events-none"
               size={18}
             />
             <input
@@ -129,7 +129,7 @@ const AdminHeader = ({
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">{user?.role || "ADMIN"}</p>
             </div>
-            <ChevronDown size={16} className="text-slate-400 hidden sm:block flex-shrink-0" />
+            <ChevronDown size={16} className="text-slate-400 dark:text-white/40 hidden sm:block flex-shrink-0" />
           </button>
 
           {menuOpen && (

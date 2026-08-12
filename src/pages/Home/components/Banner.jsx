@@ -124,7 +124,7 @@ const Banner = () => {
             className="hm-rise text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--wnt25-color-red)]"
             style={{ "--i": 0 }}
           >
-            CAPSTONE • Mùa giải 2026
+            BTMS • Mùa giải 2026
           </span>
 
           {/* leading và tracking phải chừa chỗ cho dấu — xem chú thích ở
@@ -144,7 +144,7 @@ const Banner = () => {
             style={{ "--i": 2 }}
           >
             Theo dõi lịch thi đấu, bảng xếp hạng và từng đường cơ của các tay cơ
-            hàng đầu — trực tiếp trên hệ thống CAPSTONE.
+            hàng đầu — trực tiếp trên hệ thống BTMS.
           </p>
 
           <div className="hm-rise flex flex-wrap gap-4" style={{ "--i": 3 }}>

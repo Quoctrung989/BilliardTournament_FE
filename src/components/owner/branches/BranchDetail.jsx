@@ -118,7 +118,7 @@ const BranchDetail = ({ item, loading }) => {
                 key={img.key}
                 src={img.url}
                 alt=""
-                className="h-24 w-24 rounded-lg object-cover border border-slate-200"
+                className="h-24 w-24 rounded-lg object-cover border border-slate-200 dark:border-white/10"
               />
             ))}
           </div>

@@ -70,7 +70,7 @@ const RegistrationFormTemplateDetail = ({ item, loading }) => {
         </div>
         <div className="catalog-detail-chip">
           <span className="catalog-detail-chip-label">Kích hoạt</span>
-          <span className={`catalog-detail-chip-value ${isActive ? "text-emerald-700" : "text-slate-500"}`}>
+          <span className={`catalog-detail-chip-value ${isActive ? "text-emerald-700" : "text-slate-500 dark:text-white/60"}`}>
             {isActive ? "Đang bật" : "Đã tắt"}
           </span>
         </div>

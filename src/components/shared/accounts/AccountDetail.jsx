@@ -20,7 +20,7 @@ const ROLE_COLOR = {
   OWNER:   "text-indigo-700",
   MANAGER: "text-sky-700",
   STAFF:   "text-cyan-700",
-  PLAYER:  "text-slate-600",
+  PLAYER:  "text-slate-600 dark:text-white/70",
 };
 
 const SpecCell = ({ label, value, mono = false }) => (

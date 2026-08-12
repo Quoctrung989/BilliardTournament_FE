@@ -240,7 +240,7 @@ const MyRegistrationsPage = () => {
                   {/* Info rows */}
                   <div>
                     <p className="text-xs font-semibold text-slate-400 dark:text-white/40 uppercase tracking-wide mb-2">Thông tin đăng ký</p>
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y divide-slate-100 dark:divide-white/10">
                       <div className="flex justify-between py-2">
                         <span className="text-slate-500 dark:text-white/60">Người đăng ký</span>
                         <span className="font-medium text-slate-900 dark:text-white">{detail.playerFullName}</span>
@@ -272,7 +272,7 @@ const MyRegistrationsPage = () => {
                   {detail.fieldValues?.length > 0 && (
                     <div>
                       <p className="text-xs font-semibold text-slate-400 dark:text-white/40 uppercase tracking-wide mb-2">Thông tin đã điền</p>
-                      <div className="divide-y divide-slate-100">
+                      <div className="divide-y divide-slate-100 dark:divide-white/10">
                         {detail.fieldValues.map((fv) => (
                           <div key={fv.fieldKey} className="flex justify-between py-2">
                             <span className="text-slate-500 dark:text-white/60">{fv.label}</span>

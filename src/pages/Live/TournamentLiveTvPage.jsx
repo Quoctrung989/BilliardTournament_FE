@@ -275,7 +275,7 @@ const TournamentLiveTvPage = () => {
       ? `${tournamentName} — Tỉ số trực tiếp`
       : "Tỉ số trực tiếp";
     return () => {
-      document.title = "CAPSTONE BILLIARDS";
+      document.title = "BTMS BILLIARDS";
     };
   }, [tournamentName]);
 

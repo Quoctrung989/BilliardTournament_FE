@@ -9,7 +9,7 @@
    ⚠️ ĐÂY LÀ DỮ LIỆU GIẢ. Không tên người thật, không con số thật.
 
    NƠI ĐANG DÙNG (6 file — nhớ gỡ hết):
-     · pages/Home/components/News.jsx      → khối "Tin mới nhất từ CAPSTONE"
+     · pages/Home/components/News.jsx      → khối "Tin mới nhất từ BTMS"
      · pages/Home/components/Marquee.jsx   → dải "TIN MỚI" và 2 dải giải đấu
      · pages/Home/components/Schedule.jsx  → khối "Lịch thi đấu"
      · pages/Home/components/Ranked.jsx    → khối "Top tay cơ"
@@ -62,8 +62,8 @@ export const withDemo = (real, demo, block) => {
 export const DEMO_POSTS = [
   {
     id: "demo-post-1",
-    title: "Giải Billiards CAPSTONE Mùa 2026 chính thức khởi tranh",
-    slug: "demo-giai-capstone-2026-khoi-tranh",
+    title: "Giải Billiards BTMS Mùa 2026 chính thức khởi tranh",
+    slug: "demo-giai-btms-2026-khoi-tranh",
     thumbnailUrl: "/images/tournaments/vn-player-1.jpg",
     categoryName: "Giải đấu",
     publishedAt: "2026-07-28T09:00:00Z",
@@ -86,7 +86,7 @@ export const DEMO_POSTS = [
   },
   {
     id: "demo-post-4",
-    title: "Hệ thống CAPSTONE mở rộng thêm cụm bàn thi đấu tiêu chuẩn",
+    title: "Hệ thống BTMS mở rộng thêm cụm bàn thi đấu tiêu chuẩn",
     slug: "demo-mo-rong-cum-ban-thi-dau",
     thumbnailUrl: "/images/tournaments/pool-6.jpg",
     categoryName: "Tin hệ thống",
@@ -147,7 +147,7 @@ export const DEMO_CATEGORIES = [
 export const DEMO_TOURNAMENTS = [
   {
     id: "demo-t1",
-    name: "CAPSTONE Masters 2026",
+    name: "BTMS Masters 2026",
     status: "IN_PROGRESS",
     startAt: "2026-05-26T00:00:00Z",
     endAt: "2026-05-31T00:00:00Z",
@@ -171,7 +171,7 @@ export const DEMO_TOURNAMENTS = [
   },
   {
     id: "demo-t3",
-    name: "CAPSTONE NXT Gen Cup",
+    name: "BTMS NXT Gen Cup",
     status: "COMPLETED",
     startAt: "2026-03-01T00:00:00Z",
     endAt: "2026-03-05T00:00:00Z",

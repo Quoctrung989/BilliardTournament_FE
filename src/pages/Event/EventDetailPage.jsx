@@ -58,7 +58,7 @@ const participantLabel = (type) =>
 /* ── Shared sub-components ── */
 const InfoCol = ({ icon: Icon, label, value, border = true }) => (
   <div className={`flex flex-col gap-1 py-4 px-5 ${border ? "border-l border-slate-200 dark:border-white/10 first:border-l-0" : ""}`}>
-    <div className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold uppercase tracking-wide">
+    <div className="flex items-center gap-1.5 text-slate-400 dark:text-white/40 text-xs font-semibold uppercase tracking-wide">
       <Icon size={12} /> {label}
     </div>
     <p className="text-slate-800 dark:text-white font-semibold text-sm">{value}</p>
@@ -609,7 +609,7 @@ const LiveTab = ({ tournamentId }) => {
       <div className="flex items-center justify-between px-5 py-2.5"
            style={{ background: "linear-gradient(135deg,#9b1c1c 0%,#7f1616 100%)" }}>
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#161a22] animate-pulse" />
           <span className="text-xs font-semibold text-white tracking-wide">Đang diễn ra</span>
         </div>
         <span className="text-[10px] font-light text-white/70">{liveMatches.length} trận</span>
@@ -847,7 +847,7 @@ const EventDetailPage = () => {
                 title={isDisabled ? "Lịch thi đấu chưa được xếp" : undefined}
                 className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl transition-all duration-200 ${
                   isDisabled ? "text-white/15 cursor-not-allowed"
-                  : isActive  ? "bg-white text-[#0b0d12]"
+                  : isActive  ? "bg-white dark:bg-[#161a22] text-[#0b0d12]"
                   : "text-white/50 hover:text-white/80"
                 }`}>
                 <span className="relative">

@@ -190,7 +190,7 @@ const MyPaymentsPage = () => {
                 {/* Info rows */}
                 <div>
                   <p className="text-xs font-semibold text-slate-400 dark:text-white/40 uppercase tracking-wide mb-2">Thông tin giao dịch</p>
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-100 dark:divide-white/10">
                     {row.paidAt && (
                       <div className="flex justify-between py-2">
                         <span className="text-slate-500 dark:text-white/60">Thời gian thanh toán</span>

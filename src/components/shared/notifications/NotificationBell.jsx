@@ -126,7 +126,7 @@ const NotificationBell = ({ className = "", align = "right" }) => {
 
           <div className="max-h-[440px] overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
             {loading && (
-              <div className="py-10 flex justify-center text-slate-400">
+              <div className="py-10 flex justify-center text-slate-400 dark:text-white/40">
                 <Loader2 size={20} className="animate-spin" />
               </div>
             )}

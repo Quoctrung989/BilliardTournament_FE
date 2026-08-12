@@ -73,21 +73,21 @@ const sortByLiveReadyFinished = (matches) =>
 const LiveBadge = () => (
   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 text-white px-2.5 py-1 text-xs font-bold shadow-sm shadow-emerald-200">
     <span className="relative flex h-2 w-2">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-70" />
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white dark:bg-[#161a22] opacity-70" />
+      <span className="relative inline-flex h-2 w-2 rounded-full bg-white dark:bg-[#161a22]" />
     </span>
     Đang đấu
   </span>
 );
 
 const ReadyBadge = () => (
-  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200 px-2.5 py-1 text-xs font-semibold">
+  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/65 ring-1 ring-inset ring-slate-200 dark:ring-white/15 px-2.5 py-1 text-xs font-semibold">
     Sẵn sàng
   </span>
 );
 
 const FinishedBadge = () => (
-  <span className="inline-flex items-center rounded-full bg-slate-200/80 text-slate-500 ring-1 ring-inset ring-slate-300/70 px-2.5 py-1 text-xs font-semibold">
+  <span className="inline-flex items-center rounded-full bg-slate-200/80 dark:bg-white/10 text-slate-500 dark:text-white/55 ring-1 ring-inset ring-slate-300/70 dark:ring-white/15 px-2.5 py-1 text-xs font-semibold">
     Đã xong
   </span>
 );
@@ -115,9 +115,9 @@ const MatchCard = ({ match, isFlashing }) => {
     cardClass +=
       " border-emerald-200 bg-gradient-to-br from-emerald-50/90 via-white to-white shadow-emerald-100/70 ring-1 ring-emerald-100";
   } else if (finished) {
-    cardClass += " border-slate-200/80 bg-slate-50/80 opacity-75";
+    cardClass += " border-slate-200/80 bg-slate-50/80 opacity-75 dark:border-white/10 dark:bg-white/[0.03]";
   } else {
-    cardClass += " border-slate-200 bg-white";
+    cardClass += " border-slate-200 bg-white dark:border-white/10 dark:bg-[#161a22]";
   }
   if (isFlashing) cardClass += " ws-flash";
 
@@ -127,7 +127,7 @@ const MatchCard = ({ match, isFlashing }) => {
         {live ? <LiveBadge /> : ready ? <ReadyBadge /> : <FinishedBadge />}
         <span
           className={`text-xs font-medium tabular-nums ${
-            live ? "text-emerald-700" : finished ? "text-slate-400" : "text-slate-500"
+            live ? "text-emerald-700 dark:text-emerald-300" : finished ? "text-slate-400 dark:text-white/35" : "text-slate-500 dark:text-white/60"
           }`}
         >
           {match.tableNo != null ? `Bàn ${match.tableNo}` : "Chưa gán bàn"}
@@ -138,10 +138,10 @@ const MatchCard = ({ match, isFlashing }) => {
         <p
           className={`text-sm truncate flex items-center gap-1.5 ${
             p1Won
-              ? "font-bold text-slate-900"
+              ? "font-bold text-slate-900 dark:text-white"
               : finished
-                ? "font-medium text-slate-500"
-                : "font-medium text-slate-800"
+                ? "font-medium text-slate-500 dark:text-white/55"
+                : "font-medium text-slate-800 dark:text-white/85"
           }`}
         >
           {p1Won && (
@@ -152,7 +152,7 @@ const MatchCard = ({ match, isFlashing }) => {
 
         {/* Tỉ số: LIVE/FINISHED hiện số; READY không bao giờ hiện 0–0 */}
         {live && (
-          <p className="text-3xl font-black text-slate-900 tabular-nums leading-none tracking-tight">
+          <p className="text-3xl font-black text-slate-900 dark:text-white tabular-nums leading-none tracking-tight">
             <span className="text-emerald-700">{s1}</span>
             <span className="mx-2 text-slate-300 font-bold">–</span>
             <span className="text-emerald-700">{s2}</span>
@@ -160,7 +160,7 @@ const MatchCard = ({ match, isFlashing }) => {
         )}
 
         {finished && (
-          <p className="text-2xl font-bold text-slate-600 tabular-nums leading-none">
+          <p className="text-2xl font-bold text-slate-600 dark:text-white/70 tabular-nums leading-none">
             {s1}
             <span className="mx-2 text-slate-300 font-semibold">–</span>
             {s2}
@@ -168,7 +168,7 @@ const MatchCard = ({ match, isFlashing }) => {
         )}
 
         {ready && (
-          <p className="flex items-center gap-1.5 text-base font-medium text-slate-400 tabular-nums">
+          <p className="flex items-center gap-1.5 text-base font-medium text-slate-400 dark:text-white/40 tabular-nums">
             {match.scheduledAt ? (
               <>
                 <Clock size={15} className="shrink-0 opacity-70" />
@@ -185,10 +185,10 @@ const MatchCard = ({ match, isFlashing }) => {
         <p
           className={`text-sm truncate flex items-center gap-1.5 ${
             p2Won
-              ? "font-bold text-slate-900"
+              ? "font-bold text-slate-900 dark:text-white"
               : finished
-                ? "font-medium text-slate-500"
-                : "font-medium text-slate-800"
+                ? "font-medium text-slate-500 dark:text-white/55"
+                : "font-medium text-slate-800 dark:text-white/85"
           }`}
         >
           {p2Won && (
@@ -204,7 +204,7 @@ const MatchCard = ({ match, isFlashing }) => {
         )}
 
         {match.matchCode && (
-          <p className="text-[11px] text-slate-400 truncate">{match.matchCode}</p>
+          <p className="text-[11px] text-slate-400 dark:text-white/40 truncate">{match.matchCode}</p>
         )}
       </div>
     </article>
@@ -381,12 +381,12 @@ const ManagerLiveDashboardPage = () => {
     return (
       <AdminCard>
         <div className="space-y-4 py-6">
-          <p className="text-sm text-slate-500 text-center">
+          <p className="text-sm text-slate-500 dark:text-white/60 text-center">
             Đang tải dashboard trực tiếp...
           </p>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-36 rounded-xl bg-slate-100 animate-pulse" />
+              <div key={i} className="h-36 rounded-xl bg-slate-100 dark:bg-white/10 animate-pulse" />
             ))}
           </div>
         </div>
@@ -398,7 +398,7 @@ const ManagerLiveDashboardPage = () => {
     return (
       <AdminCard>
         <div className="py-10 text-center space-y-3">
-          <p className="text-slate-700">{error}</p>
+          <p className="text-slate-700 dark:text-white/75">{error}</p>
           <AdminButton onClick={loadSnapshot}>Thử lại</AdminButton>
         </div>
       </AdminCard>
@@ -441,7 +441,7 @@ const ManagerLiveDashboardPage = () => {
 
       {/* Status tabs — mặc định Đang diễn ra */}
       <div
-        className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm"
+        className="inline-flex rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] p-1 shadow-sm dark:shadow-none"
         role="tablist"
         aria-label="Lọc theo trạng thái trận"
       >
@@ -459,13 +459,13 @@ const ManagerLiveDashboardPage = () => {
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 active
                   ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  : "text-slate-600 dark:text-white/65 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {tab.label}
               <span
                 className={`ml-1.5 tabular-nums ${
-                  active ? "text-indigo-100" : "text-slate-400"
+                  active ? "text-indigo-100" : "text-slate-400 dark:text-white/40"
                 }`}
               >
                 · {count}
@@ -478,11 +478,11 @@ const ManagerLiveDashboardPage = () => {
       <AdminCard>
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="text-xs text-slate-500">Dải bàn</label>
+            <label className="text-xs text-slate-500 dark:text-white/60">Dải bàn</label>
             <select
               value={rangeKey}
               onChange={(e) => setRangeKey(e.target.value)}
-              className="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm min-w-40"
+              className="mt-1 rounded-lg border border-slate-300 dark:border-white/10 dark:bg-[#101319] dark:text-slate-200 px-3 py-2 text-sm min-w-40"
             >
               {TABLE_RANGES.map((r) => (
                 <option key={r.key} value={r.key}>
@@ -494,28 +494,28 @@ const ManagerLiveDashboardPage = () => {
           {rangeKey === "custom" && (
             <>
               <div>
-                <label className="text-xs text-slate-500">Từ bàn</label>
+                <label className="text-xs text-slate-500 dark:text-white/60">Từ bàn</label>
                 <input
                   type="number"
                   min="1"
                   value={customFrom}
                   onChange={(e) => setCustomFrom(e.target.value)}
-                  className="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm w-28"
+                  className="mt-1 rounded-lg border border-slate-300 dark:border-white/10 dark:bg-[#101319] dark:text-slate-200 px-3 py-2 text-sm w-28"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-500">Đến bàn</label>
+                <label className="text-xs text-slate-500 dark:text-white/60">Đến bàn</label>
                 <input
                   type="number"
                   min="1"
                   value={customTo}
                   onChange={(e) => setCustomTo(e.target.value)}
-                  className="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm w-28"
+                  className="mt-1 rounded-lg border border-slate-300 dark:border-white/10 dark:bg-[#101319] dark:text-slate-200 px-3 py-2 text-sm w-28"
                 />
               </div>
             </>
           )}
-          <p className="text-sm text-slate-500 ml-auto">
+          <p className="text-sm text-slate-500 dark:text-white/60 ml-auto">
             {tabMatches.length} trận
             {totalPages > 1 ? ` · trang ${currentPage}/${totalPages}` : ""}
           </p>
@@ -524,7 +524,7 @@ const ManagerLiveDashboardPage = () => {
 
       {!tabMatches.length ? (
         <AdminCard>
-          <p className="py-10 text-center text-slate-500">
+          <p className="py-10 text-center text-slate-500 dark:text-white/60">
             {statusTab === "live"
               ? "Không có trận đang diễn ra trong dải bàn đã chọn."
               : "Không có trận nào trong dải bàn đã chọn."}
@@ -562,7 +562,7 @@ const ManagerLiveDashboardPage = () => {
               >
                 Trước
               </AdminButton>
-              <span className="text-sm text-slate-600">
+              <span className="text-sm text-slate-600 dark:text-white/70">
                 {currentPage}/{totalPages}
               </span>
               <AdminButton

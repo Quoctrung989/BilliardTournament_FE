@@ -1,7 +1,7 @@
 const RegistrationFormPreviewPanel = ({ preview, emptyMessage }) => {
   if (!preview?.fields?.length) {
     return (
-      <p className="text-sm text-slate-500 py-8 text-center border border-dashed rounded-lg">
+      <p className="text-sm text-slate-500 dark:text-white/60 py-8 text-center border border-dashed rounded-lg">
         {emptyMessage || "Chưa có field để preview."}
       </p>
     );
@@ -19,7 +19,7 @@ const RegistrationFormPreviewPanel = ({ preview, emptyMessage }) => {
     }
     if (ui === "CHECKBOX") {
       return (
-        <label className="flex items-center gap-2 text-sm text-slate-600">
+        <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-white/70">
           <input type="checkbox" disabled />
           {field.defaultValue === "true" ? "Đã chọn" : "Chưa chọn"}
         </label>
@@ -53,11 +53,11 @@ const RegistrationFormPreviewPanel = ({ preview, emptyMessage }) => {
     <div className="space-y-4">
       {(preview.templateName || preview.tournamentName) && (
         <div className="mb-2">
-          <h3 className="text-lg font-semibold text-slate-800">
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-white/85">
             {preview.tournamentName || preview.templateName}
           </h3>
           {(preview.templateDescription || preview.participantType) && (
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 dark:text-white/60 mt-1">
               {[preview.templateDescription, preview.participantType].filter(Boolean).join(" · ")}
             </p>
           )}
@@ -70,11 +70,11 @@ const RegistrationFormPreviewPanel = ({ preview, emptyMessage }) => {
             {field.isRequired && <span className="text-red-500">*</span>}
           </label>
           {field.description && (
-            <p className="text-xs text-slate-500 mb-2">{field.description}</p>
+            <p className="text-xs text-slate-500 dark:text-white/60 mb-2">{field.description}</p>
           )}
           {renderPreviewInput(field)}
           {field.defaultValue && field.uiComponent !== "CHECKBOX" && (
-            <p className="text-xs text-slate-400 mt-1">Mặc định: {field.defaultValue}</p>
+            <p className="text-xs text-slate-400 dark:text-white/40 mt-1">Mặc định: {field.defaultValue}</p>
           )}
         </div>
       ))}

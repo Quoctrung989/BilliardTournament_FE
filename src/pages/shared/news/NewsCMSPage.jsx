@@ -10,7 +10,7 @@ import { getApiErrorMessage } from "../../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../../utils/pagination";
 
 const STATUS_STYLES = {
-  DRAFT:     "bg-slate-100 text-slate-600",
+  DRAFT:     "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70",
   PUBLISHED: "bg-emerald-100 text-emerald-800",
   HIDDEN:    "bg-amber-100 text-amber-800",
 };
@@ -80,8 +80,8 @@ const NewsCMSPage = ({ api, editorPath, taxonomyPath }) => {
   return (
     <div className="space-y-5">
       <AdminCard padding={false}>
-        <div className="p-5 flex items-center justify-between border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900">Bài viết</h2>
+        <div className="p-5 flex items-center justify-between border-b border-slate-100 dark:border-white/10">
+          <h2 className="font-semibold text-slate-900 dark:text-white">Bài viết</h2>
           <div className="flex items-center gap-2">
             {taxonomyPath && (
               <AdminButton
@@ -124,16 +124,16 @@ const NewsCMSPage = ({ api, editorPath, taxonomyPath }) => {
                 {posts.map((post) => (
                   <tr key={post.id}>
                     <td>
-                      <p className="font-medium text-slate-900 line-clamp-1">{post.title}</p>
-                      <p className="text-xs text-slate-400">/news/{post.slug}</p>
+                      <p className="font-medium text-slate-900 dark:text-white line-clamp-1">{post.title}</p>
+                      <p className="text-xs text-slate-400 dark:text-white/40">/news/{post.slug}</p>
                     </td>
-                    <td className="text-sm text-slate-600">{post.categoryName || "—"}</td>
+                    <td className="text-sm text-slate-600 dark:text-white/70">{post.categoryName || "—"}</td>
                     <td>
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[post.status] || "bg-slate-100 text-slate-600"}`}>
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[post.status] || "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70"}`}>
                         {STATUS_LABELS[post.status] || post.status}
                       </span>
                     </td>
-                    <td className="text-sm text-slate-500">{fmtDate(post.publishedAt)}</td>
+                    <td className="text-sm text-slate-500 dark:text-white/60">{fmtDate(post.publishedAt)}</td>
                     <td className="align-right">
                       <div className="admin-table-actions">
                         <button
@@ -205,7 +205,7 @@ const NewsCMSPage = ({ api, editorPath, taxonomyPath }) => {
           </>
         }
       >
-        <p className="text-slate-600">Xoá bài viết <strong>"{deleteModal?.title}"</strong>?</p>
+        <p className="text-slate-600 dark:text-white/70">Xoá bài viết <strong>"{deleteModal?.title}"</strong>?</p>
       </AdminModal>
     </div>
   );

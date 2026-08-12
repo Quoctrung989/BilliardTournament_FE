@@ -69,8 +69,8 @@ const fmtConfigValue = (field) => {
 
 const InfoItem = ({ label, children, span2 = false }) => (
   <div className={span2 ? "sm:col-span-2" : ""}>
-    <dt className="text-xs uppercase tracking-wide text-slate-400 mb-0.5">{label}</dt>
-    <dd className="text-sm font-medium text-slate-800">{children || "—"}</dd>
+    <dt className="text-xs uppercase tracking-wide text-slate-400 dark:text-white/40 mb-0.5">{label}</dt>
+    <dd className="text-sm font-medium text-slate-800 dark:text-white/85">{children || "—"}</dd>
   </div>
 );
 
@@ -80,25 +80,25 @@ const Row = ({ label, children, span2 = false }) => {
   if (span2) {
     return (
       <div className="sm:col-span-2 py-1.5 border-b border-slate-50 last:border-0">
-        <div className="text-xs text-slate-500 mb-0.5">{label}</div>
-        <div className="text-sm font-medium text-slate-800">{children ?? "—"}</div>
+        <div className="text-xs text-slate-500 dark:text-white/60 mb-0.5">{label}</div>
+        <div className="text-sm font-medium text-slate-800 dark:text-white/85">{children ?? "—"}</div>
       </div>
     );
   }
   return (
     <div className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-50 last:border-0">
-      <span className="text-xs text-slate-500 shrink-0">{label}</span>
-      <span className="text-sm font-medium text-slate-800 text-right truncate">{children ?? "—"}</span>
+      <span className="text-xs text-slate-500 dark:text-white/60 shrink-0">{label}</span>
+      <span className="text-sm font-medium text-slate-800 dark:text-white/85 text-right truncate">{children ?? "—"}</span>
     </div>
   );
 };
 
 /* Khối section có tiêu đề + icon. */
 const Section = ({ icon: Icon, title, action, children, className = "" }) => (
-  <section className={`rounded-2xl border border-slate-200 bg-white ${className}`}>
-    <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-slate-100">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-        {Icon && <Icon size={15} className="text-slate-400" />}
+  <section className={`rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] ${className}`}>
+    <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-slate-100 dark:border-white/10">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-white/85">
+        {Icon && <Icon size={15} className="text-slate-400 dark:text-white/40" />}
         {title}
       </h3>
       {action}
@@ -213,14 +213,14 @@ const TournamentDetailPage = ({ api, basePath }) => {
   };
 
   if (loading) {
-    return <p className="text-slate-500 py-12 text-center">Đang tải...</p>;
+    return <p className="text-slate-500 dark:text-white/60 py-12 text-center">Đang tải...</p>;
   }
 
   if (!detail) {
-    return <p className="text-slate-500 py-12 text-center">Không tìm thấy giải</p>;
+    return <p className="text-slate-500 dark:text-white/60 py-12 text-center">Không tìm thấy giải</p>;
   }
 
-  const statusStyle = TOURNAMENT_STATUS_STYLES[detail.status] || "bg-slate-100 text-slate-700";
+  const statusStyle = TOURNAMENT_STATUS_STYLES[detail.status] || "bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white/75";
   const statusLabel = TOURNAMENT_STATUS_LABELS[detail.status] || detail.status;
   const isDraft = detail.status === "DRAFT";
   const isOpenReg = detail.status === "OPEN_FOR_REGISTRATION";
@@ -237,13 +237,13 @@ const TournamentDetailPage = ({ api, basePath }) => {
       <AdminCard>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-slate-900">{detail.name}</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{detail.name}</h2>
           </div>
           <div className="shrink-0 flex items-center gap-3">
             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusStyle}`}>
               {statusLabel}
             </span>
-            <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/60 cursor-pointer select-none">
               <span className="admin-table-toggle-wrap">
                 <button
                   type="button"
@@ -269,7 +269,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
 
         {/* Slot progress */}
         {detail.maxParticipants != null && (
-          <div className="mt-5 pt-4 border-t border-slate-100">
+          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/10">
             {(() => {
               const approved = detail.approvedCount ?? 0;
               const max = detail.maxParticipants;
@@ -281,14 +281,14 @@ const TournamentDetailPage = ({ api, basePath }) => {
                 return (
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-500">Người tham gia chính thức</span>
+                      <span className="text-slate-500 dark:text-white/60">Người tham gia chính thức</span>
                       <span className="font-semibold text-indigo-600">Đã chốt {approved} người</span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-indigo-400" style={{ width: "100%" }} />
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Giải thi đấu với <strong className="text-slate-600">{approved}</strong> người (đã đóng đăng ký).
+                    <p className="text-xs text-slate-400 dark:text-white/40 mt-1">
+                      Giải thi đấu với <strong className="text-slate-600 dark:text-white/70">{approved}</strong> người (đã đóng đăng ký).
                     </p>
                   </div>
                 );
@@ -301,18 +301,18 @@ const TournamentDetailPage = ({ api, basePath }) => {
               return (
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-500">Người tham gia chính thức</span>
+                    <span className="text-slate-500 dark:text-white/60">Người tham gia chính thức</span>
                     <span className={`font-semibold ${full ? "text-red-600" : remaining <= 3 ? "text-amber-600" : "text-emerald-600"}`}>
                       {full ? "Đã đủ người" : `Còn ${remaining} slot`}
                     </span>
                   </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${full ? "bg-red-500" : remaining <= 3 ? "bg-amber-400" : "bg-emerald-400"}`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">{approved} / {max} người</p>
+                  <p className="text-xs text-slate-400 dark:text-white/40 mt-1">{approved} / {max} người</p>
                 </div>
               );
             })()}
@@ -348,7 +348,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
               : <span className="text-xs font-semibold text-amber-600">Chưa hoàn tất</span>}
           >
             {!configForm ? (
-              <p className="text-sm text-slate-400">Chưa có cấu hình chi tiết cho giải này.</p>
+              <p className="text-sm text-slate-400 dark:text-white/40">Chưa có cấu hình chi tiết cho giải này.</p>
             ) : (
               <div className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-x-8">
@@ -363,25 +363,25 @@ const TournamentDetailPage = ({ api, basePath }) => {
                     <button
                       type="button"
                       onClick={() => setRaceToOpen((o) => !o)}
-                      className="flex items-center justify-between w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
+                      className="flex items-center justify-between w-full text-left px-3 py-2 rounded-lg bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                     >
-                      <span className="text-sm font-medium text-slate-700">
+                      <span className="text-sm font-medium text-slate-700 dark:text-white/75">
                         Số ván thắng theo vòng đấu
-                        <span className="ml-1 text-xs text-slate-400">({configForm.raceToRules.length} vòng)</span>
+                        <span className="ml-1 text-xs text-slate-400 dark:text-white/40">({configForm.raceToRules.length} vòng)</span>
                       </span>
                       {raceToOpen ? (
-                        <ChevronUp size={16} className="text-slate-400" />
+                        <ChevronUp size={16} className="text-slate-400 dark:text-white/40" />
                       ) : (
-                        <ChevronDown size={16} className="text-slate-400" />
+                        <ChevronDown size={16} className="text-slate-400 dark:text-white/40" />
                       )}
                     </button>
                     {raceToOpen && (
-                      <div className="mt-2 rounded-xl border border-slate-100 divide-y divide-slate-50">
+                      <div className="mt-2 rounded-xl border border-slate-100 dark:border-white/10 divide-y divide-slate-50">
                         {configForm.raceToRules.map((r) => (
                           <div key={r.roundKey} className="flex items-center justify-between px-3 py-2 text-sm">
-                            <span className="text-slate-600">{r.label || r.roundKey}</span>
+                            <span className="text-slate-600 dark:text-white/70">{r.label || r.roundKey}</span>
                             <span className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-800">Đánh tới {r.raceTo} ván</span>
+                              <span className="font-semibold text-slate-800 dark:text-white/85">Đánh tới {r.raceTo} ván</span>
                               {r.isOverridden && (
                                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 font-medium">tùy chỉnh</span>
                               )}
@@ -422,14 +422,14 @@ const TournamentDetailPage = ({ api, basePath }) => {
                         key={img.key || img.url}
                         src={img.url}
                         alt=""
-                        className="h-16 w-16 rounded-lg object-cover border border-slate-200"
+                        className="h-16 w-16 rounded-lg object-cover border border-slate-200 dark:border-white/10"
                       />
                     ))}
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-slate-400">Chưa có địa điểm.</p>
+              <p className="text-sm text-slate-400 dark:text-white/40">Chưa có địa điểm.</p>
             )}
           </Section>
 
@@ -440,7 +440,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
                   <span className="text-indigo-700">
                     Có
                     {(detail.registrationFormTemplateName || detail.registrationFormTemplateCode) && (
-                      <span className="ml-1 text-slate-500 font-normal">
+                      <span className="ml-1 text-slate-500 dark:text-white/60 font-normal">
                         — {detail.registrationFormTemplateName || detail.registrationFormTemplateCode}
                       </span>
                     )}
@@ -629,22 +629,22 @@ const TournamentDetailPage = ({ api, basePath }) => {
           onClick={toggleAudit}
           className="flex items-center justify-between w-full text-left"
         >
-          <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+          <span className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-white/85">
             <History size={16} /> Lịch sử trạng thái
           </span>
           {auditOpen ? (
-            <ChevronUp size={16} className="text-slate-400" />
+            <ChevronUp size={16} className="text-slate-400 dark:text-white/40" />
           ) : (
-            <ChevronDown size={16} className="text-slate-400" />
+            <ChevronDown size={16} className="text-slate-400 dark:text-white/40" />
           )}
         </button>
 
         {auditOpen && (
-          <div className="mt-4 pt-4 border-t border-slate-100">
+          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/10">
             {auditLoading ? (
-              <p className="text-sm text-slate-400">Đang tải...</p>
+              <p className="text-sm text-slate-400 dark:text-white/40">Đang tải...</p>
             ) : !auditLogs || auditLogs.length === 0 ? (
-              <p className="text-sm text-slate-400">Chưa có lịch sử thay đổi.</p>
+              <p className="text-sm text-slate-400 dark:text-white/40">Chưa có lịch sử thay đổi.</p>
             ) : (
               <ul className="space-y-4">
                 {auditLogs.map((log) => {
@@ -662,19 +662,19 @@ const TournamentDetailPage = ({ api, basePath }) => {
                         <Icon size={14} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-800">
+                        <p className="text-sm text-slate-800 dark:text-white/85">
                           {isWarning ? (
                             <span className="font-medium text-amber-700">Cảnh báo</span>
                           ) : (
                             <>
                               <span className="font-medium">{log.fromStatusLabel}</span>
-                              <span className="text-slate-400 mx-1">→</span>
+                              <span className="text-slate-400 dark:text-white/40 mx-1">→</span>
                               <span className="font-medium">{log.toStatusLabel}</span>
                             </>
                           )}
                         </p>
-                        {log.note && <p className="text-xs text-slate-500 mt-0.5">{log.note}</p>}
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        {log.note && <p className="text-xs text-slate-500 dark:text-white/60 mt-0.5">{log.note}</p>}
+                        <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">
                           {log.changedByName} · {fmtDate(log.createdAt)}
                         </p>
                       </div>

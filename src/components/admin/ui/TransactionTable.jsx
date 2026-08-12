@@ -9,7 +9,7 @@ const TRANSACTION_STATUS_STYLES = {
   SUCCESS: "bg-emerald-100 text-emerald-800",
   PENDING: "bg-amber-100 text-amber-800",
   FAILED: "bg-rose-100 text-rose-800",
-  CANCELLED: "bg-gray-200 text-gray-700",
+  CANCELLED: "bg-gray-200 text-gray-700 dark:text-white/75",
 };
 
 const TRANSACTION_STATUS_OPTIONS = [
@@ -61,7 +61,7 @@ const TransactionTable = ({ analyticsApi, tournamentId, from, to }) => {
         <select className="admin-select w-auto" value={status} onChange={(e) => setStatus(e.target.value)}>
           {TRANSACTION_STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
-        <span className="text-xs text-slate-400">{totalElements} giao dịch</span>
+        <span className="text-xs text-slate-400 dark:text-white/40">{totalElements} giao dịch</span>
       </div>
 
       <div className="admin-table-wrap">
@@ -79,14 +79,14 @@ const TransactionTable = ({ analyticsApi, tournamentId, from, to }) => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={tournamentId ? 6 : 7} className="text-center py-6 text-slate-400">Đang tải...</td></tr>
+              <tr><td colSpan={tournamentId ? 6 : 7} className="text-center py-6 text-slate-400 dark:text-white/40">Đang tải...</td></tr>
             ) : rows.length === 0 ? (
-              <tr><td colSpan={tournamentId ? 6 : 7} className="text-center py-6 text-slate-400">Không có giao dịch nào.</td></tr>
+              <tr><td colSpan={tournamentId ? 6 : 7} className="text-center py-6 text-slate-400 dark:text-white/40">Không có giao dịch nào.</td></tr>
             ) : (
               rows.map((r) => (
                 <tr key={r.id}>
                   <td className="text-xs">{r.playerName || "—"}</td>
-                  {!tournamentId && <td className="text-xs text-slate-500">{r.tournamentName || "—"}</td>}
+                  {!tournamentId && <td className="text-xs text-slate-500 dark:text-white/60">{r.tournamentName || "—"}</td>}
                   <td className="text-xs font-semibold">{formatVND(r.amount || 0)}</td>
                   <td className="text-xs">{r.paymentMethod || "—"}</td>
                   <td>

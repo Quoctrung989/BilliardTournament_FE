@@ -46,8 +46,8 @@ const TransactionsPage = ({ analyticsApi, title }) => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-slate-900">{title}</h1>
-        <p className="text-sm text-slate-500">Tra cứu và quản lý toàn bộ giao dịch thanh toán</p>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">{title}</h1>
+        <p className="text-sm text-slate-500 dark:text-white/60">Tra cứu và quản lý toàn bộ giao dịch thanh toán</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -57,7 +57,7 @@ const TransactionsPage = ({ analyticsApi, title }) => {
             type="button"
             onClick={() => setPreset(p.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-              preset === p.value ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              preset === p.value ? "bg-indigo-600 text-white" : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-200 dark:hover:bg-white/10"
             }`}
           >
             {p.label}
@@ -66,7 +66,7 @@ const TransactionsPage = ({ analyticsApi, title }) => {
         {preset === "custom" && (
           <div className="flex items-center gap-2 ml-1">
             <input type="date" className="admin-input w-auto" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
-            <span className="text-slate-400 text-xs">đến</span>
+            <span className="text-slate-400 dark:text-white/40 text-xs">đến</span>
             <input type="date" className="admin-input w-auto" value={customTo} onChange={(e) => setCustomTo(e.target.value)} />
           </div>
         )}
@@ -84,7 +84,7 @@ const TransactionsPage = ({ analyticsApi, title }) => {
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="admin-card h-28 animate-pulse bg-slate-100" />)}
+          {[...Array(4)].map((_, i) => <div key={i} className="admin-card h-28 animate-pulse bg-slate-100 dark:bg-white/10" />)}
         </div>
       ) : (
         <>

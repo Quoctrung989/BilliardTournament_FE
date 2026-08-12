@@ -20,7 +20,7 @@ const ToolbarButton = ({ onClick, active, disabled, title, children }) => (
     onClick={onClick}
     disabled={disabled}
     className={`p-1.5 rounded transition-colors ${
-      active ? "bg-[#010851] text-white" : "text-slate-600 hover:bg-slate-100"
+      active ? "bg-[#010851] text-white" : "text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/10"
     } disabled:opacity-40 disabled:cursor-not-allowed`}
   >
     {children}
@@ -79,8 +79,8 @@ const RichTextEditor = ({ value, onChange, placeholder = "Nội dung bài viết
   };
 
   return (
-    <div className="admin-rte border border-slate-200 rounded-lg overflow-hidden">
-      <div className="flex flex-wrap items-center gap-0.5 border-b border-slate-200 bg-slate-50 p-1.5">
+    <div className="admin-rte border border-slate-200 dark:border-white/10 rounded-lg overflow-hidden">
+      <div className="flex flex-wrap items-center gap-0.5 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-1.5">
         <ToolbarButton title="Đậm" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}>
           <Bold size={15} />
         </ToolbarButton>
@@ -93,7 +93,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Nội dung bài viết
         <ToolbarButton title="Gạch ngang" active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()}>
           <Strikethrough size={15} />
         </ToolbarButton>
-        <span className="w-px h-5 bg-slate-200 mx-1" />
+        <span className="w-px h-5 bg-slate-200 dark:bg-white/10 mx-1" />
         <ToolbarButton title="Tiêu đề" active={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
           <Heading2 size={15} />
         </ToolbarButton>
@@ -106,7 +106,7 @@ const RichTextEditor = ({ value, onChange, placeholder = "Nội dung bài viết
         <ToolbarButton title="Trích dẫn" active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
           <Quote size={15} />
         </ToolbarButton>
-        <span className="w-px h-5 bg-slate-200 mx-1" />
+        <span className="w-px h-5 bg-slate-200 dark:bg-white/10 mx-1" />
         <ToolbarButton title="Căn trái" active={editor.isActive({ textAlign: "left" })} onClick={() => editor.chain().focus().setTextAlign("left").run()}>
           <AlignLeft size={15} />
         </ToolbarButton>
@@ -116,14 +116,14 @@ const RichTextEditor = ({ value, onChange, placeholder = "Nội dung bài viết
         <ToolbarButton title="Căn phải" active={editor.isActive({ textAlign: "right" })} onClick={() => editor.chain().focus().setTextAlign("right").run()}>
           <AlignRight size={15} />
         </ToolbarButton>
-        <span className="w-px h-5 bg-slate-200 mx-1" />
+        <span className="w-px h-5 bg-slate-200 dark:bg-white/10 mx-1" />
         <ToolbarButton title="Chèn liên kết" active={editor.isActive("link")} onClick={setLink}>
           <LinkIcon size={15} />
         </ToolbarButton>
         <ToolbarButton title="Chèn ảnh" onClick={addImage}>
           <ImageIcon size={15} />
         </ToolbarButton>
-        <span className="w-px h-5 bg-slate-200 mx-1" />
+        <span className="w-px h-5 bg-slate-200 dark:bg-white/10 mx-1" />
         <ToolbarButton title="Hoàn tác" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()}>
           <Undo size={15} />
         </ToolbarButton>
