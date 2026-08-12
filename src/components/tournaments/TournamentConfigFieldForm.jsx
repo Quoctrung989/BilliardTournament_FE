@@ -1,3 +1,13 @@
+/* Nhãn hiển thị cho các giá trị enum config phổ biến — khớp với ENUM_LABELS
+   ở TournamentDetailPage.jsx (trang xem, chỉ đọc) để Owner thấy đúng 1 nhãn
+   xuyên suốt lúc cấu hình lẫn lúc xem lại. */
+const ENUM_OPTION_LABELS = {
+  RANDOM: "Ngẫu nhiên", RANK: "Theo hạng cơ thủ",
+  ALTERNATE_BREAK: "Luân phiên", WINNER_BREAK: "Người thắng ván trước", LOSER_BREAK: "Người thua ván trước",
+  GAME: "Ván", FRAME: "Hiệp",
+  FULL_DE: "Đánh loại kép tới vô địch", CUT_TO_SE: "Gộp nhánh, đánh loại trực tiếp",
+};
+
 const TournamentConfigFieldForm = ({ fields, onChange }) => {
   if (!fields?.length) {
     return (
@@ -46,6 +56,27 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
           <span className={`text-sm font-medium ${checked ? "text-green-700" : "text-slate-400 dark:text-white/40"}`}>
             {checked ? "Kích hoạt" : "Tắt"}
           </span>
+        </div>
+      );
+    }
+
+    if (ui === "RADIO_GROUP") {
+      return (
+        <div className="flex flex-col gap-2">
+          {enumOptions.map((opt) => (
+            <label
+              key={opt}
+              className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"
+            >
+              <input
+                type="radio"
+                name={`config-radio-${field.fieldKey ?? index}`}
+                checked={value === opt}
+                onChange={() => updateField(index, { value: opt })}
+              />
+              {ENUM_OPTION_LABELS[opt] || opt}
+            </label>
+          ))}
         </div>
       );
     }
