@@ -97,7 +97,7 @@ const RegisterPage = () => {
     `w-full px-3 py-2 text-sm border rounded focus:outline-none transition-colors ${
       touched[field] && errors[field]
         ? "border-red-400 bg-red-50 focus:border-red-400"
-        : "border-gray-300 bg-gray-50 focus:border-gray-500 focus:bg-white"
+        : "border-gray-300 dark:border-white/15 bg-gray-50 dark:bg-white/5 focus:border-gray-500 focus:bg-white dark:focus:bg-[#161a22]"
     }`;
 
   return (
@@ -113,16 +113,16 @@ const RegisterPage = () => {
         {/* Logo */}
         <div className="text-center mb-5">
           <div style={{ fontSize: 42, fontWeight: 900, color: "#fff", fontStyle: "italic", letterSpacing: -1.5, lineHeight: 1, textTransform: "uppercase" }}>
-            capstone<span style={{ color: "#e8471a" }}>.</span>
+            btms<span style={{ color: "#e8471a" }}>.</span>
           </div>
           <p style={{ fontSize: 13, color: "#ccc", marginTop: 6 }}>
             Chào mừng bạn đến với nền tảng tỉ số trực tuyến{" "}
-            <strong style={{ color: "#fff", fontStyle: "italic", textTransform: "uppercase" }}>capstone</strong>.
+            <strong style={{ color: "#fff", fontStyle: "italic", textTransform: "uppercase" }}>btms</strong>.
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-lg w-full max-w-sm mx-4" style={{ padding: "28px 28px 24px" }}>
+        <div className="bg-white dark:bg-[#161a22] rounded-lg w-full max-w-sm mx-4" style={{ padding: "28px 28px 24px" }}>
           <h2 style={{ fontSize: 13, fontWeight: 700, color: "#1a2a4a", textTransform: "uppercase", letterSpacing: "1.5px", fontStyle: "italic", marginBottom: 16 }}>
             Đăng ký.
           </h2>
@@ -136,7 +136,7 @@ const RegisterPage = () => {
           <form onSubmit={handleSubmit} noValidate className="space-y-3">
             {/* Email */}
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Địa chỉ E-mail</label>
+              <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Địa chỉ E-mail</label>
               <input
                 type="email"
                 name="email"
@@ -151,7 +151,7 @@ const RegisterPage = () => {
 
             {/* Phone */}
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Số điện thoại</label>
+              <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Số điện thoại</label>
               <input
                 type="tel"
                 name="phone"
@@ -166,7 +166,7 @@ const RegisterPage = () => {
 
             {/* Password */}
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Mật khẩu</label>
+              <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Mật khẩu</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -191,7 +191,7 @@ const RegisterPage = () => {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Xác nhận mật khẩu</label>
+              <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Xác nhận mật khẩu</label>
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -225,7 +225,7 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   className="mt-0.5 cursor-pointer w-3.5 h-3.5"
                 />
-                <label htmlFor="agreeTerms" className="text-xs text-gray-600 cursor-pointer leading-relaxed">
+                <label htmlFor="agreeTerms" className="text-xs text-gray-600 dark:text-white/70 cursor-pointer leading-relaxed">
                   Tôi đã đọc và đồng ý với{" "}
                   {/* Hai nút này nằm TRONG <label> nên phải chặn nổi bọt: không
                       chặn thì bấm vào chữ "Điều khoản" lại tick/bỏ tick ô đồng ý.
@@ -269,14 +269,14 @@ const RegisterPage = () => {
             </div>
           </form>
 
-          <hr className="my-5 border-gray-200" />
+          <hr className="my-5 border-gray-200 dark:border-white/10" />
 
           <h3 style={{ fontSize: 13, fontWeight: 700, color: "#1a2a4a", textTransform: "uppercase", letterSpacing: "1.5px", fontStyle: "italic", marginBottom: 8 }}>
             Đã có tài khoản?
           </h3>
           <p className="text-xs text-gray-500 mb-4">
             Đăng nhập để truy cập{" "}
-            <strong style={{ fontStyle: "italic", color: "#111", textTransform: "uppercase" }}>capstone</strong>.
+            <strong style={{ fontStyle: "italic", color: "#111", textTransform: "uppercase" }}>btms</strong>.
           </p>
           <button
             type="button"
@@ -306,7 +306,7 @@ const RegisterPage = () => {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1.4fr", gap: 24, maxWidth: 960, margin: "0 auto" }}>
           <div>
             <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", fontStyle: "italic", letterSpacing: -1, textTransform: "uppercase" }}>
-              capstone<span style={{ color: "#e8471a" }}>.</span>
+              btms<span style={{ color: "#e8471a" }}>.</span>
             </div>
           </div>
           <div>
@@ -343,7 +343,7 @@ const RegisterPage = () => {
         <div style={{ borderTop: "1px solid #1e2d4a", marginTop: 28, padding: "14px 0", textAlign: "center" }}>
           <p style={{ fontSize: 11.5, color: "#6b7280" }}>
             Nền tảng cập nhật tỉ số trực tiếp{" "}
-            <strong style={{ fontStyle: "italic", color: "#8a99b5", textTransform: "uppercase" }}>capstone</strong>.<br />
+            <strong style={{ fontStyle: "italic", color: "#8a99b5", textTransform: "uppercase" }}>btms</strong>.<br />
             Bản quyền © Đã đăng ký bảo hộ cho Matchroom Multi Sport Ltd
           </p>
         </div>

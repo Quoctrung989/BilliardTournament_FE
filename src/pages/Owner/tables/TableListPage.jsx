@@ -200,13 +200,13 @@ const OwnerTableListPage = () => {
   return (
     <div className="space-y-6">
       <AdminCard padding={false}>
-        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="flex flex-wrap gap-4 flex-1 min-w-0">
             <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[220px] max-w-xl">
               <label className="admin-label">Tìm kiếm</label>
               <div className="flex gap-2">
                 <div className="relative flex-1 min-w-0">
-                  <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40" />
                   <input
                     className="admin-input w-full pl-9"
                     placeholder="Tìm tên bàn…"
@@ -316,13 +316,13 @@ const OwnerTableListPage = () => {
                         <span className="admin-table-name" title={row.name}>{row.name}</span>
                       </td>
                       <td className="align-center">
-                        <span className="text-slate-600">{row.tableNumber ?? "—"}</span>
+                        <span className="text-slate-600 dark:text-white/70">{row.tableNumber ?? "—"}</span>
                       </td>
                       <td>
-                        <span className="text-slate-600">{TABLE_TYPE_LABELS[row.tableType] || "—"}</span>
+                        <span className="text-slate-600 dark:text-white/70">{TABLE_TYPE_LABELS[row.tableType] || "—"}</span>
                       </td>
                       <td>
-                        <span className="text-slate-600 truncate block" title={row.branchName}>
+                        <span className="text-slate-600 dark:text-white/70 truncate block" title={row.branchName}>
                           {row.branchName || "Dùng chung cả chuỗi"}
                         </span>
                       </td>
@@ -379,8 +379,8 @@ const OwnerTableListPage = () => {
         <AdminCard>
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-semibold text-slate-900 mb-1">Kết quả import</p>
-              <p className="text-sm text-slate-600">
+              <p className="font-semibold text-slate-900 dark:text-white mb-1">Kết quả import</p>
+              <p className="text-sm text-slate-600 dark:text-white/70">
                 ✓ Đã tạo: <strong>{importResult.imported}</strong> bàn ·
                 Bỏ qua: <strong>{importResult.skipped}</strong>
               </p>
@@ -392,7 +392,7 @@ const OwnerTableListPage = () => {
             </div>
             <button
               type="button"
-              className="text-slate-400 hover:text-slate-600 text-xs"
+              className="text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70 text-xs"
               onClick={() => setImportResult(null)}
             >
               Đóng
@@ -418,7 +418,7 @@ const OwnerTableListPage = () => {
         }
       >
         {formLoading ? (
-          <p className="text-slate-500 py-6 text-center">Đang tải...</p>
+          <p className="text-slate-500 dark:text-white/60 py-6 text-center">Đang tải...</p>
         ) : (
           <TableForm
             form={form}

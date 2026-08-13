@@ -38,10 +38,10 @@ const Footer = () => {
           <div className="flex items-center">
             <Link
               to="/"
-              aria-label="Về trang chủ CAPSTONE"
+              aria-label="Về trang chủ BTMS"
               className="ui-logo-zoom text-[60px] font-black italic leading-none tracking-tight text-[#2b2b2b] dark:text-white"
             >
-              CAPS<span className="text-red-500">.</span>
+              BTMS<span className="text-red-500">.</span>
             </Link>
           </div>
 
@@ -58,17 +58,15 @@ const Footer = () => {
 
           <div className="flex items-center gap-5">
             <h2 className="text-[40px] font-black italic text-[#2b2b2b] dark:text-white">
-              CAPS.tv
+              BTMS.tv
             </h2>
-
-            <button className="ui-icon-lift">✕</button>
 
             <a
               href="https://www.facebook.com/profile.php?id=61591577595713"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Trang Facebook CAPSTONE"
-              className="ui-icon-lift"
+              aria-label="Trang Facebook BTMS"
+              className="ui-icon-lift ui-icon-lift--facebook"
             >
               <FaFacebook size={22} />
             </a>
@@ -81,7 +79,7 @@ const Footer = () => {
               <FaYoutube size={24} />
             </button>
 
-            <button className="ui-icon-lift">
+            <button className="ui-icon-lift ui-icon-lift--tiktok">
               <FaTiktok size={22} />
             </button>
           </div>

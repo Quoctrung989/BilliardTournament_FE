@@ -185,14 +185,14 @@ const ArticleEditorPage = ({ api, basePath }) => {
                     className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
                       active
                         ? "bg-[#010851] text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-200 dark:hover:bg-white/10"
                     }`}
                   >
                     {t.name}
                   </button>
                 );
               })}
-              {tags.length === 0 && <span className="text-xs text-slate-400">Chưa có thẻ nào.</span>}
+              {tags.length === 0 && <span className="text-xs text-slate-400 dark:text-white/40">Chưa có thẻ nào.</span>}
             </div>
             <div className="flex gap-2 mt-2">
               <input
@@ -234,7 +234,7 @@ const ArticleEditorPage = ({ api, basePath }) => {
                 onChange={(html) => setForm((f) => ({ ...f, content: html }))}
               />
             </div>
-            <p className="text-xs text-slate-400 mt-1">Lưu dưới dạng nháp — bấm "Xuất bản" ở danh sách bài viết để công khai.</p>
+            <p className="text-xs text-slate-400 dark:text-white/40 mt-1">Lưu dưới dạng nháp — bấm "Xuất bản" ở danh sách bài viết để công khai.</p>
           </div>
         </div>
 

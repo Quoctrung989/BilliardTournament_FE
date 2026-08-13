@@ -195,13 +195,13 @@ const ManualSendTab = ({ api, tournamentId }) => {
             <div>
               <p className="admin-label mb-1">Nội dung</p>
               <div
-                className="border border-slate-200 rounded-lg p-4 bg-white"
+                className="border border-slate-200 dark:border-white/10 rounded-lg p-4 bg-white dark:bg-[#161a22]"
                 dangerouslySetInnerHTML={{ __html: preview.bodyHtml }}
               />
             </div>
           </div>
         ) : (
-          <p className="text-sm text-slate-400">Bấm "Xem trước" để xem nội dung sẽ được gửi.</p>
+          <p className="text-sm text-slate-400 dark:text-white/40">Bấm "Xem trước" để xem nội dung sẽ được gửi.</p>
         )}
       </AdminCard>
     </div>
@@ -255,13 +255,13 @@ const AutomationTab = ({ api, tournamentId }) => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="text-center py-6 text-slate-400">
+                <td colSpan={7} className="text-center py-6 text-slate-400 dark:text-white/40">
                   Đang tải...
                 </td>
               </tr>
             ) : rules.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-6 text-slate-400">
+                <td colSpan={7} className="text-center py-6 text-slate-400 dark:text-white/40">
                   Chưa có quy tắc nào
                 </td>
               </tr>
@@ -276,7 +276,7 @@ const AutomationTab = ({ api, tournamentId }) => {
                   <td>
                     <span
                       className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        rule.isEnabled ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"
+                        rule.isEnabled ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700 dark:text-white/75"
                       }`}
                     >
                       {rule.isEnabled ? "Đang bật" : "Đang tắt"}
@@ -485,13 +485,13 @@ const HistoryTab = ({ api, tournamentId }) => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="text-center py-6 text-slate-400">
+                <td colSpan={5} className="text-center py-6 text-slate-400 dark:text-white/40">
                   Đang tải...
                 </td>
               </tr>
             ) : logs.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-6 text-slate-400">
+                <td colSpan={5} className="text-center py-6 text-slate-400 dark:text-white/40">
                   Chưa có lịch sử gửi
                 </td>
               </tr>
@@ -543,7 +543,7 @@ const TournamentNotificationsPage = ({ api, basePath }) => {
           <ArrowLeft size={14} /> Chi tiết giải
         </AdminButton>
       )}
-      <div className="flex gap-2 border-b border-slate-200">
+      <div className="flex gap-2 border-b border-slate-200 dark:border-white/10">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -552,7 +552,7 @@ const TournamentNotificationsPage = ({ api, basePath }) => {
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               tab === t.id
                 ? "border-indigo-600 text-indigo-700"
-                : "border-transparent text-slate-500 hover:text-slate-700"
+                : "border-transparent text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white/75"
             }`}
           >
             {t.label}

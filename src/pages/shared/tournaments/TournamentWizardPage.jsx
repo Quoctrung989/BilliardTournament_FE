@@ -131,6 +131,81 @@ const progressiveSurvivorsPreset = (max, playoffSize = 4) => {
   return out.join(",");
 };
 
+
+/** Ô tìm kiếm + chọn 1 chi nhánh tổ chức giải — cùng kiểu giao diện với phần phân quyền
+ * chi nhánh của Manager/Staff (ô tìm kiếm + danh sách cuộn), nhưng chỉ chọn được 1. */
+const BranchSearchSelect = ({ value, onChange, branches, disabled }) => {
+  const [search, setSearch] = useState("");
+
+  const keyword = search.trim().toLowerCase();
+  const filtered = keyword
+    ? branches.filter((b) => b.name.toLowerCase().includes(keyword))
+    : branches;
+  const selected = branches.find((b) => String(b.id) === String(value));
+
+  return (
+    <div className="space-y-2">
+      {selected && (
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium pl-2.5 pr-1.5 py-1 ring-1 ring-indigo-200">
+            {selected.name}
+            {!disabled && (
+              <button
+                type="button"
+                onClick={() => onChange("")}
+                className="text-indigo-500 hover:text-indigo-700"
+                aria-label={`Bỏ chọn ${selected.name}`}
+              >
+                <X size={12} />
+              </button>
+            )}
+          </span>
+        </div>
+      )}
+
+      <div className="relative">
+        <Search
+          size={14}
+          className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40"
+        />
+        <input
+          className="admin-input w-full pl-8 text-sm"
+          placeholder="Tìm chi nhánh theo tên..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          disabled={disabled}
+        />
+      </div>
+
+      <div className="flex flex-col gap-0.5 p-2 rounded-lg border border-slate-100 dark:border-white/10 bg-slate-50/80 max-h-40 overflow-y-auto">
+        {branches.length === 0 ? (
+          <p className="text-xs text-slate-500 dark:text-white/60 px-1">Chưa có chi nhánh nào khả dụng.</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-xs text-slate-500 dark:text-white/60 px-1">Không tìm thấy chi nhánh phù hợp.</p>
+        ) : (
+          filtered.map((b) => (
+            <label
+              key={b.id}
+              className={`flex items-center gap-2 text-sm text-slate-700 dark:text-white/75 px-1.5 py-1 rounded ${
+                disabled ? "cursor-not-allowed opacity-60" : "hover:bg-white dark:hover:bg-white/5 cursor-pointer"
+              }`}
+            >
+              <input
+                type="radio"
+                name="tournament-branch"
+                checked={String(value) === String(b.id)}
+                onChange={() => onChange(String(b.id))}
+                disabled={disabled}
+              />
+              {b.name}
+            </label>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
 const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const { id: routeId } = useParams();
   const location = useLocation();
@@ -516,7 +591,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   )?.name;
 
   if (loading && step === 1 && !isNew && !basic.name) {
-    return <p className="text-slate-500 py-12 text-center">Đang tải...</p>;
+    return <p className="text-slate-500 dark:text-white/60 py-12 text-center">Đang tải...</p>;
   }
 
   return (
@@ -594,7 +669,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               </select>
               {fieldErrors.format && <p className="mt-1 text-xs text-rose-600">{fieldErrors.format}</p>}
               {!isNew && tournamentStatus !== "DRAFT" && (
-                <p className="text-xs text-slate-400 mt-1">Không thể đổi thể thức sau khi rời trạng thái Nháp.</p>
+                <p className="text-xs text-slate-400 dark:text-white/40 mt-1">Không thể đổi thể thức sau khi rời trạng thái Nháp.</p>
               )}
             </div>
 
@@ -616,6 +691,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                   <option key={b.id} value={String(b.id)}>{b.name}</option>
                 ))}
               </select>
+
               {fieldErrors.branchId && <p className="mt-1 text-xs text-rose-600">{fieldErrors.branchId}</p>}
               {branches.length === 0 && (
                 <p className="text-xs text-amber-600 mt-1">
@@ -662,7 +738,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 value={basic.tableCount}
                 onChange={(e) => setBasic((b) => ({ ...b, tableCount: e.target.value }))}
               />
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-slate-400 dark:text-white/40">
                 Trận đấu sẽ được tự động gán bàn (1 → {basic.tableCount || "N"}) và ước lượng giờ thi đấu.
               </p>
             </div>
@@ -792,8 +868,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
             </div>
 
             {/* Registration toggle */}
-            <div className="sm:col-span-2 pt-3 border-t border-slate-100">
-              <label className="flex items-center gap-3 text-sm font-medium text-slate-700 cursor-pointer">
+            <div className="sm:col-span-2 pt-3 border-t border-slate-100 dark:border-white/10">
+              <label className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-white/75 cursor-pointer">
                 <input
                   type="checkbox"
                   className="w-4 h-4 rounded"
@@ -808,7 +884,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 />
                 <span>
                   Cho phép người chơi đăng ký online
-                  <span className="block text-xs font-normal text-slate-400 mt-0.5">
+                  <span className="block text-xs font-normal text-slate-400 dark:text-white/40 mt-0.5">
                     Player sẽ điền form và nộp qua hệ thống. Cần chọn template form bên dưới.
                   </span>
                 </span>
@@ -847,7 +923,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               <div className="sm:col-span-2">
                 <label className="admin-label">Xem trước form đăng ký</label>
                 {previewLoading ? (
-                  <p className="text-sm text-slate-500 py-6 text-center border border-dashed rounded-lg">
+                  <p className="text-sm text-slate-500 dark:text-white/60 py-6 text-center border border-dashed rounded-lg">
                     Đang tải preview...
                   </p>
                 ) : (
@@ -857,8 +933,8 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
             )}
 
             {/* Public visibility toggle */}
-            <div className="sm:col-span-2 pt-3 border-t border-slate-100">
-              <label className="flex items-center gap-3 text-sm font-medium text-slate-700 cursor-pointer">
+            <div className="sm:col-span-2 pt-3 border-t border-slate-100 dark:border-white/10">
+              <label className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-white/75 cursor-pointer">
                 <input
                   type="checkbox"
                   className="w-4 h-4 rounded"
@@ -869,7 +945,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 />
                 <span>
                   Hiển thị giải đấu công khai
-                  <span className="block text-xs font-normal text-slate-400 mt-0.5">
+                  <span className="block text-xs font-normal text-slate-400 dark:text-white/40 mt-0.5">
                     Giải đấu sẽ xuất hiện trên trang sự kiện công khai và được đăng lên Facebook khi công bố.
                   </span>
                 </span>
@@ -878,7 +954,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
             {/* Public ratio toggle */}
             <div className="sm:col-span-2">
-              <label className="flex items-center gap-3 text-sm font-medium text-slate-700 cursor-pointer">
+              <label className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-white/75 cursor-pointer">
                 <input
                   type="checkbox"
                   className="w-4 h-4 rounded"
@@ -889,7 +965,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 />
                 <span>
                   Công khai tỉ số & xếp hạng
-                  <span className="block text-xs font-normal text-slate-400 mt-0.5">
+                  <span className="block text-xs font-normal text-slate-400 dark:text-white/40 mt-0.5">
                     Cho phép người xem công khai theo dõi trận đấu, tỉ số và bảng xếp hạng.
                   </span>
                 </span>
@@ -914,7 +990,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
           ? "Chỉnh cấu hình trước khi đóng đăng ký"
           : "Bước 2 — Cấu hình thi đấu"}>
           {loading ? (
-            <p className="text-slate-500 py-8 text-center">Đang tải form cấu hình...</p>
+            <p className="text-slate-500 dark:text-white/60 py-8 text-center">Đang tải form cấu hình...</p>
           ) : (
             <>
               {isCloseRegistrationMode ? (
@@ -928,7 +1004,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-slate-500 mb-6">
+                <p className="text-sm text-slate-500 dark:text-white/60 mb-6">
                   Các giá trị mặc định do Admin thiết lập. {roleLabel} có thể chỉnh theo yêu cầu giải.
                 </p>
               )}
@@ -945,7 +1021,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                   ))}
                 </select>
                 {seedingMethod === "RANK" && (
-                  <p className="text-xs text-slate-400 mt-3">
+                  <p className="text-xs text-slate-400 dark:text-white/40 mt-3">
                     Thứ tự hạt giống lấy theo hạng cơ thủ (CN → A → … → L). Hạng đến từ hồ sơ của cơ
                     thủ khi đăng ký online, hoặc do BQT nhập khi thêm tay / import Excel. Người cùng
                     hạng bốc thăm ngẫu nhiên với nhau; người chưa xếp hạng xếp sau nhóm đã có hạng
@@ -954,7 +1030,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 )}
               </div>
 
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">Trường cấu hình giải</h3>
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-white/75 mb-3">Trường cấu hình giải</h3>
               {basic.format === "PROGRESSIVE_ROUND_ROBIN" && (
                 <div className="mb-4 rounded-xl border border-indigo-200 bg-indigo-50/60 px-4 py-3">
                   <p className="text-xs text-indigo-700 mb-2">
@@ -1002,10 +1078,10 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               )}
               <TournamentConfigFieldForm fields={configFields} onChange={setConfigFields} />
 
-              <h3 className="text-sm font-semibold text-slate-700 mt-8 mb-3">Số ván thắng theo vòng đấu</h3>
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-white/75 mt-8 mb-3">Số ván thắng theo vòng đấu</h3>
               <TournamentRaceToOverrides rules={raceToRules} onChange={setRaceToRules} />
 
-              <div className="flex justify-between gap-2 mt-6 pt-4 border-t border-slate-100">
+              <div className="flex justify-between gap-2 mt-6 pt-4 border-t border-slate-100 dark:border-white/10">
                 {isCloseRegistrationMode ? (
                   <AdminButton
                     variant="secondary"
@@ -1053,7 +1129,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
             ? "Bước 3 — Xem lại & đóng đăng ký"
             : "Bước 3 — Xem lại & mở đăng ký"}>
             {loading ? (
-              <p className="text-slate-500 py-8 text-center">Đang tải...</p>
+              <p className="text-slate-500 dark:text-white/60 py-8 text-center">Đang tải...</p>
             ) : (
               <>
                 {/* Validation errors */}
@@ -1090,19 +1166,19 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 {/* Summary info */}
                 <div className="grid gap-3 sm:grid-cols-2 text-sm mb-6">
                   <div>
-                    <p className="text-xs text-slate-400 uppercase mb-1">Tên giải</p>
-                    <p className="font-semibold text-slate-900">{basic.name}</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Tên giải</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">{basic.name}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 uppercase mb-1">Loại bi · Thể thức</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Loại bi · Thể thức</p>
                     <p className="font-medium">{selectedGameTypeName || "—"} · {selectedFormatName || "—"}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 uppercase mb-1">Số người tối đa</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Số người tối đa</p>
                     <p className="font-medium">{basic.maxParticipants}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 uppercase mb-1">Phí đăng ký</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Phí đăng ký</p>
                     <p className="font-medium">
                       {!basic.entryFee || Number(basic.entryFee) === 0
                         ? "Miễn phí"
@@ -1110,15 +1186,15 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 uppercase mb-1">Hạn đăng ký</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Hạn đăng ký</p>
                     <p className="font-medium">{fmtDateLocal(basic.registrationDeadline)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 uppercase mb-1">Bắt đầu thi đấu</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Bắt đầu thi đấu</p>
                     <p className="font-medium">{fmtDateLocal(basic.startAt)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 uppercase mb-1">Đăng ký online</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Đăng ký online</p>
                     <p className="font-medium">
                       {basic.isRegister
                         ? `Có${selectedTemplateName ? ` — ${selectedTemplateName}` : ""}`
@@ -1126,16 +1202,16 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 uppercase mb-1">Hiển thị công khai</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Hiển thị công khai</p>
                     <p className="font-medium">{basic.isShowTournament ? "Có" : "Không"}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 uppercase mb-1">Công khai tỉ số</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Công khai tỉ số</p>
                     <p className="font-medium">{basic.isPublicRatio ? "Có" : "Không"}</p>
                   </div>
                   {resolvedConfig && (
                     <div>
-                      <p className="text-xs text-slate-400 uppercase mb-1">Xếp hạt giống</p>
+                      <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-1">Xếp hạt giống</p>
                       <p className="font-medium">{resolvedConfig.seedingMethod}</p>
                     </div>
                   )}
@@ -1144,7 +1220,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 {/* Config fields */}
                 {configFields.length > 0 && (
                   <div className="mb-6">
-                    <p className="text-xs text-slate-400 uppercase mb-3">Cấu hình giải</p>
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-3">Cấu hình giải</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {configFields.map((field) => {
                         const val = field.value ?? field.defaultValue;
@@ -1153,26 +1229,26 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                         return (
                           <div key={field.fieldKey} className="admin-card p-4">
                             <div className="flex items-start justify-between gap-2 mb-1.5">
-                              <p className="font-medium text-slate-800 text-sm leading-snug">
+                              <p className="font-medium text-slate-800 dark:text-white/85 text-sm leading-snug">
                                 {field.label || field.fieldKey}
                               </p>
                               {field.source && (
-                                <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                                <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-slate-400 dark:text-white/40 bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded">
                                   {field.source === "TOURNAMENT" ? "Đã chỉnh" : "Mặc định"}
                                 </span>
                               )}
                             </div>
                             {field.description && (
-                              <p className="text-xs text-slate-500 mb-2 leading-relaxed">{field.description}</p>
+                              <p className="text-xs text-slate-500 dark:text-white/60 mb-2 leading-relaxed">{field.description}</p>
                             )}
-                            <div className="pt-1 border-t border-slate-100 mt-2">
+                            <div className="pt-1 border-t border-slate-100 dark:border-white/10 mt-2">
                               {isBool ? (
-                                <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${boolOn ? "text-green-700" : "text-slate-400"}`}>
+                                <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${boolOn ? "text-green-700" : "text-slate-400 dark:text-white/40"}`}>
                                   <span className={`w-2 h-2 rounded-full flex-shrink-0 ${boolOn ? "bg-green-500" : "bg-slate-300"}`} />
                                   {boolOn ? "Kích hoạt" : "Tắt"}
                                 </span>
                               ) : (
-                                <span className="text-sm font-semibold text-slate-900">{String(val ?? "—")}</span>
+                                <span className="text-sm font-semibold text-slate-900 dark:text-white">{String(val ?? "—")}</span>
                               )}
                             </div>
                           </div>
@@ -1185,17 +1261,17 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                 {/* Race-to rules */}
                 {resolvedConfig?.raceToRules && Object.keys(resolvedConfig.raceToRules).length > 0 && (
                   <div className="mb-6">
-                    <p className="text-xs text-slate-400 uppercase mb-2">Số ván thắng theo vòng</p>
-                    <div className="bg-slate-50 rounded-lg border border-slate-100 divide-y divide-slate-100">
+                    <p className="text-xs text-slate-400 dark:text-white/40 uppercase mb-2">Số ván thắng theo vòng</p>
+                    <div className="bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/10">
                       {Object.entries(resolvedConfig.raceToRules).map(([roundKey, raceTo]) => {
                         const isOverridden = resolvedConfig.overriddenRounds?.includes(roundKey);
                         return (
                           <div key={roundKey} className="flex justify-between items-center px-4 py-2 text-sm">
-                            <span className="text-slate-600 capitalize">
+                            <span className="text-slate-600 dark:text-white/70 capitalize">
                               {roundKey.replace(/_/g, " ")}
                             </span>
                             <span className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-800">Đánh tới {raceTo} ván</span>
+                              <span className="font-semibold text-slate-800 dark:text-white/85">Đánh tới {raceTo} ván</span>
                               {isOverridden && (
                                 <span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
                                   Override
@@ -1209,7 +1285,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                   </div>
                 )}
 
-                <div className="flex flex-wrap justify-between gap-2 pt-4 border-t border-slate-100">
+                <div className="flex flex-wrap justify-between gap-2 pt-4 border-t border-slate-100 dark:border-white/10">
                   <AdminButton variant="secondary" onClick={() => setStep(2)}>
                     <ArrowLeft size={14} /> Chỉnh config
                   </AdminButton>

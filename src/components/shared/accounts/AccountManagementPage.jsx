@@ -117,7 +117,7 @@ const BranchAssignmentFields = ({ value, onChange, branchOptions }) => {
               filteredBranches.map((b) => (
                 <label
                   key={b.id}
-                  className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/80 px-1.5 py-1 rounded hover:bg-white dark:hover:bg-white/10 cursor-pointer"
+                  className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/80 px-1.5 py-1 rounded hover:bg-white dark:hover:bg-[#161a22] dark:hover:bg-white/10 cursor-pointer"
                 >
                   <input
                     type="checkbox"
@@ -193,7 +193,7 @@ const StaffBranchField = ({ value, onChange, branchOptions }) => {
             filteredBranches.map((b) => (
               <label
                 key={b.id}
-                className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/80 px-1.5 py-1 rounded hover:bg-white dark:hover:bg-white/10 cursor-pointer"
+                className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/80 px-1.5 py-1 rounded hover:bg-white dark:hover:bg-[#161a22] dark:hover:bg-white/10 cursor-pointer"
               >
                 <input
                   type="radio"
@@ -903,7 +903,7 @@ const AccountManagementPage = ({ config }) => {
                                 ? "bg-rose-50 text-rose-700 ring-rose-200"
                                 : row.status === "PENDING"
                                   ? "bg-amber-50 text-amber-700 ring-amber-200"
-                                  : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 ring-slate-200"
+                                  : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 ring-slate-200 dark:ring-white/15"
                           }`}
                         >
                           {ACCOUNT_STATUS_LABELS[row.status] ?? row.status}

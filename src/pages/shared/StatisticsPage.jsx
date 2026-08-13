@@ -282,11 +282,11 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             {title}
             {refreshing && <span className="text-xs font-normal text-indigo-500 animate-pulse">Đang cập nhật...</span>}
           </h1>
-          <p className="text-sm text-slate-500">Phân tích chi tiết doanh thu, giải đấu, cơ thủ và truyền thông</p>
+          <p className="text-sm text-slate-500 dark:text-white/60">Phân tích chi tiết doanh thu, giải đấu, cơ thủ và truyền thông</p>
         </div>
         <AdminButton variant="secondary" onClick={handleExport} disabled={exporting || loading}>
           <Download size={14} className={exporting ? "animate-pulse" : ""} />
@@ -301,7 +301,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
             type="button"
             onClick={() => setActiveTab(t.value)}
             className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors ${
-              activeTab === t.value ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500 hover:text-slate-700"
+              activeTab === t.value ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white/75"
             }`}
           >
             {t.label}
@@ -318,7 +318,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
               preset === p.value
                 ? "bg-indigo-600 text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-200 dark:hover:bg-white/10"
             }`}
           >
             {p.label}
@@ -327,7 +327,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
         {preset === "custom" && (
           <div className="flex items-center gap-2 ml-1">
             <input type="date" className="admin-input w-auto" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
-            <span className="text-slate-400 text-xs">đến</span>
+            <span className="text-slate-400 dark:text-white/40 text-xs">đến</span>
             <input type="date" className="admin-input w-auto" value={customTo} onChange={(e) => setCustomTo(e.target.value)} />
           </div>
         )}
@@ -357,7 +357,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
       ) : loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="admin-card h-32 animate-pulse bg-slate-100" />
+            <div key={i} className="admin-card h-32 animate-pulse bg-slate-100 dark:bg-white/10" />
           ))}
         </div>
       ) : (
@@ -375,7 +375,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
             title="Hiệu suất giải đấu — bấm vào 1 dòng để xem chi tiết"
             action={
               <div className="relative">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Tìm giải đấu..."
@@ -387,9 +387,9 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
             }
           >
             {tournaments.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-6">Chưa có giải đấu nào trong kỳ này.</p>
+              <p className="text-sm text-slate-400 dark:text-white/40 text-center py-6">Chưa có giải đấu nào trong kỳ này.</p>
             ) : filteredTournaments.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-6">Không tìm thấy giải đấu nào khớp "{tournamentSearch}".</p>
+              <p className="text-sm text-slate-400 dark:text-white/40 text-center py-6">Không tìm thấy giải đấu nào khớp "{tournamentSearch}".</p>
             ) : (
               <div className="admin-table-wrap">
                 <table className="admin-table w-full text-sm">
@@ -407,9 +407,9 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
                   </thead>
                   <tbody>
                     {filteredTournaments.map((t) => (
-                      <tr key={t.id} className="cursor-pointer hover:bg-slate-50" onClick={() => openTournamentDetail(t.id)}>
+                      <tr key={t.id} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5" onClick={() => openTournamentDetail(t.id)}>
                         <td className="font-medium text-indigo-700">{t.name}</td>
-                        <td className="text-xs text-slate-500">{t.branchName}</td>
+                        <td className="text-xs text-slate-500 dark:text-white/60">{t.branchName}</td>
                         <td className="text-xs">{t.participants}/{t.maxParticipants ?? "—"}</td>
                         <td className="text-xs">{t.fillRatePct != null ? `${Math.round(t.fillRatePct)}%` : "—"}</td>
                         <td className="text-xs font-semibold text-emerald-700">{formatVND(t.revenue || 0)}</td>
@@ -507,13 +507,13 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
                   <StatMini icon={Eye} label="Tiếp cận" value={social.totalReach} />
                 </div>
                 {social.topPostTournamentName && (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-white/60">
                     Bài đăng nổi bật nhất thuộc giải <b>{social.topPostTournamentName}</b> — {social.topPostReach.toLocaleString("vi-VN")} lượt tiếp cận.
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-slate-400 text-center py-6">Chưa có bài đăng Facebook nào trong kỳ này.</p>
+              <p className="text-sm text-slate-400 dark:text-white/40 text-center py-6">Chưa có bài đăng Facebook nào trong kỳ này.</p>
             )}
           </AdminCard>
         </div>
@@ -532,7 +532,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
         }
       >
         {detailLoading || !detail ? (
-          <div className="py-10 text-center text-sm text-slate-400">Đang tải chi tiết...</div>
+          <div className="py-10 text-center text-sm text-slate-400 dark:text-white/40">Đang tải chi tiết...</div>
         ) : (
           <TournamentDetailContent detail={detail} analyticsApi={analyticsApi} isDark={isDark} />
         )}
@@ -568,7 +568,7 @@ const FilterBar = ({ branches, gameTypeOptions, branchId, setBranchId, gameTypeF
               className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                 gameTypeFilter.includes(g.value)
                   ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                  : "bg-white dark:bg-[#161a22] text-slate-600 dark:text-white/70 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5"
               }`}
             >
               {g.label}
@@ -661,7 +661,7 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
       action={
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
-            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40 pointer-events-none" />
             <input type="text" placeholder="Tìm cơ thủ..." className="admin-input w-40 pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <select className="admin-select w-auto" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
@@ -675,7 +675,7 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
           <button
             key={t.value} type="button" onClick={() => setSegment(t.value)}
             className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
-              segment === t.value ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              segment === t.value ? "bg-indigo-600 text-white" : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-200 dark:hover:bg-white/10"
             }`}
           >
             {t.label}
@@ -683,9 +683,9 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
         ))}
       </div>
       {loading ? (
-        <div className="h-40 animate-pulse bg-slate-100 rounded-xl" />
+        <div className="h-40 animate-pulse bg-slate-100 dark:bg-white/10 rounded-xl" />
       ) : players.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-6">Không có cơ thủ nào khớp bộ lọc.</p>
+        <p className="text-sm text-slate-400 dark:text-white/40 text-center py-6">Không có cơ thủ nào khớp bộ lọc.</p>
       ) : (
         <div className="admin-table-wrap">
           <table className="admin-table w-full text-sm">
@@ -702,7 +702,7 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
             </thead>
             <tbody>
               {players.map((p, idx) => (
-                <tr key={p.userId} className="cursor-pointer hover:bg-slate-50" onClick={() => onSelectPlayer(p.userId)}>
+                <tr key={p.userId} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5" onClick={() => onSelectPlayer(p.userId)}>
                   <td className="font-medium text-indigo-700">
                     {RANK_MEDAL[idx] ? `${RANK_MEDAL[idx]} ` : ""}{p.playerName}
                     {p.isNewPlayer && <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-cyan-100 text-cyan-700">Mới</span>}
@@ -713,7 +713,7 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
                   <td className="text-xs font-semibold text-emerald-700">{formatVND(p.totalPrizeAmount || 0)}</td>
                   <td className="text-xs">{p.totalPoints}</td>
                   <td className="text-xs">{p.matchesWon}/{p.matchesPlayed}{p.winRatePct != null ? ` (${Math.round(p.winRatePct)}%)` : ""}</td>
-                  <td className="text-xs text-slate-500">{p.daysSinceLastActivity != null ? `${p.daysSinceLastActivity} ngày trước` : "—"}</td>
+                  <td className="text-xs text-slate-500 dark:text-white/60">{p.daysSinceLastActivity != null ? `${p.daysSinceLastActivity} ngày trước` : "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -747,7 +747,7 @@ const RetentionLoyaltyCard = ({ analyticsApi, range, filters, isDark }) => {
   return (
     <AdminCard title="Retention & lòng trung thành">
       {loading ? (
-        <div className="h-48 animate-pulse bg-slate-100 rounded-xl" />
+        <div className="h-48 animate-pulse bg-slate-100 dark:bg-white/10 rounded-xl" />
       ) : (
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -756,14 +756,14 @@ const RetentionLoyaltyCard = ({ analyticsApi, range, filters, isDark }) => {
             <StatMiniPlain label="Quay lại ở kỳ này" value={retention?.currentPeriodReturningPlayers ?? 0} />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-600 mb-1">Phân bố lòng trung thành (số giải cả đời)</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1">Phân bố lòng trung thành (số giải cả đời)</p>
             <ChartOrEmpty
               hasData={hasCounts(retention?.loyaltyDistribution)}
               options={barByStatusOptions(retention?.loyaltyDistribution || [], "Người chơi", isDark)}
             />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-600 mb-2">
+            <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-2">
               Người chơi rủi ro rời bỏ (không hoạt động &gt; {retention?.atRiskThresholdDays ?? 90} ngày)
             </p>
             {retention?.atRiskPlayers?.length ? (
@@ -785,7 +785,7 @@ const RetentionLoyaltyCard = ({ analyticsApi, range, filters, isDark }) => {
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-slate-400 text-center py-4">Không có người chơi rủi ro.</p>
+              <p className="text-sm text-slate-400 dark:text-white/40 text-center py-4">Không có người chơi rủi ro.</p>
             )}
           </div>
         </div>
@@ -813,10 +813,10 @@ const PlayerDetailModal = ({ userId, analyticsApi, branchId, onClose }) => {
   return (
     <AdminModal open={userId != null} onClose={onClose} title={detail ? detail.playerName : "Đang tải..."} size="lg">
       {loading || !detail ? (
-        <div className="py-10 text-center text-sm text-slate-400">Đang tải...</div>
+        <div className="py-10 text-center text-sm text-slate-400 dark:text-white/40">Đang tải...</div>
       ) : (
         <div className="space-y-4">
-          <p className="text-xs text-slate-500">{detail.email}</p>
+          <p className="text-xs text-slate-500 dark:text-white/60">{detail.email}</p>
           {detail.summary && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <StatMiniPlain label="Số giải cả đời" value={detail.summary.lifetimeTournaments} />
@@ -826,7 +826,7 @@ const PlayerDetailModal = ({ userId, analyticsApi, branchId, onClose }) => {
             </div>
           )}
           <div>
-            <p className="text-xs font-semibold text-slate-600 mb-2">Lịch sử giải đấu</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-2">Lịch sử giải đấu</p>
             <div className="admin-table-wrap">
               <table className="admin-table w-full text-sm">
                 <thead>
@@ -839,7 +839,7 @@ const PlayerDetailModal = ({ userId, analyticsApi, branchId, onClose }) => {
                   {(detail.history || []).map((h) => (
                     <tr key={h.tournamentId}>
                       <td className="text-xs font-medium">{h.tournamentName}</td>
-                      <td className="text-xs text-slate-500">{h.branchName}</td>
+                      <td className="text-xs text-slate-500 dark:text-white/60">{h.branchName}</td>
                       <td className="text-xs">{h.registeredAt ? new Date(h.registeredAt).toLocaleDateString("vi-VN") : "—"}</td>
                       <td className="text-xs">{h.registrationStatusLabel}</td>
                       <td className="text-xs">{formatVND(h.amountPaid || 0)}</td>
@@ -983,13 +983,13 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
       <AdminCard title="Tùy chỉnh truy vấn">
         <div className="space-y-4">
           <div>
-            <p className="text-xs font-semibold text-slate-600 mb-1.5">Chia theo (dimension)</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1.5">Chia theo (dimension)</p>
             <div className="flex flex-wrap gap-1.5">
               {DIMENSIONS.filter((d) => !d.factKindOnly || !activeFactKind || d.factKindOnly === activeFactKind).map((d) => (
                 <button
                   key={d.value} type="button" onClick={() => toggleDim(d.value)}
                   className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    dims.includes(d.value) ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                    dims.includes(d.value) ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-[#161a22] text-slate-600 dark:text-white/70 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5"
                   }`}
                 >
                   {d.label}
@@ -998,7 +998,7 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
             </div>
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-600 mb-1.5">Chỉ số (metric) — chỉ chọn được các chỉ số cùng 1 nhóm dữ liệu / truy vấn</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1.5">Chỉ số (metric) — chỉ chọn được các chỉ số cùng 1 nhóm dữ liệu / truy vấn</p>
             <div className="flex flex-wrap gap-1.5">
               {METRICS.map((m) => {
                 const disabled = activeFactKind && !metrics.includes(m.value) && m.factKind !== activeFactKind;
@@ -1009,8 +1009,8 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
                       metrics.includes(m.value)
                         ? "bg-violet-600 text-white border-violet-600"
                         : disabled
-                        ? "bg-white text-slate-300 border-slate-100 cursor-not-allowed"
-                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                        ? "bg-white dark:bg-[#161a22] text-slate-300 border-slate-100 dark:border-white/10 cursor-not-allowed"
+                        : "bg-white dark:bg-[#161a22] text-slate-600 dark:text-white/70 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5"
                     }`}
                   >
                     {m.label}
@@ -1026,7 +1026,7 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
               <option value="donut" disabled={dims.length !== 1}>Tròn</option>
               <option value="line" disabled={dims[0] !== "TIME"}>Đường xu hướng</option>
             </select>
-            <label className="flex items-center gap-1.5 text-xs text-slate-600">
+            <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-white/70">
               <input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)} />
               So sánh với kỳ trước
             </label>
@@ -1069,9 +1069,9 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
 
       <AdminCard title="Kết quả">
         {loading ? (
-          <div className="h-64 animate-pulse bg-slate-100 rounded-xl" />
+          <div className="h-64 animate-pulse bg-slate-100 dark:bg-white/10 rounded-xl" />
         ) : !result ? (
-          <p className="text-sm text-slate-400 text-center py-10">Chọn dimension/metric rồi bấm "Chạy truy vấn", hoặc dùng báo cáo mẫu ở trên.</p>
+          <p className="text-sm text-slate-400 dark:text-white/40 text-center py-10">Chọn dimension/metric rồi bấm "Chạy truy vấn", hoặc dùng báo cáo mẫu ở trên.</p>
         ) : (
           <div className="space-y-4">
             {result.meta?.truncated && (
@@ -1084,10 +1084,10 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
                 const prevVal = result.previousPeriodTotals?.[m];
                 return (
                   <div key={m} className="rounded-xl bg-slate-50 dark:bg-white/5 px-4 py-3">
-                    <p className="text-[11px] text-slate-500">{meta?.label || m}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-white/60">{meta?.label || m}</p>
                     <p className="text-lg font-bold text-slate-800 dark:text-slate-100">{formatMetricValue(meta, val)}</p>
                     {compare && prevVal != null && (
-                      <p className="text-[11px] text-slate-400">Kỳ trước: {formatMetricValue(meta, prevVal)}</p>
+                      <p className="text-[11px] text-slate-400 dark:text-white/40">Kỳ trước: {formatMetricValue(meta, prevVal)}</p>
                     )}
                   </div>
                 );
@@ -1115,7 +1115,7 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
                   </thead>
                   <tbody>
                     {rows.length === 0 ? (
-                      <tr><td colSpan={dims.length + metrics.length} className="text-center py-6 text-slate-400">Không có dữ liệu.</td></tr>
+                      <tr><td colSpan={dims.length + metrics.length} className="text-center py-6 text-slate-400 dark:text-white/40">Không có dữ liệu.</td></tr>
                     ) : rows.map((r, idx) => (
                       <tr key={idx}>
                         {dims.map((d) => <td key={d} className="text-xs">{r.dimensions[d] || "—"}</td>)}
@@ -1137,8 +1137,8 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
 
 const TournamentDetailContent = ({ detail, analyticsApi, isDark }) => (
   <div className="space-y-5">
-    <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
-      <span><b className="text-slate-700">{detail.branchName}</b></span>
+    <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500 dark:text-white/60">
+      <span><b className="text-slate-700 dark:text-white/75">{detail.branchName}</b></span>
       <span>{detail.gameTypeLabel} · {detail.formatLabel}</span>
       <span>Phí đăng ký: {formatVND(detail.entryFee || 0)}</span>
       <span className="font-semibold text-indigo-700">{detail.statusLabel}</span>
@@ -1161,14 +1161,14 @@ const TournamentDetailContent = ({ detail, analyticsApi, isDark }) => (
 
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <p className="text-xs font-semibold text-slate-600 mb-1">Phễu đăng ký</p>
+        <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1">Phễu đăng ký</p>
         <ChartOrEmpty
           hasData={hasCounts(detail.registrationStats?.byStatus)}
           options={donutOptions(detail.registrationStats?.byStatus || [], "Đăng ký", isDark)}
         />
       </div>
       <div>
-        <p className="text-xs font-semibold text-slate-600 mb-1">Trận đấu theo trạng thái</p>
+        <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1">Trận đấu theo trạng thái</p>
         <ChartOrEmpty
           hasData={hasCounts(detail.matchStats?.byStatus)}
           options={barByStatusOptions(detail.matchStats?.byStatus || [], "Trận đấu", isDark)}
@@ -1178,14 +1178,14 @@ const TournamentDetailContent = ({ detail, analyticsApi, isDark }) => (
 
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <p className="text-xs font-semibold text-slate-600 mb-1">Giao dịch theo trạng thái</p>
+        <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1">Giao dịch theo trạng thái</p>
         <ChartOrEmpty
           hasData={hasCounts(detail.transactionStats?.byStatus)}
           options={donutOptions(detail.transactionStats?.byStatus || [], "Giao dịch", isDark)}
         />
       </div>
       <div>
-        <p className="text-xs font-semibold text-slate-600 mb-1">Doanh thu theo tháng</p>
+        <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1">Doanh thu theo tháng</p>
         <ChartOrEmpty
           hasData={detail.transactionStats?.trend?.some((p) => Number(p.amount) > 0)}
           options={areaTrendOptions(detail.transactionStats?.trend || [], "Doanh thu", "#4f46e5", "amount", shortMoney, isDark)}
@@ -1202,7 +1202,7 @@ const TournamentDetailContent = ({ detail, analyticsApi, isDark }) => (
 
     {detail.social && detail.social.totalPosts > 0 && (
       <div>
-        <p className="text-xs font-semibold text-slate-600 mb-1">Truyền thông Facebook</p>
+        <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1">Truyền thông Facebook</p>
         <div className="grid grid-cols-4 gap-2">
           <StatMiniPlain label="Bài đăng" value={detail.social.totalPosts} />
           <StatMiniPlain label="Lượt thích" value={detail.social.totalLikes} />
@@ -1213,7 +1213,7 @@ const TournamentDetailContent = ({ detail, analyticsApi, isDark }) => (
     )}
 
     <div>
-      <p className="text-xs font-semibold text-slate-600 mb-2">Danh sách giao dịch của giải này</p>
+      <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-2">Danh sách giao dịch của giải này</p>
       <TransactionTable analyticsApi={analyticsApi} tournamentId={detail.id} />
     </div>
   </div>
@@ -1272,7 +1272,7 @@ const MonthlyReportCard = ({ analyticsApi, isDark }) => {
       action={
         <div className="flex flex-wrap items-center gap-2">
           <input type="month" className="admin-input w-auto" value={fromMonth} max={toMonth} onChange={(e) => setFromMonth(e.target.value)} />
-          <span className="text-slate-400 text-xs">đến</span>
+          <span className="text-slate-400 dark:text-white/40 text-xs">đến</span>
           <input type="month" className="admin-input w-auto" value={toMonth} min={fromMonth} onChange={(e) => setToMonth(e.target.value)} />
           <AdminButton variant="secondary" onClick={handleExport} disabled={exporting || loading}>
             <FileSpreadsheet size={14} className={exporting ? "animate-pulse" : ""} />
@@ -1282,7 +1282,7 @@ const MonthlyReportCard = ({ analyticsApi, isDark }) => {
       }
     >
       {loading ? (
-        <div className="h-64 animate-pulse bg-slate-100 rounded-xl" />
+        <div className="h-64 animate-pulse bg-slate-100 dark:bg-white/10 rounded-xl" />
       ) : (
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1328,19 +1328,19 @@ const MonthlyReportCard = ({ analyticsApi, isDark }) => {
 };
 
 const StatMini = ({ icon: Icon, label, value }) => (
-  <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 px-3 py-2.5">
-    <Icon size={16} className="text-slate-400 flex-shrink-0" />
+  <div className="flex items-center gap-2.5 rounded-xl bg-slate-50 dark:bg-white/5 px-3 py-2.5">
+    <Icon size={16} className="text-slate-400 dark:text-white/40 flex-shrink-0" />
     <div>
-      <p className="text-sm font-bold text-slate-800">{(value ?? 0).toLocaleString("vi-VN")}</p>
-      <p className="text-[11px] text-slate-500">{label}</p>
+      <p className="text-sm font-bold text-slate-800 dark:text-white/85">{(value ?? 0).toLocaleString("vi-VN")}</p>
+      <p className="text-[11px] text-slate-500 dark:text-white/60">{label}</p>
     </div>
   </div>
 );
 
-const StatMiniPlain = ({ label, value, valueClassName = "text-slate-800" }) => (
-  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+const StatMiniPlain = ({ label, value, valueClassName = "text-slate-800 dark:text-white/85" }) => (
+  <div className="rounded-xl bg-slate-50 dark:bg-white/5 px-3 py-2.5">
     <p className={`text-sm font-bold ${valueClassName}`}>{value}</p>
-    <p className="text-[11px] text-slate-500">{label}</p>
+    <p className="text-[11px] text-slate-500 dark:text-white/60">{label}</p>
   </div>
 );
 

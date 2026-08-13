@@ -126,7 +126,7 @@ const PaymentSuccessPage = () => {
         </div>
 
         <p className="text-center text-white/30 text-xs mt-6">
-          CAPSTONE<span className="text-[#EF342A]">.</span> Billiards Tournament System
+          BTMS<span className="text-[#EF342A]">.</span> Billiards Tournament System
         </p>
       </div>
     </div>

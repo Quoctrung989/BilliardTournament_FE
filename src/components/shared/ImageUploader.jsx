@@ -75,7 +75,7 @@ const ImageUploader = ({
       {label && <span className="admin-label">{label}</span>}
 
       <div
-        className={`relative group overflow-hidden bg-slate-50 border-2 border-dashed border-slate-200 hover:border-indigo-400 transition-colors cursor-pointer flex items-center justify-center ${aspectClass}`}
+        className={`relative group overflow-hidden bg-slate-50 dark:bg-white/5 border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-indigo-400 dark:hover:border-indigo-400/60 transition-colors cursor-pointer flex items-center justify-center ${aspectClass}`}
         onClick={() => !uploading && inputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
@@ -107,7 +107,7 @@ const ImageUploader = ({
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center gap-2 text-slate-400 select-none">
+          <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-white/40 select-none">
             <ImagePlus size={28} strokeWidth={1.5} />
             <p className="text-xs text-center leading-tight">
               Nhấn hoặc<br />kéo thả ảnh

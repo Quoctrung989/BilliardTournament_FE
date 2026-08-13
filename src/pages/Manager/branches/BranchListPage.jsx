@@ -56,7 +56,7 @@ const ManagerBranchListPage = () => {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-slate-600 dark:text-white/70">
         Danh sách chi nhánh bạn được Owner phân quyền quản lý — dùng để chọn địa điểm tổ chức khi tạo giải đấu.
       </p>
 
@@ -93,7 +93,7 @@ const ManagerBranchListPage = () => {
                       {row.thumbnailUrl ? (
                         <img src={row.thumbnailUrl} alt="" className="h-9 w-9 rounded-lg object-cover mx-auto" />
                       ) : (
-                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-400 text-xs mx-auto">
+                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-white/10 text-slate-400 dark:text-white/40 text-xs mx-auto">
                           —
                         </span>
                       )}
@@ -102,19 +102,19 @@ const ManagerBranchListPage = () => {
                       <span className="admin-table-name" title={row.name}>{row.name}</span>
                     </td>
                     <td>
-                      <span className="text-slate-600 truncate block" title={row.address}>
+                      <span className="text-slate-600 dark:text-white/70 truncate block" title={row.address}>
                         {row.address}
                       </span>
                     </td>
                     <td>
-                      <span className="text-slate-600">{row.phone || "—"}</span>
+                      <span className="text-slate-600 dark:text-white/70">{row.phone || "—"}</span>
                     </td>
                     <td className="align-center">
                       <span
                         className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ring-1 ${
                           row.status === "ACTIVE"
                             ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                            : "bg-slate-100 text-slate-600 ring-slate-200"
+                            : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/65 ring-slate-200 dark:ring-white/15"
                         }`}
                       >
                         {BRANCH_STATUS_LABELS[row.status] ?? row.status}

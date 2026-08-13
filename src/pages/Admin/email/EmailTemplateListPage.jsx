@@ -215,13 +215,13 @@ const EmailTemplateListPage = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-6 text-slate-400">
+                  <td colSpan={5} className="text-center py-6 text-slate-400 dark:text-white/40">
                     Đang tải...
                   </td>
                 </tr>
               ) : templates.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-6 text-slate-400">
+                  <td colSpan={5} className="text-center py-6 text-slate-400 dark:text-white/40">
                     Chưa có mẫu email
                   </td>
                 </tr>
@@ -238,7 +238,7 @@ const EmailTemplateListPage = () => {
                     <td>
                       <span
                         className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          row.isActive ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700"
+                          row.isActive ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-700 dark:text-white/75"
                         }`}
                       >
                         {row.isActive ? "Hoạt động" : "Tắt"}
@@ -398,7 +398,7 @@ const EmailTemplateListPage = () => {
         }
       >
         {previewLoading || !preview ? (
-          <p className="text-slate-400 text-sm">Đang render...</p>
+          <p className="text-slate-400 dark:text-white/40 text-sm">Đang render...</p>
         ) : (
           <div className="space-y-3">
             <div>

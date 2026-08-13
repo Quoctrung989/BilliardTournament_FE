@@ -156,13 +156,13 @@ const ConfigFieldCatalogPage = () => {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-slate-600 dark:text-white/70">
         Định nghĩa trường cấu hình dùng trong wizard thể thức / giải đấu. Mỗi{" "}
         <strong>kiểu dữ liệu</strong> khớp một <strong>thành phần UI</strong> cố định.
       </p>
 
       <AdminCard padding={false}>
-        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="flex flex-wrap gap-4 flex-1">
             <div className="w-full sm:w-44">
               <label className="admin-label">Phạm vi</label>
@@ -243,17 +243,17 @@ const ConfigFieldCatalogPage = () => {
                         <span className="admin-table-name">{row.label}</span>
                       </td>
                       <td>
-                        <span className="text-slate-600 text-sm">
+                        <span className="text-slate-600 dark:text-white/70 text-sm">
                           {CATALOG_DATA_TYPE_LABELS[row.dataType] || row.dataType || "—"}
                         </span>
                       </td>
                       <td>
-                        <span className="text-slate-600 text-sm">
+                        <span className="text-slate-600 dark:text-white/70 text-sm">
                           {CATALOG_UI_LABELS[row.uiComponent] || row.uiComponent}
                         </span>
                       </td>
                       <td>
-                        <span className="text-slate-500 text-sm">
+                        <span className="text-slate-500 dark:text-white/60 text-sm">
                           {CATALOG_SCOPE_LABELS[scope] || scope}
                         </span>
                       </td>
@@ -334,7 +334,7 @@ const ConfigFieldCatalogPage = () => {
         }
       >
         {formMode === "edit" && editItem && !editItem.label ? (
-          <p className="text-slate-400 animate-pulse">Đang tải thông tin trường…</p>
+          <p className="text-slate-400 dark:text-white/40 animate-pulse">Đang tải thông tin trường…</p>
         ) : (
           <ConfigFieldCatalogForm
             mode={formMode}

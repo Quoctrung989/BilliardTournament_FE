@@ -1009,7 +1009,7 @@ const MatchesTab = ({ tournament }) => {
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
-      <p className="text-slate-400 text-sm">Đang tải lịch thi đấu...</p>
+      <p className="text-slate-400 dark:text-white/40 text-sm">Đang tải lịch thi đấu...</p>
     </div>
   );
 
@@ -1033,7 +1033,7 @@ const MatchesTab = ({ tournament }) => {
                     className={`flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-200 ${
                       validView===id
                         ?"bg-[#0d1b2e] text-white shadow-sm dark:bg-white dark:text-[#0d1b2e]"
-                        :"bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-white/70 dark:border-white/15 dark:hover:bg-white/10"
+                        :"bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 dark:bg-white/5 dark:text-white/70 dark:border-white/15 dark:hover:bg-white/10"
                     }`}>
               <Icon size={14}/>{label}
             </button>
@@ -1048,7 +1048,7 @@ const MatchesTab = ({ tournament }) => {
                   className={`shrink-0 px-4 py-2 rounded-2xl text-sm font-medium transition-all ${
                     stageFilter == null && validView === "list"
                       ? "bg-[#9b1c1c] text-white shadow-sm"
-                      : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
+                      : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
                   }`}>
             Tất cả giai đoạn
           </button>
@@ -1064,7 +1064,7 @@ const MatchesTab = ({ tournament }) => {
                       className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium transition-all ${
                         active
                           ? "bg-[#9b1c1c] text-white shadow-sm"
-                          : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
+                          : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
                       }`}>
                 {isPlayoff ? (s.name || "Playoff") : (s.name || `Giai đoạn ${s.orderNo}`)}
                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${

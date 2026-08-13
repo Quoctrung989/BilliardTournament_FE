@@ -144,7 +144,7 @@ const formatPercent = (v) => (v == null || v < 0 ? "N/A" : `${v.toFixed(0)}%`);
 
 const UsageList = ({ items, emptyText = "Chưa có dữ liệu" }) => {
   if (!items?.length) {
-    return <p className="text-sm text-slate-400 px-5 py-6">{emptyText}</p>;
+    return <p className="text-sm text-slate-400 dark:text-white/40 px-5 py-6">{emptyText}</p>;
   }
   const max = Math.max(...items.map((i) => i.count), 1);
   return (
@@ -155,7 +155,7 @@ const UsageList = ({ items, emptyText = "Chưa có dữ liệu" }) => {
             <span className="text-sm text-slate-700 dark:text-slate-200 truncate">{item.label}</span>
             <span
               className={`text-sm font-semibold ${
-                item.count === 0 ? "text-slate-400" : "text-slate-900 dark:text-slate-100"
+                item.count === 0 ? "text-slate-400 dark:text-white/40" : "text-slate-900 dark:text-slate-100"
               }`}
             >
               {item.count}
@@ -216,8 +216,8 @@ const AlertFeed = ({ alerts, onDismiss }) => {
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-sm text-slate-800 dark:text-slate-100 truncate">{a.title}</p>
-            {a.detail && <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{a.detail}</p>}
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            {a.detail && <p className="text-xs text-slate-500 dark:text-white/60 mt-0.5 line-clamp-1">{a.detail}</p>}
+            <p className="text-[11px] text-slate-400 dark:text-white/40 mt-0.5">
               {a.occurredAt ? new Date(a.occurredAt).toLocaleString("vi-VN") : ""}
             </p>
           </div>
@@ -225,7 +225,7 @@ const AlertFeed = ({ alerts, onDismiss }) => {
             type="button"
             onClick={() => onDismiss(a.key)}
             title="Ẩn cảnh báo này"
-            className="flex-shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-white/10"
+            className="flex-shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white/75 hover:bg-slate-100 dark:hover:bg-white/10 dark:hover:text-slate-200"
           >
             <X size={14} />
           </button>
@@ -237,7 +237,7 @@ const AlertFeed = ({ alerts, onDismiss }) => {
 
 const SchedulerJobList = ({ jobs }) => {
   if (!jobs?.length) {
-    return <p className="text-sm text-slate-400 px-5 py-6">Chưa có job nào chạy kể từ khi khởi động server.</p>;
+    return <p className="text-sm text-slate-400 dark:text-white/40 px-5 py-6">Chưa có job nào chạy kể từ khi khởi động server.</p>;
   }
   return (
     <ul className="divide-y divide-slate-100 dark:divide-white/10">
@@ -245,7 +245,7 @@ const SchedulerJobList = ({ jobs }) => {
         <li key={j.name} className="px-5 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm text-slate-800 dark:text-slate-100 truncate">{j.name}</p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">
               {j.lastRunAt ? new Date(j.lastRunAt).toLocaleString("vi-VN") : "Chưa chạy lần nào"} · {j.lastDurationMs} ms
             </p>
             {!j.success && j.lastError && (
@@ -335,7 +335,7 @@ const Dashboard = () => {
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">Admin Dashboard</h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-400 dark:text-white/40">
           {lastUpdated ? `Cập nhật lúc ${lastUpdated.toLocaleTimeString("vi-VN")}` : "Đang tải..."}
         </p>
       </div>
@@ -368,7 +368,7 @@ const Dashboard = () => {
     return (
       <div className="space-y-6">
         {toolbar}
-        <div className="text-sm text-slate-400 py-12 text-center">Đang tải dữ liệu...</div>
+        <div className="text-sm text-slate-400 dark:text-white/40 py-12 text-center">Đang tải dữ liệu...</div>
       </div>
     );
   }
@@ -376,7 +376,7 @@ const Dashboard = () => {
     return (
       <div className="space-y-6">
         {toolbar}
-        <div className="text-sm text-slate-400 py-12 text-center">Không tải được dữ liệu dashboard.</div>
+        <div className="text-sm text-slate-400 dark:text-white/40 py-12 text-center">Không tải được dữ liệu dashboard.</div>
       </div>
     );
   }
@@ -418,7 +418,7 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={dismissAllAlerts}
-                className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-red-500"
+                className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 dark:text-white/40 hover:text-red-500"
               >
                 <Trash2 size={12} />
                 Xóa tất cả
@@ -476,7 +476,7 @@ const Dashboard = () => {
                   percent={health.dbPoolMax > 0 ? (health.dbPoolActive / health.dbPoolMax) * 100 : 0}
                 />
               </div>
-              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/10 flex items-center gap-2 text-xs text-slate-500">
+              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/10 flex items-center gap-2 text-xs text-slate-500 dark:text-white/60">
                 <HardDrive size={14} />
                 Dung lượng DB: {formatBytes(health.dbSizeBytes)} · {health.dbTableCount} bảng
               </div>
@@ -487,26 +487,26 @@ const Dashboard = () => {
                 <ChartOrEmpty hasData={health.httpTotalRequests > 0} options={httpStatusClassChart} />
                 <div className="grid grid-cols-2 gap-3 px-3">
                   <div className="admin-card p-3">
-                    <p className="text-xs text-slate-500">Tổng request</p>
+                    <p className="text-xs text-slate-500 dark:text-white/60">Tổng request</p>
                     <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{health.httpTotalRequests}</p>
                   </div>
                   <div className="admin-card p-3">
-                    <p className="text-xs text-slate-500">Tỷ lệ lỗi</p>
+                    <p className="text-xs text-slate-500 dark:text-white/60">Tỷ lệ lỗi</p>
                     <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{formatPercent(health.httpErrorRatePercent)}</p>
                   </div>
                   <div className="admin-card p-3">
-                    <p className="text-xs text-slate-500">Latency TB</p>
+                    <p className="text-xs text-slate-500 dark:text-white/60">Latency TB</p>
                     <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{formatMs(health.httpAvgLatencyMs)}</p>
                   </div>
                   <div className="admin-card p-3">
-                    <p className="text-xs text-slate-500">Latency max</p>
+                    <p className="text-xs text-slate-500 dark:text-white/60">Latency max</p>
                     <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{formatMs(health.httpMaxLatencyMs)}</p>
                   </div>
                 </div>
               </div>
               {health.topErrorEndpoints?.length > 0 && (
                 <div className="border-t border-slate-100 dark:border-white/10">
-                  <p className="text-xs font-semibold text-slate-500 px-5 pt-3">Endpoint lỗi nhiều nhất</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-white/60 px-5 pt-3">Endpoint lỗi nhiều nhất</p>
                   <UsageList items={health.topErrorEndpoints} />
                 </div>
               )}
@@ -549,18 +549,18 @@ const Dashboard = () => {
                 <ChartOrEmpty hasData={stats.totalEmails30d > 0} options={emailsByStatusChart} />
                 <div className="grid grid-cols-2 gap-3 px-3">
                   <div className="admin-card p-3">
-                    <p className="text-xs text-slate-500">Đã gửi (30 ngày)</p>
+                    <p className="text-xs text-slate-500 dark:text-white/60">Đã gửi (30 ngày)</p>
                     <p className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                       <Mail size={16} className="text-indigo-500" />
                       {stats.totalEmails30d ?? 0}
                     </p>
                   </div>
                   <div className="admin-card p-3">
-                    <p className="text-xs text-slate-500">Tỷ lệ gửi thành công</p>
+                    <p className="text-xs text-slate-500 dark:text-white/60">Tỷ lệ gửi thành công</p>
                     <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{(stats.emailSuccessRate30d ?? 0).toFixed(0)}%</p>
                   </div>
                   <div className="admin-card p-3 col-span-2">
-                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                    <p className="text-xs text-slate-500 dark:text-white/60 flex items-center gap-1">
                       <Timer size={12} /> Độ trễ hàng đợi trung bình
                     </p>
                     <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -577,7 +577,7 @@ const Dashboard = () => {
               <ListChecks size={16} />
               Tổng quan nghiệp vụ toàn hệ thống
             </h2>
-            <p className="text-xs text-slate-400 mb-3">Xem chi tiết theo từng quán ở Owner Dashboard.</p>
+            <p className="text-xs text-slate-400 dark:text-white/40 mb-3">Xem chi tiết theo từng quán ở Owner Dashboard.</p>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
               <AdminStatCard label="Chi nhánh / CLB" value={stats.totalBranches?.toLocaleString("vi-VN")} hint={`${stats.activeBranches ?? 0} đang hoạt động`} icon={Building2} accent="emerald" />

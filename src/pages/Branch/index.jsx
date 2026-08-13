@@ -16,7 +16,7 @@ const BranchCard = ({ branch, index }) => {
 
   return (
     <div
-      className="tournament-card-stream flex flex-col cursor-pointer group bg-white dark:bg-[#161a22] border border-transparent dark:border-white/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
+      className="tournament-card-stream flex flex-col cursor-pointer group bg-white dark:bg-[#161a22] border border-transparent dark:border-white/10 rounded-2xl overflow-hidden shadow-sm"
       style={{ animationDelay: `${index * 0.15}s` }}
       onClick={() => navigate(`/branches/${branch.id}`)}
       role="button"

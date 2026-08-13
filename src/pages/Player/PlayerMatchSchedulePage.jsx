@@ -103,7 +103,7 @@ const PlayerMatchSchedulePage = () => {
                       </div>
 
                       {/* Match rows */}
-                      <div className="divide-y divide-slate-100">
+                      <div className="divide-y divide-slate-100 dark:divide-white/10">
                         {group.matches
                           .sort((a, b) => a.roundNo - b.roundNo || a.positionNo - b.positionNo)
                           .map((m) => {
@@ -217,7 +217,7 @@ const PlayerMatchSchedulePage = () => {
                 {/* Info rows */}
                 <div>
                   <p className="text-xs font-semibold text-slate-400 dark:text-white/40 uppercase tracking-wide mb-2">Thông tin trận đấu</p>
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-100 dark:divide-white/10">
                     <div className="flex justify-between py-2">
                       <span className="text-slate-500 dark:text-white/60">Lịch thi đấu</span>
                       <span className="font-medium text-slate-900 dark:text-white">{fmtDate(m.scheduledAt)}</span>

@@ -20,63 +20,63 @@ const AUTO_REFRESH_MS = 30_000;
 
 /** Soft layers: page → section → card → accent rail */
 const selectClass =
-  "appearance-none bg-white text-slate-700 text-sm font-medium rounded-xl border border-slate-200/90 pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/35 cursor-pointer min-w-[9.5rem] shadow-sm";
+  "appearance-none bg-white dark:bg-[#101319] text-slate-700 dark:text-slate-200 text-sm font-medium rounded-xl border border-slate-200/90 dark:border-white/10 pl-3.5 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/35 cursor-pointer min-w-[9.5rem] shadow-sm";
 
 const searchClass =
-  "w-full sm:w-56 bg-white text-slate-700 text-sm font-medium rounded-xl border border-slate-200/90 pl-9 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/35 shadow-sm placeholder:text-slate-400";
+  "w-full sm:w-56 bg-white dark:bg-[#101319] text-slate-700 dark:text-slate-200 text-sm font-medium rounded-xl border border-slate-200/90 dark:border-white/10 pl-9 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/35 shadow-sm placeholder:text-slate-400 dark:placeholder:text-white/40 dark:placeholder:text-slate-500";
 
 const CARD_TONE = {
   live: {
-    wrap: "bg-gradient-to-r from-emerald-50/90 via-white to-white border-emerald-200/80 shadow-sm shadow-emerald-100/60 hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-100/80",
+    wrap: "bg-gradient-to-r from-emerald-50/90 via-white to-white border-emerald-200/80 shadow-sm shadow-emerald-100/60 hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-100/80 dark:from-emerald-500/12 dark:via-[#161a22] dark:to-[#161a22] dark:border-emerald-500/30 dark:shadow-none dark:hover:border-emerald-400/50",
     rail: "from-emerald-500 to-teal-400",
-    tableBox: "bg-emerald-50/80 ring-1 ring-emerald-100",
-    tableNum: "text-emerald-800",
-    tableLabel: "text-emerald-600/80",
-    divider: "sm:border-emerald-100",
+    tableBox: "bg-emerald-50/80 ring-1 ring-emerald-100 dark:bg-emerald-500/12 dark:ring-emerald-400/25",
+    tableNum: "text-emerald-800 dark:text-emerald-300",
+    tableLabel: "text-emerald-600/80 dark:text-emerald-400/70",
+    divider: "sm:border-emerald-100 dark:sm:border-emerald-500/20",
   },
   ready: {
-    wrap: "bg-gradient-to-r from-indigo-50/70 via-white to-white border-indigo-200/70 shadow-sm shadow-indigo-100/50 hover:border-indigo-300 hover:shadow-md hover:shadow-indigo-100/70",
+    wrap: "bg-gradient-to-r from-indigo-50/70 via-white to-white border-indigo-200/70 shadow-sm shadow-indigo-100/50 hover:border-indigo-300 hover:shadow-md hover:shadow-indigo-100/70 dark:from-indigo-500/12 dark:via-[#161a22] dark:to-[#161a22] dark:border-indigo-500/30 dark:shadow-none dark:hover:border-indigo-400/50",
     rail: "from-indigo-500 to-violet-400",
-    tableBox: "bg-indigo-50/70 ring-1 ring-indigo-100",
-    tableNum: "text-indigo-900",
-    tableLabel: "text-indigo-500/90",
-    divider: "sm:border-indigo-100",
+    tableBox: "bg-indigo-50/70 ring-1 ring-indigo-100 dark:bg-indigo-500/12 dark:ring-indigo-400/25",
+    tableNum: "text-indigo-900 dark:text-indigo-300",
+    tableLabel: "text-indigo-500/90 dark:text-indigo-400/70",
+    divider: "sm:border-indigo-100 dark:sm:border-indigo-500/20",
   },
   waiting: {
-    wrap: "bg-white border-slate-200/90 shadow-sm hover:border-amber-200 hover:shadow-md hover:shadow-amber-50",
+    wrap: "bg-white border-slate-200/90 shadow-sm hover:border-amber-200 hover:shadow-md hover:shadow-amber-50 dark:bg-[#161a22] dark:border-white/10 dark:shadow-none dark:hover:border-amber-400/40 dark:hover:shadow-none",
     rail: "from-amber-400 to-orange-300",
-    tableBox: "bg-amber-50/60 ring-1 ring-amber-100/80",
-    tableNum: "text-slate-800",
-    tableLabel: "text-amber-700/70",
-    divider: "sm:border-slate-100",
+    tableBox: "bg-amber-50/60 ring-1 ring-amber-100/80 dark:bg-amber-400/12 dark:ring-amber-400/25",
+    tableNum: "text-slate-800 dark:text-white",
+    tableLabel: "text-amber-700/70 dark:text-amber-300/80",
+    divider: "sm:border-slate-100 dark:sm:border-white/10",
   },
   finished: {
-    wrap: "bg-slate-50/80 border-slate-200/80 opacity-90 hover:opacity-100 hover:border-slate-300",
+    wrap: "bg-slate-50/80 border-slate-200/80 opacity-90 hover:opacity-100 hover:border-slate-300 dark:bg-white/[0.03] dark:border-white/10 dark:hover:border-white/20",
     rail: "from-slate-300 to-slate-200",
-    tableBox: "bg-slate-100/80 ring-1 ring-slate-200/60",
-    tableNum: "text-slate-500",
-    tableLabel: "text-slate-400",
-    divider: "sm:border-slate-200/80",
+    tableBox: "bg-slate-100/80 ring-1 ring-slate-200/60 dark:bg-white/[0.06] dark:ring-white/10",
+    tableNum: "text-slate-500 dark:text-white/50",
+    tableLabel: "text-slate-400 dark:text-white/35",
+    divider: "sm:border-slate-200/80 dark:sm:border-white/10",
   },
 };
 
 const MatchRowSkeleton = () => (
-  <div className="relative overflow-hidden flex items-stretch gap-4 sm:gap-5 rounded-2xl bg-white border border-slate-200 px-4 sm:px-5 py-4 animate-pulse shadow-sm">
-    <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-200" />
+  <div className="relative overflow-hidden flex items-stretch gap-4 sm:gap-5 rounded-2xl bg-white dark:bg-[#161a22] border border-slate-200 dark:border-white/10 px-4 sm:px-5 py-4 animate-pulse shadow-sm dark:shadow-none">
+    <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-200 dark:bg-white/10" />
     <div className="w-14 sm:w-16 flex flex-col items-center justify-center gap-2 pl-1">
-      <div className="h-3 w-8 rounded bg-slate-100" />
-      <div className="h-10 w-10 rounded-xl bg-slate-100" />
+      <div className="h-3 w-8 rounded bg-slate-100 dark:bg-white/10" />
+      <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-white/10" />
     </div>
     <div className="flex-1 min-w-0 space-y-3 py-1">
       <div className="flex flex-wrap gap-2">
-        <div className="h-6 w-24 rounded-full bg-slate-100" />
-        <div className="h-6 w-36 rounded-full bg-indigo-50" />
-        <div className="h-5 w-28 rounded bg-slate-100" />
+        <div className="h-6 w-24 rounded-full bg-slate-100 dark:bg-white/10" />
+        <div className="h-6 w-36 rounded-full bg-indigo-50 dark:bg-indigo-500/15" />
+        <div className="h-5 w-28 rounded bg-slate-100 dark:bg-white/10" />
       </div>
-      <div className="h-7 w-3/4 max-w-md rounded bg-slate-100" />
+      <div className="h-7 w-3/4 max-w-md rounded bg-slate-100 dark:bg-white/10" />
     </div>
     <div className="w-28 sm:w-36 self-center">
-      <div className="h-11 w-full rounded-xl bg-indigo-50" />
+      <div className="h-11 w-full rounded-xl bg-indigo-50 dark:bg-indigo-500/15" />
     </div>
   </div>
 );
@@ -84,17 +84,17 @@ const MatchRowSkeleton = () => (
 const SectionHeader = ({ tone, label, count }) => {
   const styles = {
     live: {
-      pill: "bg-emerald-50 text-emerald-800 ring-emerald-200/80",
+      pill: "bg-emerald-50 text-emerald-800 ring-emerald-200/80 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/30",
       dot: "bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.2)]",
       count: "bg-emerald-500 text-white",
     },
     upcoming: {
-      pill: "bg-indigo-50 text-indigo-800 ring-indigo-200/80",
+      pill: "bg-indigo-50 text-indigo-800 ring-indigo-200/80 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-400/30",
       dot: "bg-indigo-500 shadow-[0_0_0_3px_rgba(99,102,241,0.18)]",
       count: "bg-indigo-500 text-white",
     },
     finished: {
-      pill: "bg-slate-100 text-slate-600 ring-slate-200",
+      pill: "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-white/10 dark:text-white/60 dark:ring-white/15",
       dot: "bg-slate-400",
       count: "bg-slate-400 text-white",
     },
@@ -118,8 +118,8 @@ const StatusBadge = ({ match }) => {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 text-white px-2.5 py-1 text-xs font-bold shadow-sm shadow-emerald-200">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-70" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white dark:bg-[#161a22] opacity-70" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-white dark:bg-[#161a22]" />
         </span>
         Đang đấu
       </span>
@@ -132,8 +132,8 @@ const StatusBadge = ({ match }) => {
       <span
         className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
           due
-            ? "bg-indigo-50 text-indigo-700 ring-indigo-200"
-            : "bg-amber-50 text-amber-800 ring-amber-200"
+            ? "bg-indigo-50 text-indigo-700 ring-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-400/30"
+            : "bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-400/15 dark:text-amber-300 dark:ring-amber-400/30"
         }`}
       >
         <Clock size={12} className="opacity-80" />
@@ -143,7 +143,7 @@ const StatusBadge = ({ match }) => {
   }
 
   return (
-    <span className="inline-flex items-center rounded-full bg-slate-200/70 text-slate-500 ring-1 ring-inset ring-slate-300/60 px-2.5 py-1 text-xs font-semibold">
+    <span className="inline-flex items-center rounded-full bg-slate-200/70 text-slate-500 ring-1 ring-inset ring-slate-300/60 dark:bg-white/10 dark:text-white/60 dark:ring-white/15 px-2.5 py-1 text-xs font-semibold">
       Đã xong
     </span>
   );
@@ -224,7 +224,7 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
       <button
         type="button"
         onClick={() => onOpen(match.id)}
-        className="w-full sm:w-auto whitespace-nowrap rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-indigo-700 hover:border-indigo-200 hover:bg-indigo-50/50 font-medium text-sm px-4 py-2.5 transition-colors"
+        className="w-full sm:w-auto whitespace-nowrap rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] text-slate-500 dark:text-white/60 hover:text-indigo-700 dark:hover:text-indigo-300 hover:border-indigo-200 dark:hover:border-indigo-400/40 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 font-medium text-sm px-4 py-2.5 transition-colors"
       >
         Xem lại
       </button>
@@ -266,7 +266,7 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
             <span className="truncate">{getTournamentName(match)}</span>
           </span>
           {(match.matchCode || match.raceTo != null) && (
-            <span className="text-xs text-slate-400 font-medium tabular-nums">
+            <span className="text-xs text-slate-400 dark:text-white/40 font-medium tabular-nums">
               {[
                 match.matchCode,
                 match.raceTo != null ? `Đánh tới ${match.raceTo} ván` : null,
@@ -278,7 +278,7 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
         </div>
 
         {live ? (
-          <p className="text-base sm:text-lg font-bold text-slate-900 leading-snug sm:pl-4">
+          <p className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug sm:pl-4">
             <span className="truncate inline-block max-w-[38%] align-bottom">
               {p1}
             </span>
@@ -292,7 +292,7 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
             </span>
           </p>
         ) : (
-          <p className="text-base sm:text-lg font-bold text-slate-800 leading-snug sm:pl-4">
+          <p className="text-base sm:text-lg font-bold text-slate-800 dark:text-white/90 leading-snug sm:pl-4">
             {p1}
             <span className="mx-2 font-semibold text-indigo-300">vs</span>
             {p2}
@@ -413,12 +413,12 @@ const StaffMatchListPage = () => {
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-indigo-500/90 mb-1">
               Trọng tài
             </p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
               Trận của tôi
             </h1>
             {!loading && !error && (
-              <p className="mt-1.5 text-sm text-slate-500">
-                <span className="font-semibold text-slate-700">{summaryCount}</span>{" "}
+              <p className="mt-1.5 text-sm text-slate-500 dark:text-white/60">
+                <span className="font-semibold text-slate-700 dark:text-white/80">{summaryCount}</span>{" "}
                 trận
                 {summaryTournaments > 0 && (
                   <>
@@ -430,7 +430,7 @@ const StaffMatchListPage = () => {
                   </>
                 )}
                 {lastUpdatedAt && (
-                  <span className="text-slate-400">
+                  <span className="text-slate-400 dark:text-white/40">
                     {" · cập nhật "}
                     {lastUpdatedAt.toLocaleTimeString("vi-VN", {
                       hour: "2-digit",
@@ -447,7 +447,7 @@ const StaffMatchListPage = () => {
             <div className="relative flex-1 sm:flex-initial min-w-[12rem]">
               <Search
                 size={15}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40"
               />
               <input
                 type="search"
@@ -461,7 +461,7 @@ const StaffMatchListPage = () => {
                 <button
                   type="button"
                   onClick={() => setTournamentQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-slate-400 hover:text-slate-600"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70"
                   aria-label="Xóa tìm kiếm"
                 >
                   <X size={14} />
@@ -482,7 +482,7 @@ const StaffMatchListPage = () => {
               </select>
               <ChevronDown
                 size={14}
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40"
               />
             </div>
 
@@ -490,7 +490,7 @@ const StaffMatchListPage = () => {
               type="button"
               onClick={() => loadMatches()}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 text-sm font-semibold px-3.5 py-2.5 transition-colors disabled:opacity-50 shadow-sm"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 dark:border-indigo-400/30 bg-white dark:bg-[#161a22] text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/12 hover:border-indigo-300 dark:hover:border-indigo-400/50 text-sm font-semibold px-3.5 py-2.5 transition-colors disabled:opacity-50 shadow-sm"
               aria-label="Tải lại"
             >
               <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
@@ -510,7 +510,7 @@ const StaffMatchListPage = () => {
 
       {!loading && error && (
         <div className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white px-5 py-10 text-center space-y-4 shadow-sm">
-          <p className="text-slate-700">{error}</p>
+          <p className="text-slate-700 dark:text-white/75">{error}</p>
           <button
             type="button"
             onClick={() => loadMatches()}
@@ -526,8 +526,8 @@ const StaffMatchListPage = () => {
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">
             <Trophy size={22} />
           </div>
-          <p className="text-lg font-semibold text-slate-900">Chưa có trận nào</p>
-          <p className="text-sm text-slate-500 max-w-sm mx-auto">
+          <p className="text-lg font-semibold text-slate-900 dark:text-white">Chưa có trận nào</p>
+          <p className="text-sm text-slate-500 dark:text-white/60 max-w-sm mx-auto">
             {debouncedQuery
               ? `Không có trận giải khớp “${debouncedQuery}” với bộ lọc hiện tại.`
               : matches.length === 0
@@ -561,7 +561,7 @@ const StaffMatchListPage = () => {
           )}
 
           {groups.upcoming.length > 0 && (
-            <section className="space-y-3 rounded-2xl bg-indigo-50/30 p-3 sm:p-4 ring-1 ring-indigo-100/60">
+            <section className="space-y-3 rounded-2xl bg-indigo-50/30 dark:bg-indigo-500/[0.07] p-3 sm:p-4 ring-1 ring-indigo-100/60 dark:ring-indigo-400/20">
               <SectionHeader
                 tone="upcoming"
                 label="Sắp tới"
@@ -582,7 +582,7 @@ const StaffMatchListPage = () => {
           )}
 
           {groups.finished.length > 0 && (
-            <section className="space-y-3 rounded-2xl bg-slate-100/40 p-3 sm:p-4 ring-1 ring-slate-200/70">
+            <section className="space-y-3 rounded-2xl bg-slate-100/40 dark:bg-white/[0.04] p-3 sm:p-4 ring-1 ring-slate-200/70 dark:ring-white/10">
               <button
                 type="button"
                 onClick={() => setFinishedOpen((v) => !v)}
@@ -595,7 +595,7 @@ const StaffMatchListPage = () => {
                 />
                 <ChevronDown
                   size={16}
-                  className={`ml-auto text-slate-400 transition-transform group-hover:text-slate-600 ${finishedOpen ? "rotate-180" : ""}`}
+                  className={`ml-auto text-slate-400 dark:text-white/40 transition-transform group-hover:text-slate-600 dark:group-hover:text-white/70 ${finishedOpen ? "rotate-180" : ""}`}
                 />
               </button>
               {finishedOpen && (

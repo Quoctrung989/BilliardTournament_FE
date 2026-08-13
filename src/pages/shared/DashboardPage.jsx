@@ -77,18 +77,18 @@ const DashboardPage = ({ statsLoader, basePath, title }) => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-slate-900">{title}</h1>
-        <p className="text-sm text-slate-500">Tổng quan hệ thống giải đấu</p>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">{title}</h1>
+        <p className="text-sm text-slate-500 dark:text-white/60">Tổng quan hệ thống giải đấu</p>
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="admin-card h-32 animate-pulse bg-slate-100" />
+            <div key={i} className="admin-card h-32 animate-pulse bg-slate-100 dark:bg-white/10" />
           ))}
         </div>
       ) : !stats ? (
-        <p className="text-sm text-slate-400">Không tải được dữ liệu thống kê.</p>
+        <p className="text-sm text-slate-400 dark:text-white/40">Không tải được dữ liệu thống kê.</p>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -167,34 +167,34 @@ const DashboardPage = ({ statsLoader, basePath, title }) => {
         <button
           type="button"
           onClick={() => navigate(`${basePath}/tournaments`)}
-          className="flex items-center gap-3 bg-white rounded-2xl p-5 shadow-sm border border-slate-100 text-left hover:border-[#010851] transition-colors group"
+          className="flex items-center gap-3 bg-white dark:bg-[#161a22] rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-white/10 text-left hover:border-[#010851] transition-colors group"
         >
           <Trophy size={20} className="text-[#010851] shrink-0" />
           <div>
             <p className="font-semibold text-[#010851] group-hover:text-[#EF342A] transition-colors">Quản lý giải đấu</p>
-            <p className="text-xs text-slate-400">Tạo, cấu hình, mở đăng ký</p>
+            <p className="text-xs text-slate-400 dark:text-white/40">Tạo, cấu hình, mở đăng ký</p>
           </div>
         </button>
         <button
           type="button"
           onClick={() => navigate(`${basePath}/employees`)}
-          className="flex items-center gap-3 bg-white rounded-2xl p-5 shadow-sm border border-slate-100 text-left hover:border-[#010851] transition-colors group"
+          className="flex items-center gap-3 bg-white dark:bg-[#161a22] rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-white/10 text-left hover:border-[#010851] transition-colors group"
         >
           <Users size={20} className="text-[#010851] shrink-0" />
           <div>
             <p className="font-semibold text-[#010851] group-hover:text-[#EF342A] transition-colors">Quản lý nhân viên</p>
-            <p className="text-xs text-slate-400">Manager, Staff</p>
+            <p className="text-xs text-slate-400 dark:text-white/40">Manager, Staff</p>
           </div>
         </button>
         <button
           type="button"
           onClick={() => navigate(`${basePath}/news`)}
-          className="flex items-center gap-3 bg-white rounded-2xl p-5 shadow-sm border border-slate-100 text-left hover:border-[#010851] transition-colors group"
+          className="flex items-center gap-3 bg-white dark:bg-[#161a22] rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-white/10 text-left hover:border-[#010851] transition-colors group"
         >
           <FileText size={20} className="text-[#010851] shrink-0" />
           <div>
             <p className="font-semibold text-[#010851] group-hover:text-[#EF342A] transition-colors">Tin tức & Bài viết</p>
-            <p className="text-xs text-slate-400">CMS — tạo, xuất bản tin</p>
+            <p className="text-xs text-slate-400 dark:text-white/40">CMS — tạo, xuất bản tin</p>
           </div>
         </button>
       </div>

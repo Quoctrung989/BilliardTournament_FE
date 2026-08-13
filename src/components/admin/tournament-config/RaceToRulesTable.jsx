@@ -17,7 +17,7 @@ const RaceToRulesTable = ({ rules, onChange }) => {
 
   if (!rules?.length) {
     return (
-      <div className="text-center py-8 border border-dashed rounded-lg bg-white">
+      <div className="text-center py-8 border border-dashed rounded-lg bg-white dark:bg-[#161a22]">
         <p className="text-sm text-gray-500 mb-4">
           Chưa có rule race-to — thêm dòng hoặc dùng Bootstrap
         </p>

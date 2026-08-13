@@ -165,7 +165,7 @@ const ConfigFieldCatalogDetail = ({ item, loading }) => {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-slate-400">Chưa khai báo giá trị enum.</p>
+              <p className="text-sm text-slate-400 dark:text-white/40">Chưa khai báo giá trị enum.</p>
             )}
           </div>
         )}

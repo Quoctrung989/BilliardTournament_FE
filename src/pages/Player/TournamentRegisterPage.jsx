@@ -36,7 +36,10 @@ const fmtMoney = (v) => {
  * cùng một người đăng ký trên hai thiết bị lại ra hai form khác nhau.
  */
 const PREFILL_FROM_PROFILE = {
-  player_full_name: (profile) => profile?.fullName || "",
+  /* `displayName` là đường lùi: hồ sơ tạo qua màn chơi có thể chỉ có tên hiển
+     thị mà bỏ trống họ tên đầy đủ. Điền tên hiển thị vẫn hơn để trống, vì dù
+     sao người dùng cũng sửa được. */
+  player_full_name: (profile) => profile?.fullName || profile?.displayName || "",
   player_phone: (profile, user) => profile?.phone || user?.phone || "",
 };
 
@@ -62,6 +65,14 @@ const TournamentRegisterPage = () => {
   const tournamentId = Number(id);
 
   const user = useAuthStore((s) => s.user);
+  /* `load` chỉ nên chạy lại khi đổi giải (tournamentId), không phải mỗi khi
+     store auth hydrate xong và đổi tham chiếu `user` — nếu không, lần chạy
+     thứ hai sẽ bỏ qua bước điền hộ (prefilledOnce đã true) và ghi đè `values`
+     bằng object gần như rỗng, xoá mất dữ liệu đã điền đúng ở lần đầu. */
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const [loading, setLoading] = useState(true);
   const [formPreview, setFormPreview] = useState(null);
@@ -100,21 +111,32 @@ const TournamentRegisterPage = () => {
       if (!prefilledOnce.current) {
         prefilledOnce.current = true;
 
-        const prefill = buildPrefill(data.fields, profile, user);
+        const prefill = buildPrefill(data.fields, profile, userRef.current);
         if (Object.keys(prefill).length > 0) {
           Object.assign(initial, prefill);
           setPrefilled(true);
         }
       }
 
-      setValues(initial);
+      /* setValues bằng updater thay vì ghi đè thẳng: nếu `load` chạy lại (StrictMode ở
+         dev double-invoke effect, hoặc effect fire lại vì lý do khác) trong khi
+         prefilledOnce.current đã true, `initial` ở lần này sẽ KHÔNG có phần điền hộ
+         (đã bị guard bỏ qua) — merge với state cũ để giữ lại giá trị đã điền đúng ở
+         lần chạy trước, thay vì để `initial` gần-rỗng ghi đè mất nó. */
+      setValues((prev) => {
+        const merged = { ...initial };
+        Object.keys(prev).forEach((key) => {
+          if (prev[key]) merged[key] = prev[key];
+        });
+        return merged;
+      });
     } catch (err) {
       toast.error(getApiErrorMessage(err));
       navigate(`/player/tournaments/${tournamentId}`);
     } finally {
       setLoading(false);
     }
-  }, [tournamentId, navigate, user]);
+  }, [tournamentId, navigate]);
 
   useEffect(() => {
     if (tournamentId) load();

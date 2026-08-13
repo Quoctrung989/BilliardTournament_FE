@@ -113,7 +113,7 @@ const GameTypeDetail = ({ item, loading }) => {
                   <span className="catalog-detail-enum-index">{idx + 1}</span>
                   <span>
                     <strong>{TABLE_TYPE_LABELS[t] || t}</strong>
-                    <code className="ml-2 text-xs text-slate-500">{t}</code>
+                    <code className="ml-2 text-xs text-slate-500 dark:text-white/60">{t}</code>
                   </span>
                 </li>
               ))}

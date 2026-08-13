@@ -219,7 +219,7 @@ const RegistrationFormTemplateWizardPage = () => {
   };
 
   if (loading && step === 1 && !isNew && !info.name) {
-    return <p className="text-slate-500 py-12 text-center">Đang tải...</p>;
+    return <p className="text-slate-500 dark:text-white/60 py-12 text-center">Đang tải...</p>;
   }
 
   return (
@@ -289,7 +289,7 @@ const RegistrationFormTemplateWizardPage = () => {
       {step === 2 && (
         <AdminCard title="Bước 2 — Cấu hình field">
           {loading ? (
-            <p className="text-slate-500 py-8 text-center">Đang tải...</p>
+            <p className="text-slate-500 dark:text-white/60 py-8 text-center">Đang tải...</p>
           ) : (
             <>
               <div className="flex flex-col sm:flex-row gap-2 mb-4 max-w-xl">
@@ -331,7 +331,7 @@ const RegistrationFormTemplateWizardPage = () => {
       {step === 3 && (
         <AdminCard title="Bước 3 — Preview form đăng ký">
           {loading ? (
-            <p className="text-slate-500 py-8 text-center">Đang tải preview...</p>
+            <p className="text-slate-500 dark:text-white/60 py-8 text-center">Đang tải preview...</p>
           ) : (
             <>
               <RegistrationFormPreviewPanel preview={preview} />

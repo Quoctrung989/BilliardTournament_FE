@@ -49,7 +49,7 @@ const NavLink = ({ active, onClick, icon: Icon, label, indent, collapsed }) => {
         className={`w-full flex items-center justify-center rounded-lg py-2.5 transition-colors ${
           active
             ? "bg-indigo-600/90 text-white shadow-sm"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+            : "text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white dark:text-slate-300 dark:hover:bg-slate-800"
         }`}
       >
         {Icon && <Icon size={18} strokeWidth={2} className="flex-shrink-0 opacity-90" />}
@@ -66,7 +66,7 @@ const NavLink = ({ active, onClick, icon: Icon, label, indent, collapsed }) => {
       } ${
         active
           ? "bg-indigo-600/90 text-white shadow-sm"
-          : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+          : "text-slate-700 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white dark:text-slate-300 dark:hover:bg-slate-800"
       }`}
     >
       {Icon && <Icon size={18} strokeWidth={2} className="flex-shrink-0 opacity-90" />}
@@ -127,7 +127,7 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
         {!collapsed && (
           <div className="flex-1 min-w-0">
             <p className="font-bold text-base tracking-tight leading-none">BTMS</p>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">
+            <p className="text-[10px] text-slate-400 dark:text-white/40 uppercase tracking-widest mt-0.5">
               Billiards
             </p>
           </div>
@@ -180,7 +180,7 @@ const AdminSidebar = ({ navConfig = ADMIN_NAV, collapsed, onToggle }) => {
                   className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     sectionActive
                       ? "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                      : "text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
                 >
                   <span className="flex items-center gap-3">

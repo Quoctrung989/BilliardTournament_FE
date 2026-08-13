@@ -17,12 +17,12 @@ const RegistrationFormTemplateStepper = ({ currentStep }) => (
               ? "bg-indigo-600 text-white border-indigo-600"
               : done
                 ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                : "bg-white text-slate-500 border-slate-200"
+                : "bg-white dark:bg-[#161a22] text-slate-500 dark:text-white/60 border-slate-200 dark:border-white/10"
           }`}
         >
           <span
             className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-              active ? "bg-white text-indigo-600" : done ? "bg-indigo-600 text-white" : "bg-slate-200"
+              active ? "bg-white dark:bg-[#161a22] text-indigo-600" : done ? "bg-indigo-600 text-white" : "bg-slate-200 dark:bg-white/10"
             }`}
           >
             {step}

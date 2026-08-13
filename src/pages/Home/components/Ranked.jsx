@@ -74,7 +74,7 @@ const PlayerCard = ({ player, index }) => {
         <Link to={`/event/players/user/${player.userId}`} className="block">
           <div className="relative">
             <div
-              className="hm-accent-bar w-full bg-white border-b-[15px] relative h-[120px] overflow-visible rounded-tl-[8px]"
+              className="hm-accent-bar w-full bg-white dark:bg-[#161a22] border-b-[15px] relative h-[120px] overflow-visible rounded-tl-[8px]"
               style={{ borderColor: player.accent }}
             >
               <img
@@ -120,7 +120,7 @@ const Ranked = () => {
       </h2>
       <Link
         to="/rankings"
-        className="ui-underline flex h-10 items-center justify-center rounded-md border border-gray-300 px-3 text-sm transition hover:bg-gray-100 hover:text-[var(--wnt25-color-dark)] italic"
+        className="ui-underline flex h-10 items-center justify-center rounded-md border border-gray-300 dark:border-white/15 px-3 text-sm transition hover:bg-gray-100 dark:hover:bg-white/10 hover:text-[var(--wnt25-color-dark)] italic"
       >
         Tất cả tay cơ xếp hạng
       </Link>

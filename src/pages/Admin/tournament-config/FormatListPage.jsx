@@ -78,7 +78,7 @@ const FormatListPage = () => {
   return (
     <div className="space-y-6">
       <AdminCard padding={false}>
-        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="flex flex-wrap gap-4">
             <div className="w-full sm:w-44">
               <label className="admin-label">Trạng thái active</label>

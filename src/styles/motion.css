@@ -62,24 +62,69 @@
    2. Card & hàng
    ------------------------------------------------------------------- */
 
-/* Nhấc nhẹ hơn trang chủ (-6px so với -14px): card ở đây nằm trong lưới dày,
-   nhấc mạnh sẽ va vào nhau và gây nhiễu khi lướt danh sách. */
-.ui-card {
+/* ═══════════════════════════════════════════════════════════════════════
+   Card — một ngôn ngữ hover duy nhất cho toàn hệ thống
+
+   Chuẩn lấy từ lưới giải đấu ở /event: trỏ vào thì card co lại 2%, hiện một
+   vành gradient xanh lá → xanh dương quanh mép, kèm quầng sáng xanh lá toả ra.
+   Ba họ class dưới đây là ba hệ card từng tồn tại song song, mỗi hệ một kiểu
+   hover riêng (nhấc 6px, nhấc 14px, đổi bóng) — gộp về một mối.
+
+   Vành vẽ bằng thủ thuật mask hai lớp thay vì `border`: `border` chiếm chỗ
+   thật trong hộp nên bật lên lúc hover sẽ đẩy nội dung xô một nhịp. Mask chỉ
+   giữ lại đúng phần viền của khối gradient, không ảnh hưởng bố cục.
+
+   Dùng `::before` chứ không phải `::after`: `.hm-sheen::after` đã chiếm chỗ đó
+   cho vệt sáng quét chéo ở trang chủ, đè lên là mất một trong hai.
+
+   `inset: 0` chứ không âm: card thường có `overflow-hidden`, vành thò ra ngoài
+   mép sẽ bị cắt mất. Riêng quầng sáng thì không sao — `box-shadow` của chính
+   phần tử không bị `overflow` của nó cắt.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.ui-card,
+.hm-card,
+.tournament-card-stream {
   position: relative;
-  transition: transform 0.26s cubic-bezier(0.34, 1.4, 0.5, 1),
-    box-shadow 0.26s ease, border-color 0.26s ease;
+  transition: transform 0.22s ease, box-shadow 0.3s ease;
 }
 
-.ui-card:hover {
-  transform: translateY(-6px);
-  z-index: 2;
-  box-shadow: 0 16px 30px -14px rgba(15, 23, 42, 0.35);
-  border-color: var(--wnt25-color-red);
+.ui-card::before,
+.hm-card::before,
+.tournament-card-stream::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(163deg, #00ff75 0%, #3700ff 100%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  /* Vành nằm đè lên nội dung, không có dòng này thì nó nuốt cú bấm vào card */
+  pointer-events: none;
+  z-index: 4;
 }
 
-.dark .ui-card:hover,
-.content-dark.dark .ui-card:hover {
-  box-shadow: 0 16px 30px -12px rgba(0, 0, 0, 0.7);
+.ui-card:hover::before,
+.hm-card:hover::before,
+.tournament-card-stream:hover::before {
+  opacity: 1;
+}
+
+.ui-card:hover,
+.hm-card:hover,
+.tournament-card-stream:hover {
+  transform: scale(0.98);
+  box-shadow: 0 0 30px 1px rgba(0, 255, 117, 0.3);
+  z-index: 5;
 }
 
 /* Hàng trong danh sách/bảng — dịch ngang thay vì nhấc lên, hợp với nhịp đọc dọc */
@@ -206,7 +251,11 @@
     animation: none !important;
   }
 
+  /* Bỏ phần co card, giữ lại vành gradient và quầng sáng — đổi màu và độ đục
+     không phải chuyển động, mà đó mới là thứ báo "đang trỏ vào card này". */
   .ui-card:hover,
+  .hm-card:hover,
+  .tournament-card-stream:hover,
   .ui-row:hover,
   .ui-press:hover:not(:disabled),
   .ui-press:active:not(:disabled),

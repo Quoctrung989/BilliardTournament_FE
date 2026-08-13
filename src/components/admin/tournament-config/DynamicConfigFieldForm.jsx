@@ -1,7 +1,7 @@
 const DynamicConfigFieldForm = ({ fields, onChange, onRemove }) => {
   if (!fields?.length) {
     return (
-      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white">
+      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white dark:bg-[#161a22]">
         Chưa có config — dùng Bootstrap hoặc cấu hình thủ công
       </p>
     );
@@ -82,7 +82,7 @@ const DynamicConfigFieldForm = ({ fields, onChange, onRemove }) => {
         >
           <div className="flex justify-between items-start gap-4 mb-3">
             <div>
-              <h4 className="font-semibold text-slate-800">
+              <h4 className="font-semibold text-slate-800 dark:text-white/85">
                 {field.label || field.fieldKey}
               </h4>
               {(field.description || field.catalog?.description) && (

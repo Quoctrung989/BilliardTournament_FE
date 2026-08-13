@@ -6,7 +6,7 @@ const styles = {
   OWNER: "bg-indigo-50 text-indigo-700 ring-indigo-200",
   MANAGER: "bg-sky-50 text-sky-700 ring-sky-200",
   STAFF: "bg-cyan-50 text-cyan-700 ring-cyan-200",
-  PLAYER: "bg-slate-100 text-slate-700 ring-slate-200",
+  PLAYER: "bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white/75 ring-slate-200 dark:ring-white/15",
 };
 
 const RoleBadge = ({ role }) => {

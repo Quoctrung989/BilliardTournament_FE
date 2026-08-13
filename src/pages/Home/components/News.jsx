@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useReveal } from "../../../hooks/useReveal";
 import { listPublishedPosts } from "../../../api/newsApi";
-import { DEMO_POSTS, withDemo } from "../../../constants/demoData";
 
 /** BE không bảo đảm thumbnailUrl — ảnh hỏng trong card overflow-hidden để lại mảng trống rất xấu. */
 const FALLBACK = "/images/tournaments/vn-player-1.jpg";
@@ -22,7 +21,7 @@ const SectionHeader = () => (
     style={{ "--i": 1 }}
   >
     <h2 className="text-lg font-bold dark:text-gray-100">
-      Tin mới nhất từ CAPSTONE
+      Tin mới nhất từ BTMS
     </h2>
     <Link
       to="/news"
@@ -43,10 +42,10 @@ const News = () => {
     // 5 bài: 1 bài lớn bên trái + 4 bài nhỏ bên phải.
     listPublishedPosts({ page: 0, size: 5 })
       .then((paged) => {
-        if (!cancelled) setPosts(withDemo(paged.content, DEMO_POSTS, "Tin tức"));
+        if (!cancelled) setPosts(paged.content || []);
       })
       .catch(() => {
-        if (!cancelled) setPosts(withDemo(null, DEMO_POSTS, "Tin tức"));
+        if (!cancelled) setPosts([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
