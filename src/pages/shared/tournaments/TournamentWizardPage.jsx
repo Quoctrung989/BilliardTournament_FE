@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
@@ -129,80 +129,6 @@ const progressiveSurvivorsPreset = (max, playoffSize = 4) => {
   }
   if (out.length === 0 || out[out.length - 1] !== playoffSize) out.push(playoffSize);
   return out.join(",");
-};
-
-/** Ô tìm kiếm + chọn 1 chi nhánh tổ chức giải — cùng kiểu giao diện với phần phân quyền
- * chi nhánh của Manager/Staff (ô tìm kiếm + danh sách cuộn), nhưng chỉ chọn được 1. */
-const BranchSearchSelect = ({ value, onChange, branches, disabled }) => {
-  const [search, setSearch] = useState("");
-
-  const keyword = search.trim().toLowerCase();
-  const filtered = keyword
-    ? branches.filter((b) => b.name.toLowerCase().includes(keyword))
-    : branches;
-  const selected = branches.find((b) => String(b.id) === String(value));
-
-  return (
-    <div className="space-y-2">
-      {selected && (
-        <div className="flex flex-wrap gap-1.5">
-          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium pl-2.5 pr-1.5 py-1 ring-1 ring-indigo-200">
-            {selected.name}
-            {!disabled && (
-              <button
-                type="button"
-                onClick={() => onChange("")}
-                className="text-indigo-500 hover:text-indigo-700"
-                aria-label={`Bỏ chọn ${selected.name}`}
-              >
-                <X size={12} />
-              </button>
-            )}
-          </span>
-        </div>
-      )}
-
-      <div className="relative">
-        <Search
-          size={14}
-          className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
-        />
-        <input
-          className="admin-input w-full pl-8 text-sm"
-          placeholder="Tìm chi nhánh theo tên..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          disabled={disabled}
-        />
-      </div>
-
-      <div className="flex flex-col gap-0.5 p-2 rounded-lg border border-slate-100 bg-slate-50/80 max-h-40 overflow-y-auto">
-        {branches.length === 0 ? (
-          <p className="text-xs text-slate-500 px-1">Chưa có chi nhánh nào khả dụng.</p>
-        ) : filtered.length === 0 ? (
-          <p className="text-xs text-slate-500 px-1">Không tìm thấy chi nhánh phù hợp.</p>
-        ) : (
-          filtered.map((b) => (
-            <label
-              key={b.id}
-              className={`flex items-center gap-2 text-sm text-slate-700 px-1.5 py-1 rounded ${
-                disabled ? "cursor-not-allowed opacity-60" : "hover:bg-white cursor-pointer"
-              }`}
-            >
-              <input
-                type="radio"
-                name="tournament-branch"
-                checked={String(value) === String(b.id)}
-                onChange={() => onChange(String(b.id))}
-                disabled={disabled}
-              />
-              {b.name}
-            </label>
-          ))
-        )}
-      </div>
-    </div>
-  );
 };
 
 const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
@@ -633,30 +559,6 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
             </div>
 
             <div>
-              <ImageUploader
-                label="Ảnh thumbnail"
-                folder="tournament-thumbnails"
-                previewUrl={basic.thumbnailUrl}
-                aspectClass="h-40 w-full rounded-xl"
-                onUpload={({ objectKey }) =>
-                  setBasic((b) => ({ ...b, thumbnailUrl: objectKey }))
-                }
-              />
-            </div>
-
-            <div>
-              <ImageUploader
-                label="Ảnh banner"
-                folder="tournament-banners"
-                previewUrl={basic.bannerUrl}
-                aspectClass="h-40 w-full rounded-xl"
-                onUpload={({ objectKey }) =>
-                  setBasic((b) => ({ ...b, bannerUrl: objectKey }))
-                }
-              />
-            </div>
-
-            <div>
               <label className="admin-label">Loại bi <span className="text-red-500">*</span></label>
               <select
                 className={`admin-select w-full ${fieldErrors.gameType ? "border-rose-400 focus:ring-rose-300" : ""}`}
@@ -698,23 +600,22 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
             <div>
               <label className="admin-label">Chi nhánh tổ chức <span className="text-red-500">*</span></label>
-              {branches.length <= 1 ? (
-                <input
-                  className={`admin-input w-full bg-slate-50 ${fieldErrors.branchId ? "border-rose-400 focus:ring-rose-300" : ""}`}
-                  value={branches[0]?.name || "Chưa có chi nhánh khả dụng"}
-                  readOnly
-                />
-              ) : (
-                <BranchSearchSelect
-                  value={basic.branchId}
-                  onChange={(branchId) => {
-                    setBasic((b) => ({ ...b, branchId }));
-                    if (fieldErrors.branchId) setFieldErrors((f) => ({ ...f, branchId: "" }));
-                  }}
-                  branches={branches}
-                  disabled={!isNew && tournamentStatus !== "DRAFT"}
-                />
-              )}
+              <select
+                className={`admin-select w-full ${fieldErrors.branchId ? "border-rose-400 focus:ring-rose-300" : ""}`}
+                value={basic.branchId}
+                onChange={(e) => {
+                  setBasic((b) => ({ ...b, branchId: e.target.value }));
+                  if (fieldErrors.branchId) setFieldErrors((f) => ({ ...f, branchId: "" }));
+                }}
+                disabled={branches.length === 0 || (!isNew && tournamentStatus !== "DRAFT")}
+              >
+                <option value="">
+                  {branches.length === 0 ? "Chưa có chi nhánh khả dụng" : "-- Chọn chi nhánh --"}
+                </option>
+                {branches.map((b) => (
+                  <option key={b.id} value={String(b.id)}>{b.name}</option>
+                ))}
+              </select>
               {fieldErrors.branchId && <p className="mt-1 text-xs text-rose-600">{fieldErrors.branchId}</p>}
               {branches.length === 0 && (
                 <p className="text-xs text-amber-600 mt-1">
@@ -840,6 +741,54 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               {dateErrors.endAt && (
                 <p className="mt-1 text-xs text-rose-600">{dateErrors.endAt}</p>
               )}
+            </div>
+
+            {/* Ảnh giải — gom thành một khối riêng ở cuối phần thông tin thay vì
+                chen giữa Mô tả và Loại bi như trước. Hai khung đặt đúng tỉ lệ nơi
+                ảnh sẽ hiển thị thật, để owner thấy ngay phần nào của ảnh bị cắt.
+
+                Cả hai khung chốt chung chiều cao h-52 để thẳng hàng nhau; hình dạng
+                đến từ chiều rộng. Thumbnail dùng aspect-[3/4] nên rộng suy ra từ
+                chiều cao (~156px) — khớp `aspectRatio: 3/4` của card ở
+                pages/Event/index.jsx. Banner lấy hết phần rộng còn lại nên tự thành
+                dải ngang. Đừng đặt aspect cố định cho banner: 3/1 sẽ ép chiều rộng
+                lên ~624px và tràn khỏi form ở màn hẹp.
+
+                Lưu ý `bannerUrl` hiện chưa được render ở màn hình nào — hero trang
+                chi tiết vẫn đang lấy `thumbnailUrl`. */}
+            <div className="sm:col-span-2 pt-3 border-t border-slate-100">
+              <p className="admin-label mb-3">Hình ảnh giải đấu</p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="shrink-0">
+                  <ImageUploader
+                    label="Thumbnail — thẻ dọc 3:4"
+                    folder="tournament-thumbnails"
+                    previewUrl={basic.thumbnailUrl}
+                    aspectClass="h-52 aspect-[3/4] rounded-xl"
+                    onUpload={({ objectKey }) =>
+                      setBasic((b) => ({ ...b, thumbnailUrl: objectKey }))
+                    }
+                  />
+                  <p className="mt-1.5 text-xs text-slate-400 leading-snug">
+                    Hiện ở card danh sách giải.
+                  </p>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <ImageUploader
+                    label="Banner — dải ngang"
+                    folder="tournament-banners"
+                    previewUrl={basic.bannerUrl}
+                    aspectClass="h-52 w-full rounded-xl"
+                    onUpload={({ objectKey }) =>
+                      setBasic((b) => ({ ...b, bannerUrl: objectKey }))
+                    }
+                  />
+                  <p className="mt-1.5 text-xs text-slate-400 leading-snug">
+                    Ảnh ngang khổ rộng, dự phòng cho các trang hiển thị dạng dải.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Registration toggle */}

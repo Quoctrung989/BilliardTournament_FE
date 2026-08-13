@@ -30,7 +30,7 @@ function roundLabel(roundNo, totalRounds) {
 }
 
 const STATUS_LABEL = {
-  PENDING: "Chờ", IN_PROGRESS: "Đang đấu", COMPLETED: "Xong", WALKOVER: "WO", BYE: "BYE",
+  PENDING: "Chờ", IN_PROGRESS: "Đang đấu", COMPLETED: "Xong", WALKOVER: "Xử thắng", BYE: "Miễn đấu",
 };
 const STATUS_DOT = {
   PENDING: "bg-slate-300", IN_PROGRESS: "bg-blue-500 animate-pulse",

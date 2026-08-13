@@ -13,6 +13,7 @@ import AdminModal from "../../../components/admin/ui/AdminModal";
 import SocketConnectionBadge from "../../../components/shared/SocketConnectionBadge";
 import SocketReconnectBanner from "../../../components/shared/SocketReconnectBanner";
 import { getApiErrorMessage } from "../../../utils/apiError";
+import { ownerTournamentApi, managerTournamentApi } from "../../../api/tournamentManagementApi";
 import { useTournamentSocket } from "../../../hooks/useTournamentSocket";
 import BracketDiagram, { buildFeedersMap } from "./BracketDiagram";
 
@@ -37,7 +38,7 @@ const STATUS_CFG = {
   PENDING:     { label: "Chờ",           dot: "bg-slate-400",    pill: "bg-slate-100 text-slate-600" },
   IN_PROGRESS: { label: "Đang diễn ra",  dot: "bg-blue-500 animate-pulse", pill: "bg-blue-100 text-blue-800" },
   COMPLETED:   { label: "Hoàn thành",    dot: "bg-emerald-500",  pill: "bg-emerald-100 text-emerald-800" },
-  WALKOVER:    { label: "Walkover",       dot: "bg-amber-500",    pill: "bg-amber-100 text-amber-800" },
+  WALKOVER:    { label: "Xử thắng",       dot: "bg-amber-500",    pill: "bg-amber-100 text-amber-800" },
   BYE:         { label: "BYE",           dot: "bg-slate-300",    pill: "bg-slate-100 text-slate-400" },
 };
 
@@ -175,6 +176,7 @@ const DrawPage = ({ api, basePath }) => {
   /* ── Actions loading ── */
   const [drawing,      setDrawing]      = useState(false);
   const [confirming,   setConfirming]   = useState(false);
+  const [startingTournament, setStartingTournament] = useState(false);
   const [swapping,     setSwapping]     = useState(false);
   const [saving,       setSaving]       = useState(false);
 
@@ -207,6 +209,11 @@ const DrawPage = ({ api, basePath }) => {
   const [scoreModal,   setScoreModal]   = useState(null);
   const [scoreForm,    setScoreForm]    = useState({ p1: "", p2: "" });
   const [completeModal,setCompleteModal]= useState(null);
+  /* Xử thắng: bước 2 của modal kết thúc trận — chọn cơ thủ rồi mới nhập lý do.
+     Lý do KHÔNG được lưu (Match entity không có field nào chứa), chỉ hiển thị lại
+     cho người ghi nhận xác nhận mình bấm đúng người. */
+  const [walkoverTarget, setWalkoverTarget] = useState(null);
+  const [walkoverReason, setWalkoverReason] = useState("");
   const [eventsModal,  setEventsModal]  = useState(null);
   const [events,       setEvents]       = useState([]);
 
@@ -237,6 +244,9 @@ const DrawPage = ({ api, basePath }) => {
   const [activeStageId,  setActiveStageId]  = useState(null); // tab giai đoạn đang xem
 
   const isPreview          = tournament?.status === "DRAW_PREVIEW";
+  // Bracket đã chốt nhưng giải chưa chạy — đây là lúc cần nút "Bắt đầu giải đấu"
+  // ngay tại đây, thay vì bắt Owner quay về trang chi tiết giải.
+  const isDrawDone         = tournament?.status === "DRAW_DONE";
   const isFinalBracketReady= tournament?.status === "FINAL_BRACKET_READY";
   const isProgressive      = tournament?.format === "PROGRESSIVE_ROUND_ROBIN";
   const isDoubleElim       = tournament?.format === "DOUBLE_ELIMINATION";
@@ -523,6 +533,28 @@ const DrawPage = ({ api, basePath }) => {
     );
   };
 
+  /* ══ Bắt đầu giải đấu ═════════════════════════════════ */
+  // DrawPage nhận matchApi qua prop, không có patchStatus — lấy thêm tournamentApi
+  // theo basePath, cùng cách ParticipantListPage đang làm.
+  const tournamentApi = basePath.startsWith("/owner") ? ownerTournamentApi : managerTournamentApi;
+
+  const handleStartTournament = () => {
+    showConfirm(
+      "Bắt đầu giải đấu",
+      "Giải sẽ chuyển sang trạng thái Đang thi đấu. Các trận đã có thể nhập tỉ số.",
+      async () => {
+        setStartingTournament(true);
+        try {
+          await tournamentApi.patchStatus(tournamentId, { status: "IN_PROGRESS" });
+          toast.success("Giải đấu đã bắt đầu!");
+          load();
+        } catch (err) { toast.error(getApiErrorMessage(err)); }
+        finally { setStartingTournament(false); }
+      },
+      { okLabel: "Bắt đầu", okVariant: "success" }
+    );
+  };
+
   /* ══ CUT_TO_SE: populate final bracket ═════════════════ */
   const handlePopulateFinalBracket = () => {
     showConfirm(
@@ -605,12 +637,18 @@ const DrawPage = ({ api, basePath }) => {
     try {
       const updated = await api.completeMatch(completeModal.id, { winnerParticipantId: winnerId });
       applyMatchToStages(updated);
-      toast.success("Trận kết thúc — người thắng đã được chuyển lên"); setCompleteModal(null);
+      toast.success("Trận kết thúc — người thắng đã được chuyển lên"); closeCompleteModal();
       // Việc chuyển người thắng lên trận kế tiếp được đồng bộ qua BRACKET_SYNC (realtime);
       // nếu socket đang mất kết nối thì tải nhẹ để không bị lệch dữ liệu.
       if (connectionState !== "connected") silentResync();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setSaving(false); }
+  };
+
+  const closeCompleteModal = () => {
+    setCompleteModal(null);
+    setWalkoverTarget(null);
+    setWalkoverReason("");
   };
 
   const handleWalkover = async (winnerId) => {
@@ -619,7 +657,10 @@ const DrawPage = ({ api, basePath }) => {
     try {
       const updated = await api.walkover(completeModal.id, { winnerParticipantId: winnerId });
       applyMatchToStages(updated);
-      toast.success("Walkover đã ghi nhận"); setCompleteModal(null);
+      const who = walkoverTarget?.displayName ?? "cơ thủ";
+      const why = walkoverReason.trim();
+      toast.success(why ? `Xử thắng cho ${who} — ${why}` : `Đã xử thắng cho ${who}`);
+      closeCompleteModal();
       if (connectionState !== "connected") silentResync();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setSaving(false); }
@@ -646,9 +687,24 @@ const DrawPage = ({ api, basePath }) => {
 
   const openAssignBulk = useCallback(() => {
     if (selectedIds.size === 0) return;
+    const picked = stages.flatMap(s => s.matches || []).filter(m => selectedIds.has(m.id));
+
+    // Điền sẵn khi MỌI trận được chọn cùng một giá trị — thường gặp nhất là chọn đúng
+    // một trận đã có bàn/giờ. Nếu các trận đang khác nhau thì để trống, vì không có
+    // giá trị nào đại diện đúng cho cả nhóm và hiển thị bừa sẽ khiến người dùng vô tình
+    // ghi đè giờ của trận này lên trận kia khi bấm Lưu.
+    const distinct = (vals) => [...new Set(vals)];
+    const tables = distinct(picked.map(m => m.tableNo ?? null));
+    const times  = distinct(picked.map(m => m.scheduledAt ?? null));
+
     setAssignModal({ matchIds: Array.from(selectedIds) });
-    setAssignForm({ tableNo: "", scheduledAt: "", clearTable: false, clearScheduledAt: false });
-  }, [selectedIds]);
+    setAssignForm({
+      tableNo: tables.length === 1 && tables[0] != null ? String(tables[0]) : "",
+      scheduledAt: times.length === 1 && times[0] ? toDatetimeLocalValue(times[0]) : "",
+      clearTable: false,
+      clearScheduledAt: false,
+    });
+  }, [selectedIds, stages]);
 
   const allMatches = useCallback(() => stages.flatMap(s => s.matches || []), [stages]);
   const findMatchById = useCallback((id) => allMatches().find(m => m.id === id) || null, [allMatches]);
@@ -765,7 +821,6 @@ const DrawPage = ({ api, basePath }) => {
 
   const handleSaveAssign = useCallback(() => {
     if (!assignModal) return;
-    const tableNo = assignForm.clearTable || !assignForm.tableNo ? null : assignForm.tableNo;
     const scheduledAtIso = assignForm.clearScheduledAt ? null : fromDatetimeLocalValue(assignForm.scheduledAt);
 
     // Không cho xếp trước giờ bắt đầu giải (áp dụng cả gán đơn lẫn bulk)
@@ -775,11 +830,12 @@ const DrawPage = ({ api, basePath }) => {
       return;
     }
 
-    // Chỉ validate cho gán 1 trận có set giờ (bulk bỏ qua để tránh tự trùng với nhau)
     const single = assignModal.matchIds.length === 1;
+    const target = findMatchById(assignModal.matchIds[0]);
+
+    // 1) Phụ thuộc — CHẶN cứng, không cho lưu. Chỉ áp dụng khi gán 1 trận, vì mỗi trận
+    //    có tập trận nguồn riêng.
     if (single && scheduledAtIso) {
-      const target = findMatchById(assignModal.matchIds[0]);
-      // 1) Phụ thuộc — CHẶN cứng, không cho lưu
       const violation = target ? findFeederViolation(target.id, scheduledAtIso) : null;
       if (violation) {
         toast.error(
@@ -787,12 +843,24 @@ const DrawPage = ({ api, basePath }) => {
         );
         return;
       }
-      // 2) Trùng bàn & giờ — cảnh báo, cho phép vẫn lưu
-      const conflict = findTableConflict(assignModal.matchIds, tableNo, scheduledAtIso, target);
+    }
+
+    // 2) Trùng bàn & giờ — cảnh báo, cho phép vẫn lưu.
+    //
+    //    Ô "Số bàn" để trống nghĩa là GIỮ NGUYÊN bàn hiện tại (BE coi tableNo=null kèm
+    //    clearTable=false là không đổi). Trước đây chỗ này soát theo đúng ô đang trống nên
+    //    thoát sớm và không cảnh báo gì — đổi mỗi giờ thi đấu là lọt lưới hoàn toàn.
+    //    Giờ lấy bàn thật của trận làm mốc soát.
+    const effectiveTableNo = assignForm.clearTable
+      ? null
+      : (assignForm.tableNo || (single ? target?.tableNo : null) || null);
+
+    if (scheduledAtIso && effectiveTableNo) {
+      const conflict = findTableConflict(assignModal.matchIds, effectiveTableNo, scheduledAtIso, target);
       if (conflict) {
         showConfirm(
           "Trùng bàn & giờ?",
-          `Bàn ${tableNo} đã có trận ${conflict.matchCode} lúc ${formatScheduledAt(conflict.scheduledAt)} trong khung giờ này — vẫn lưu?`,
+          `Bàn ${effectiveTableNo} đã có trận ${conflict.matchCode} lúc ${formatScheduledAt(conflict.scheduledAt)} trong khung giờ này — vẫn lưu?`,
           () => doSaveAssign({ ignoreTableConflict: true }),
           { okLabel: "Vẫn lưu", okVariant: "primary" }
         );
@@ -942,6 +1010,16 @@ const DrawPage = ({ api, basePath }) => {
                 <CheckSquare size={14} />
                 {bulkMode ? "Đang chọn nhiều…" : "Chọn nhiều — gán bàn/giờ"}
               </button>
+
+              {/* Bracket đã chốt, giải chưa chạy — bắt đầu ngay tại đây, khỏi quay về trang chi tiết */}
+              {isDrawDone && (
+                <AdminButton variant="success" disabled={startingTournament}
+                             onClick={handleStartTournament}
+                             className="flex items-center gap-2">
+                  <Play size={14} />
+                  {startingTournament ? "Đang bắt đầu..." : "Bắt đầu giải đấu"}
+                </AdminButton>
+              )}
 
               {/* CUT_TO_SE: populate final bracket button */}
               {isDoubleElim && hasFinalBracket && !isFinalBracketReady && (
@@ -1431,29 +1509,91 @@ const DrawPage = ({ api, basePath }) => {
       {/* Complete / Walkover */}
       <AdminModal
         open={!!completeModal}
-        onClose={() => setCompleteModal(null)}
-        title={`Kết thúc trận — ${completeModal?.matchCode}`}
-        footer={<AdminButton variant="secondary" onClick={() => setCompleteModal(null)}>Đóng</AdminButton>}
+        onClose={closeCompleteModal}
+        title={walkoverTarget
+          ? `Xử thắng — ${completeModal?.matchCode}`
+          : `Kết thúc trận — ${completeModal?.matchCode}`}
+        footer={walkoverTarget ? (
+          <>
+            <AdminButton variant="secondary" disabled={saving}
+                         onClick={() => { setWalkoverTarget(null); setWalkoverReason(""); }}>
+              Quay lại
+            </AdminButton>
+            <AdminButton variant="primary" disabled={saving}
+                         onClick={() => handleWalkover(walkoverTarget.id)}>
+              {saving ? "Đang ghi nhận..." : "Xác nhận xử thắng"}
+            </AdminButton>
+          </>
+        ) : (
+          <AdminButton variant="secondary" onClick={closeCompleteModal}>Đóng</AdminButton>
+        )}
       >
-        <p className="text-sm text-slate-500 mb-4">Chọn người thắng trận này:</p>
-        <div className="space-y-2">
-          {[completeModal?.player1, completeModal?.player2].filter(Boolean).map(p => (
-            <div key={p.id}
-                 className="flex items-center gap-3 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
-              <PlayerAvatar name={p.displayName} id={p.id} size="sm" />
-              <span className="flex-1 font-medium text-slate-800">{p.displayName}</span>
-              <div className="flex gap-2">
-                <AdminButton variant="primary" disabled={saving} onClick={() => handleComplete(p.id)}
-                             className="flex items-center gap-1">
-                  <CheckCircle size={13} /> Thắng
-                </AdminButton>
-                <AdminButton variant="secondary" disabled={saving} onClick={() => handleWalkover(p.id)}>
-                  Walkover
-                </AdminButton>
+        {walkoverTarget ? (
+          <>
+            <div className="flex items-center gap-3 bg-amber-50 px-4 py-3 rounded-xl border border-amber-200 mb-4">
+              <PlayerAvatar name={walkoverTarget.displayName} id={walkoverTarget.id} size="sm" />
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-800 truncate">{walkoverTarget.displayName}</p>
+                <p className="text-xs text-amber-700">Được xử thắng, trận không thi đấu</p>
               </div>
             </div>
-          ))}
-        </div>
+
+            <label className="admin-label">Lý do xử thắng</label>
+            <div className="flex flex-wrap gap-2 mt-1.5 mb-2">
+              {["Đối thủ vắng mặt", "Đối thủ bỏ cuộc", "Đối thủ đến muộn quá giờ", "Đối thủ bị loại"]
+                .map(preset => (
+                  <button key={preset} type="button" onClick={() => setWalkoverReason(preset)}
+                          className={[
+                            "px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors",
+                            walkoverReason === preset
+                              ? "bg-indigo-600 text-white border-indigo-600"
+                              : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300",
+                          ].join(" ")}>
+                    {preset}
+                  </button>
+                ))}
+            </div>
+            <textarea
+              className="admin-input w-full min-h-[70px]"
+              placeholder="Nhập lý do hoặc chọn nhanh ở trên..."
+              value={walkoverReason}
+              onChange={e => setWalkoverReason(e.target.value)}
+            />
+            <p className="text-xs text-slate-400 mt-2">
+              Lý do chỉ hiển thị lại để bạn xác nhận thao tác, <span className="font-medium">hệ thống
+              chưa lưu lại</span>. Cần lưu vĩnh viễn thì ghi vào biên bản của Ban tổ chức.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-slate-500 mb-4">Chọn người thắng trận này:</p>
+            <div className="space-y-2">
+              {[completeModal?.player1, completeModal?.player2].filter(Boolean).map(p => (
+                <div key={p.id}
+                     className="flex items-center gap-3 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+                  <PlayerAvatar name={p.displayName} id={p.id} size="sm" />
+                  <span className="flex-1 font-medium text-slate-800">{p.displayName}</span>
+                  <div className="flex gap-2">
+                    <AdminButton variant="primary" disabled={saving} onClick={() => handleComplete(p.id)}
+                                 className="flex items-center gap-1">
+                      <CheckCircle size={13} /> Thắng
+                    </AdminButton>
+                    <AdminButton variant="secondary" disabled={saving}
+                                 onClick={() => { setWalkoverTarget(p); setWalkoverReason(""); }}
+                                 title="Đối thủ vắng mặt hoặc bỏ cuộc — xử thắng mà không thi đấu">
+                      Xử thắng
+                    </AdminButton>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100">
+              <span className="font-medium text-slate-500">Thắng</span> — hai bên đã thi đấu và có kết quả.{" "}
+              <span className="font-medium text-slate-500">Xử thắng</span> — đối thủ vắng mặt, bỏ cuộc hoặc
+              bị loại, trận không diễn ra.
+            </p>
+          </>
+        )}
       </AdminModal>
 
       {/* Score events */}

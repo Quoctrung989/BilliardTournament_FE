@@ -156,10 +156,16 @@ const TournamentDetailPage = ({ api, basePath }) => {
     }
   }, [basePath, location.search, navigate, tournamentId]);
 
-  const handleStatusChange = async (newStatus, confirmMsg) => {
+  /**
+   * Mở modal xác nhận trước khi đổi trạng thái giải.
+   *
+   * `opts` cho phép từng thao tác tự quyết mức độ cảnh báo — dùng khi hành động
+   * có hệ quả nặng hơn bình thường, ví dụ đóng đăng ký lúc chưa đủ người.
+   */
+  const handleStatusChange = async (newStatus, confirmMsg, opts = {}) => {
     setConfirmError(null);
     setConfirmErrorCode(null);
-    setConfirmState({ newStatus, confirmMsg });
+    setConfirmState({ newStatus, confirmMsg, ...opts });
   };
 
   const loadAuditLogs = useCallback(async () => {
@@ -477,12 +483,44 @@ const TournamentDetailPage = ({ api, basePath }) => {
           <AdminButton
             variant="secondary"
             disabled={statusChanging}
-            onClick={() =>
-              handleStatusChange(
-                "REGISTRATION_CLOSED",
-                "Đóng đăng ký giải này?"
-              )
-            }
+            onClick={() => {
+              const approved = detail.approvedCount ?? 0;
+              const max = detail.maxParticipants;
+              // max = null nghĩa là giải không giới hạn số người → không có khái niệm "thiếu".
+              const missing = max != null ? max - approved : 0;
+
+              // Dưới 2 người thì không bốc thăm được, giải sẽ mắc kẹt ở trạng thái
+              // đã đóng đăng ký mà không đi tiếp được — cảnh báo nặng hơn hẳn.
+              if (approved < 2) {
+                handleStatusChange(
+                  "REGISTRATION_CLOSED",
+                  `Giải mới có ${approved} người tham gia.`,
+                  {
+                    details:
+                      "Cần tối thiểu 2 người mới bốc thăm và sinh bracket được. Đóng đăng ký bây giờ thì giải sẽ không đi tiếp được cho tới khi bạn thêm người thủ công hoặc mở lại đăng ký.",
+                    confirmVariant: "danger",
+                    confirmText: "Vẫn đóng đăng ký",
+                  }
+                );
+                return;
+              }
+
+              if (missing > 0) {
+                handleStatusChange(
+                  "REGISTRATION_CLOSED",
+                  `Giải mới có ${approved}/${max} người, còn thiếu ${missing} suất.`,
+                  {
+                    details:
+                      "Đóng đăng ký bây giờ nghĩa là giải sẽ thi đấu với đúng số người hiện tại. Người chơi mới sẽ không đăng ký được nữa.",
+                    confirmVariant: "danger",
+                    confirmText: "Vẫn đóng đăng ký",
+                  }
+                );
+                return;
+              }
+
+              handleStatusChange("REGISTRATION_CLOSED", "Đóng đăng ký giải này?");
+            }}
           >
             Đóng đăng ký
           </AdminButton>
@@ -695,8 +733,9 @@ const TournamentDetailPage = ({ api, basePath }) => {
           setConfirmErrorCode(null);
         }}
         onConfirm={confirmStatusChange}
-        title="Xác nhận thao tác"
+        title={confirmState?.confirmVariant === "danger" ? "Bạn có chắc chắn?" : "Xác nhận thao tác"}
         message={confirmState?.confirmMsg || ""}
+        details={confirmState?.details}
         errorMessage={confirmError}
         extraAction={
           confirmErrorCode === PROGRESSIVE_CONFIG_INVALID_CODE
@@ -713,8 +752,11 @@ const TournamentDetailPage = ({ api, basePath }) => {
               }
             : null
         }
-        confirmText="Xác nhận"
-        confirmVariant={confirmState?.newStatus === "CANCELLED" ? "danger" : "primary"}
+        confirmText={confirmState?.confirmText || "Xác nhận"}
+        confirmVariant={
+          confirmState?.confirmVariant ??
+          (confirmState?.newStatus === "CANCELLED" ? "danger" : "primary")
+        }
         loading={statusChanging}
       />
     </div>
