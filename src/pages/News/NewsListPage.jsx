@@ -7,31 +7,12 @@ import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../utils/pagination";
 import { useReveal } from "../../hooks/useReveal";
-import { DEMO_CATEGORIES, DEMO_POSTS, withDemo } from "../../constants/demoData";
 
 const FALLBACK = "/images/tournaments/vn-player-1.jpg";
 
 const fmtDate = (iso) => {
   if (!iso) return "";
   return new Date(iso).toLocaleDateString("vi-VN", { day: "2-digit", month: "long", year: "numeric" });
-};
-
-/**
- * Khi đang chạy dữ liệu mẫu, việc lọc phải làm ngay tại client: bấm chuyên mục
- * sẽ gọi API kèm categoryId, API vẫn trả rỗng, rồi lại rơi về mẫu đầy đủ — bộ
- * lọc trông như hỏng. Lọc ở đây để UI mẫu hành xử đúng như khi có dữ liệu thật.
- */
-const filterDemoPosts = (list, categoryId, search) => {
-  let out = list;
-  if (categoryId) {
-    const cat = DEMO_CATEGORIES.find((c) => String(c.id) === String(categoryId));
-    if (cat) out = out.filter((p) => p.categoryName === cat.name);
-  }
-  if (search) {
-    const q = search.trim().toLowerCase();
-    out = out.filter((p) => p.title.toLowerCase().includes(q));
-  }
-  return out;
 };
 
 const NewsListPage = () => {
@@ -49,22 +30,17 @@ const NewsListPage = () => {
 
   useEffect(() => {
     listPublicCategories()
-      .then((list) => setCategories(withDemo(list, DEMO_CATEGORIES, "Chuyên mục tin")))
-      .catch(() => setCategories(withDemo(null, DEMO_CATEGORIES, "Chuyên mục tin")));
+      .then((list) => setCategories(list || []))
+      .catch(() => setCategories([]));
   }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
 
-    const showDemoPosts = () => {
-      const list = filterDemoPosts(
-        withDemo(null, DEMO_POSTS, "Tin tức"),
-        categoryId,
-        search
-      );
-      setPosts(list);
-      setTotalElements(list.length);
-      setTotalPages(1);
+    const showEmpty = () => {
+      setPosts([]);
+      setTotalElements(0);
+      setTotalPages(0);
     };
 
     try {
@@ -79,11 +55,11 @@ const NewsListPage = () => {
         setTotalPages(result.totalPages);
         setTotalElements(result.totalElements);
       } else {
-        showDemoPosts();
+        showEmpty();
       }
     } catch (err) {
       toast.error(getApiErrorMessage(err));
-      showDemoPosts();
+      showEmpty();
     } finally {
       setLoading(false);
     }

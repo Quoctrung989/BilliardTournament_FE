@@ -20,10 +20,12 @@ export const SEEDING_OPTIONS = [
   { value: "SEED", label: "Theo hạt giống" },
 ];
 
+/** Chỉ còn Đơn và Đôi — hình thức "Đội" (TEAM) đã bỏ khỏi giao diện tạo giải.
+ * Các nơi hiển thị nhãn vẫn giữ mapping cho TEAM để giải cũ tạo trước đây
+ * không hiện ra chuỗi enum thô. */
 export const PARTICIPANT_TYPES = [
   { value: "SINGLE", label: "Đơn" },
   { value: "DOUBLE", label: "Đôi" },
-  { value: "TEAM", label: "Đội" },
 ];
 
 export const TOURNAMENT_STATUS_LABELS = {

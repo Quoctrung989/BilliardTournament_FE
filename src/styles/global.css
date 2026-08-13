@@ -100,6 +100,15 @@ label {
   transform: scaleX(1);
 }
 
+/*
+ * Giữ gạch chân hiện thường trực — dùng cho mục đang mở (tab nav hiện tại,
+ * bộ lọc đang áp dụng). Cùng một dấu hiệu cho "đang trỏ vào" và "đang ở đây",
+ * nên không phải học hai quy ước.
+ */
+.ui-underline--active::after {
+  transform: scaleX(1);
+}
+
 /* Logo phóng to khi hover. `transform-origin: left` để logo nở sang phải,
    không đẩy các phần tử bên cạnh và không tràn mép trái màn hình. */
 .ui-logo-zoom {
@@ -121,6 +130,29 @@ label {
 .ui-icon-lift:hover {
   transform: translateY(-3px) scale(1.12);
   color: var(--wnt25-color-red);
+}
+
+/*
+ * Facebook lấy đúng màu thương hiệu của nó (#1877F2) thay cho đỏ chung — icon
+ * mạng xã hội được nhận ra bằng màu, tô đỏ thì mất tín hiệu đó.
+ *
+ * Phải đặt SAU `.ui-icon-lift:hover`: hai selector cùng độ ưu tiên (0,2,0) nên
+ * cái đứng sau mới thắng. Đảo thứ tự là quay về đỏ.
+ */
+.ui-icon-lift--facebook:hover {
+  color: #1877f2;
+}
+
+/*
+ * TikTok không đổi màu khi trỏ vào — logo của nó vốn là màu đen, tô đỏ là sai
+ * thương hiệu.
+ *
+ * `inherit` chứ không ghi cứng `#000`: footer để icon ăn màu chữ của nó, đen ở
+ * nền sáng và xám nhạt ở nền tối. Ghi cứng đen thì ở chế độ tối icon chìm hẳn
+ * vào nền — mà TikTok trên nền tối vốn cũng dùng bản logo sáng.
+ */
+.ui-icon-lift--tiktok:hover {
+  color: inherit;
 }
 
 @media (prefers-reduced-motion: reduce) {

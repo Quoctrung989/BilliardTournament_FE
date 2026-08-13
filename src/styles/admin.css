@@ -29,8 +29,21 @@
 .admin-main {
   background: var(--admin-bg);
   min-height: 100vh;
-  overflow-x: hidden;
   transition: margin-left 0.25s ease, width 0.25s ease;
+}
+
+/*
+ * `overflow-x: hidden` từng nằm ở `.admin-main` để chặn tràn ngang, nhưng bất
+ * kỳ giá trị `overflow` nào khác `visible` cũng biến phần tử thành khung cuộn:
+ * `position: sticky` của `.admin-header` bên trong sẽ dính vào khung đó thay vì
+ * vào khung nhìn, nên thanh tiêu đề không ghim khi cuộn trang.
+ *
+ * Chuyển việc chặn tràn xuống đúng chỗ cần — vùng nội dung — để header ở trên
+ * vẫn sticky bình thường. Bảng rộng vốn đã tự cuộn trong `.admin-table-wrap`.
+ */
+.admin-content,
+.admin-content--full {
+  overflow-x: hidden;
 }
 
 .admin-content {

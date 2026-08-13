@@ -30,7 +30,7 @@ function roundLabel(roundNo, totalRounds) {
 }
 
 const STATUS_LABEL = {
-  PENDING: "Chờ", IN_PROGRESS: "Đang đấu", COMPLETED: "Xong", WALKOVER: "WO", BYE: "BYE",
+  PENDING: "Chờ", IN_PROGRESS: "Đang đấu", COMPLETED: "Xong", WALKOVER: "Xử thắng", BYE: "Miễn đấu",
 };
 const STATUS_DOT = {
   PENDING: "bg-slate-300", IN_PROGRESS: "bg-blue-500 animate-pulse",
@@ -126,10 +126,26 @@ const MatchNode = ({ match, nodeRef, onStart, onScore, onComplete, starting, fla
 ══════════════════════════════════════════════════════════ */
 const ConnectorOverlay = ({ containerRef, nodesRef, links, signal }) => {
   const [paths, setPaths] = useState([]);
+  /* Kích thước vẽ phải bám theo TOÀN BỘ nội dung, không phải phần đang nhìn
+     thấy: container có `overflow-x-auto`, nên với bracket nhiều vòng thì
+     `w-full` chỉ bằng bề ngang khung nhìn và mọi đường nối nằm ngoài đó bị
+     SVG cắt mất. */
+  const [size, setSize] = useState({ w: 0, h: 0 });
 
   const recompute = useCallback(() => {
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    if (!containerRect) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    /* Khối đang ẩn (đổi tab, chưa mở panel) đo ra toàn số 0. Vẽ lúc này chỉ
+       tạo ra một đống đường chụm ở góc, nên bỏ qua và chờ lần đo sau. */
+    if (containerRect.width === 0) return;
+
+    /* Toạ độ quy về hệ của container. Cộng scrollLeft/Top vì
+       `getBoundingClientRect` trả theo khung nhìn, còn SVG nằm trong vùng cuộn
+       nên gốc của nó dịch theo mức đã cuộn. */
+    const originX = containerRect.left - container.scrollLeft;
+    const originY = containerRect.top - container.scrollTop;
+
     const next = [];
     links.forEach(({ from, to }) => {
       const fromEl = nodesRef.current.get(from);
@@ -137,29 +153,58 @@ const ConnectorOverlay = ({ containerRef, nodesRef, links, signal }) => {
       if (!fromEl || !toEl) return;
       const fr = fromEl.getBoundingClientRect();
       const tr = toEl.getBoundingClientRect();
-      const x1 = fr.right - containerRect.left;
-      const y1 = fr.top + fr.height / 2 - containerRect.top;
-      const x2 = tr.left - containerRect.left;
-      const y2 = tr.top + tr.height / 2 - containerRect.top;
+      const x1 = fr.right - originX;
+      const y1 = fr.top + fr.height / 2 - originY;
+      const x2 = tr.left - originX;
+      const y2 = tr.top + tr.height / 2 - originY;
       const midX = (x1 + x2) / 2;
       next.push(`M ${x1} ${y1} H ${midX} V ${y2} H ${x2}`);
     });
+
+    setSize({ w: container.scrollWidth, h: container.scrollHeight });
     setPaths(next);
   }, [containerRef, nodesRef, links]);
 
   useLayoutEffect(() => {
     recompute();
+
+    /* Đo thêm một nhịp ở khung hình kế tiếp. Lần đo trên có thể rơi vào lúc
+       layout chưa xong (phông chữ còn đang tải, ảnh chưa có kích thước), và
+       ResizeObserver thì chỉ báo khi kích thước ĐỔI — không có nhịp này thì
+       một lần đo hụt là sơ đồ trống cho tới lần tương tác sau. */
+    const raf = requestAnimationFrame(recompute);
+
+    /* Theo dõi cả container lẫn khối nội dung bên trong: thêm/bớt vòng làm
+       nội dung cao lên mà bề ngoài container có khi không đổi. */
     const ro = new ResizeObserver(recompute);
-    if (containerRef.current) ro.observe(containerRef.current);
+    const container = containerRef.current;
+    if (container) {
+      ro.observe(container);
+      if (container.firstElementChild) ro.observe(container.firstElementChild);
+    }
     window.addEventListener("resize", recompute);
-    return () => { ro.disconnect(); window.removeEventListener("resize", recompute); };
+    container?.addEventListener("scroll", recompute, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("resize", recompute);
+      container?.removeEventListener("scroll", recompute);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recompute, signal]);
 
   return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+    <svg
+      className="absolute left-0 top-0 pointer-events-none text-slate-300 dark:text-white/20"
+      width={size.w || "100%"}
+      height={size.h || "100%"}
+      style={{ zIndex: 0 }}
+    >
       {paths.map((d, i) => (
-        <path key={i} d={d} fill="none" stroke="#cbd5e1" strokeWidth="2" />
+        /* `currentColor` để đường nối lật theo chế độ sáng/tối — màu cứng
+           #cbd5e1 gần như biến mất trên nền tối #161a22. */
+        <path key={i} d={d} fill="none" stroke="currentColor" strokeWidth="2" />
       ))}
     </svg>
   );
@@ -240,8 +285,16 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
         </div>
       </div>
 
+      {/* ConnectorOverlay đặt SAU khối node, không phải trước.
+
+          React chạy layout effect theo thứ tự cây, nên nếu overlay đứng trước
+          thì effect đo toạ độ của nó chạy khi ref các MatchNode chưa kịp gắn —
+          `nodesRef` còn rỗng, không vẽ được đường nào, và vì `links`/`signal`
+          không đổi sau đó nên effect không chạy lại: sơ đồ trống trơn.
+
+          Overlay dùng `position: absolute` nên đổi chỗ trong DOM không làm nó
+          đổi vị trí hiển thị; `zIndex` vẫn quyết định nó nằm dưới các node. */}
       <div ref={containerRef} className="relative overflow-x-auto">
-        <ConnectorOverlay containerRef={containerRef} nodesRef={nodesRef} links={links} signal={signal} />
         <div className="relative flex gap-14 px-6 py-6 min-w-max" style={{ zIndex: 1 }}>
           {sortedRounds.map(([roundNo, ms]) => (
             <div key={roundNo} className="flex flex-col" style={{ width: 224 }}>
@@ -266,6 +319,7 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
             </div>
           ))}
         </div>
+        <ConnectorOverlay containerRef={containerRef} nodesRef={nodesRef} links={links} signal={signal} />
       </div>
     </AdminCard>
   );

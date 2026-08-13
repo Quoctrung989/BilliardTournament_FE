@@ -36,7 +36,10 @@ const fmtMoney = (v) => {
  * cùng một người đăng ký trên hai thiết bị lại ra hai form khác nhau.
  */
 const PREFILL_FROM_PROFILE = {
-  player_full_name: (profile) => profile?.fullName || "",
+  /* `displayName` là đường lùi: hồ sơ tạo qua màn chơi có thể chỉ có tên hiển
+     thị mà bỏ trống họ tên đầy đủ. Điền tên hiển thị vẫn hơn để trống, vì dù
+     sao người dùng cũng sửa được. */
+  player_full_name: (profile) => profile?.fullName || profile?.displayName || "",
   player_phone: (profile, user) => profile?.phone || user?.phone || "",
 };
 

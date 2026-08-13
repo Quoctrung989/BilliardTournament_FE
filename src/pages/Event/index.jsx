@@ -32,6 +32,16 @@ const TIME_FILTERS = [
 ];
 
 /**
+ * Cỡ trang riêng cho lưới giải đấu — bội số của 4 để trang nào cũng kết thúc
+ * bằng một hàng đầy.
+ *
+ * Bộ dùng chung `PAGE_SIZE_OPTIONS` là [9, 18, 24], hợp với lưới 3 cột của các
+ * màn admin. Lưới ở đây bốn cột (`lg:grid-cols-4`), 9 chia 4 dư 1 nên trang nào
+ * cũng thừa một card lẻ loi ở hàng cuối.
+ */
+const EVENT_PAGE_SIZES = [8, 16, 24];
+
+/**
  * Màu chấm cho từng trạng thái. Nhãn chữ KHÔNG khai báo ở đây — lấy từ
  * `TOURNAMENT_STATUS_LABELS` để chỉ có một nguồn nhãn tiếng Việt trong toàn dự
  * án. Bảng tự viết trước đây thiếu DRAFT / DRAW_PREVIEW / FINAL_BRACKET_READY
@@ -107,10 +117,10 @@ const StatusPill = ({ badge }) => (
 );
 
 /**
- * Hành động thứ hai ở mặt sau card, đổi theo trạng thái giải.
+ * Hành động của nút ở dải đáy card, đổi theo trạng thái giải.
  *
  * `null` nghĩa là giải đang ở trạng thái chẳng có gì để làm thêm (đóng đăng ký,
- * đã huỷ) — lúc đó mặt sau chỉ có một nút, đừng bịa ra nút thứ hai cho cân.
+ * đã huỷ) — lúc đó nút rơi về "Xem", đừng bịa ra hành động cho có.
  *
  * Hai đường dẫn cuối dùng `?tab=` vì `EventDetailPage` đọc tham số đó lúc dựng
  * state (xem `useState(searchParams.get("tab") || "info")`), nên vào thẳng đúng
@@ -134,25 +144,23 @@ const TournamentCard = ({ tournament, index }) => {
   const navigate = useNavigate();
   const badge = getBadge(tournament);
   const dateStr = fmtDateRange(tournament.startAt, tournament.endAt);
-  const isCompleted = tournament.status === "COMPLETED" || tournament.status === "DRAW_DONE";
   const second = secondaryAction(tournament);
 
   return (
     // Stagger ở lớp ngoài, hover ở lớp trong — gộp chung thì transition-delay
     // của stagger rò sang hover, card càng ở sau càng chậm nhấc lên.
     <div className="ui-stagger flex" style={{ "--i": Math.min(index, 11) }}>
+    {/* Lớp ngoài chỉ để mang gradient và quầng sáng — xem .evt-card-frame */}
+    <div className="evt-card-frame">
     <div
-      className="ui-card flex flex-col w-full cursor-pointer group rounded-2xl border border-transparent"
+      className="evt-card-body flex flex-col w-full cursor-pointer group"
       onClick={() => navigate(`/event/${tournament.id}`)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && navigate(`/event/${tournament.id}`)}
     >
-      {/* Khối ảnh — đây là phần quay khi trỏ vào. Dải ngày bên dưới đứng yên.
-          3/4: dọc hơn 4/5 cũ nhưng không kéo lưới dài như 9/16 đã thử. */}
-      <div className="evt-flip rounded-t-2xl" style={{ aspectRatio: "3/4" }}>
-      <div className="evt-flip__inner">
-      <div className="evt-flip__face evt-flip__front">
+      {/* Khối ảnh. 3/4: dọc hơn 4/5 cũ nhưng không kéo lưới dài như 9/16 đã thử. */}
+      <div className="evt-media" style={{ aspectRatio: "3/4" }}>
         <img
           src={tournament.thumbnailUrl || bannerFor(tournament.id)}
           alt={tournament.name}
@@ -177,76 +185,50 @@ const TournamentCard = ({ tournament, index }) => {
           </h3>
         </div>
 
-        {/* Game type + format – centered */}
-        <div className="absolute bottom-10 left-0 right-0 text-center px-4">
-          {tournament.gameType && (
-            <p style={{ color: "rgba(255,255,255,0.95)", fontSize: "0.85rem", fontWeight: 700 }}>
-              {tournament.gameType}
-            </p>
-          )}
-          {tournament.formatName && (
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.72rem" }}>
-              {tournament.formatName}
-            </p>
-          )}
+        {/* Khối đáy: thể loại + thể thức bên trái, trạng thái bên phải.
+            Trước đây hai cụm này tách rời (chữ căn giữa ở bottom-10, badge ở
+            bottom-0) nên rơi đúng vào giữa ảnh, đè lên mặt cơ thủ. Gộp thành
+            một hàng sát đáy, nơi gradient đã tối sẵn. */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            {tournament.gameType && (
+              <p className="truncate" style={{ color: "rgba(255,255,255,0.95)", fontSize: "0.85rem", fontWeight: 700 }}>
+                {tournament.gameType}
+              </p>
+            )}
+            {tournament.formatName && (
+              <p className="truncate" style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.72rem" }}>
+                {tournament.formatName}
+              </p>
+            )}
+          </div>
+
+          <div className="shrink-0">
+            <StatusPill badge={badge} />
+          </div>
         </div>
 
-        {/* Status badge – bottom-right only */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 flex justify-end">
-          <StatusPill badge={badge} />
-        </div>
-      </div>
-
-      {/* Mặt sau — chỉ thấy được trên thiết bị trỏ được thật */}
-      <div className="evt-flip__face evt-flip__back">
-        <img
-          src={tournament.thumbnailUrl || bannerFor(tournament.id)}
-          alt=""
-          aria-hidden
-          className="evt-flip__back-img"
-          onError={(e) => { e.currentTarget.src = bannerFor(tournament.id); }}
-        />
-
-        <p className="evt-flip__title">{tournament.name}</p>
-
-        <button
-          type="button"
-          className="evt-flip__btn"
-          onClick={(e) => { e.stopPropagation(); navigate(`/event/${tournament.id}`); }}
-        >
-          Xem chi tiết
-        </button>
-
-        {second && (
+        {/* Lớp phủ khi trỏ vào: làm mờ thông tin bên dưới, chỉ để nổi nút điều
+            hướng ở giữa. Nút nằm trên khối ảnh tỉ lệ cố định 3/4 nên nhãn dài
+            như "Tỷ số trực tiếp" không còn kéo cao card như hồi ở dải đáy. */}
+        <div className="evt-overlay">
           <button
             type="button"
-            className="evt-flip__btn evt-flip__btn--primary"
-            onClick={(e) => { e.stopPropagation(); navigate(second.to); }}
+            className="evt-cta evt-cta--overlay"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(second ? second.to : `/event/${tournament.id}`);
+            }}
           >
-            {second.label}
+            {second ? second.label : "Xem chi tiết"}
           </button>
-        )}
-      </div>
-      </div>
+        </div>
       </div>
 
-      {/* Below card: date + action button — grey background */}
-      <div className="flex items-center justify-between px-3 py-2.5 rounded-b-2xl"
-        style={{ background: "var(--evt-card-footer)" }}>
-        <span style={{ fontSize: "0.78rem", color: "var(--evt-text-2)", fontWeight: 500 }}>
-          {dateStr}
-        </span>
-
-        {/* Chỉ hiện trên màn cảm ứng — nơi không lật card được. CSS ẩn nó đi
-            trong `@media (hover: hover)`, xem eventTheme.css. */}
-        <button
-          type="button"
-          className="evt-cta evt-footer-cta"
-          onClick={(e) => { e.stopPropagation(); navigate(`/event/${tournament.id}`); }}
-        >
-          🎱 {isCompleted ? "Kết quả" : "Xem"}
-        </button>
-      </div>
+      {/* Chỉ còn ngày — nút đã chuyển lên giữa ảnh. Nhờ vậy dòng này luôn một
+          dòng, mọi card cao bằng nhau. */}
+      <div className="evt-card-date">{dateStr}</div>
+    </div>
     </div>
     </div>
   );
@@ -261,10 +243,7 @@ const EventPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  /* 12 chứ không phải DEFAULT_PAGE_SIZE (9): lưới ở đây bốn cột, mà 9 chia cho
-     4 dư 1 nên trang nào cũng kết thúc bằng một hàng lẻ loi. 12 cho đúng ba
-     hàng đầy. Các màn khác vẫn ba cột nên giữ nguyên mặc định chung. */
-  const [pageSize, setPageSize] = useState(12);
+  const [pageSize, setPageSize] = useState(EVENT_PAGE_SIZES[0]);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -333,10 +312,10 @@ const EventPage = () => {
                 <button
                   key={f.value || "all"}
                   onClick={() => handleStatusChange(f.value)}
-                  className={`ui-press px-4 py-1.5 rounded-full text-sm font-semibold ${
+                  className={`ui-underline evt-filter-chip px-4 py-1.5 text-sm font-semibold transition-colors duration-150 ${
                     statusFilter === f.value
-                      ? "bg-[#0e1116] text-white dark:bg-white dark:text-[#0b0d12]"
-                      : "text-[#333] border border-gray-300 hover:border-[#0c1527] dark:text-white/70 dark:border-white/20 dark:hover:border-white/60"
+                      ? "ui-underline--active text-[#0e1116] dark:text-white"
+                      : "text-[#333]/70 hover:text-[#0e1116] dark:text-white/60 dark:hover:text-white"
                   }`}
                 >
                   {f.label}
@@ -404,6 +383,7 @@ const EventPage = () => {
               totalElements={totalElements}
               pageSize={pageSize}
               disabled={loading}
+              pageSizeOptions={EVENT_PAGE_SIZES}
               onPageChange={setPage}
               onPageSizeChange={(size) => { setPageSize(size); setPage(0); }}
             />

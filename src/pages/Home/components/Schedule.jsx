@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { useReveal } from "../../../hooks/useReveal";
 import { listPublicTournaments } from "../../../api/publicTournamentApi";
 import { TOURNAMENT_STATUS_LABELS } from "../../../constants/tournamentConfig";
-import { DEMO_TOURNAMENTS, withDemo } from "../../../constants/demoData";
 
 const FALLBACK = "/images/tournaments/pool-2.jpg";
 
@@ -91,11 +90,10 @@ const Schedule = () => {
     // 4 giải: 1 giải lớn bên trái + 3 giải nhỏ bên phải.
     listPublicTournaments({ page: 0, size: 4 })
       .then((paged) => {
-        if (!cancelled)
-          setItems(withDemo(paged.content, DEMO_TOURNAMENTS, "Lịch thi đấu"));
+        if (!cancelled) setItems(paged.content || []);
       })
       .catch(() => {
-        if (!cancelled) setItems(withDemo(null, DEMO_TOURNAMENTS, "Lịch thi đấu"));
+        if (!cancelled) setItems([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
