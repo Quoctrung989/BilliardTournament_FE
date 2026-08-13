@@ -12,6 +12,8 @@ import { facebookApi } from "../../../api/facebookApi";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminPagination from "../../../components/admin/ui/AdminPagination";
+import { useCountUp } from "../../../hooks/useCountUp";
+import { useReveal } from "../../../hooks/useReveal";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../../utils/pagination";
 
@@ -38,7 +40,11 @@ const fmtDateTime = (iso) => {
   }
 };
 
-const MetricCard = ({ icon: Icon, label, value, tone = "slate" }) => {
+const MetricCard = ({ icon: Icon, label, value, tone = "slate", index = 0 }) => {
+  /* Đếm từ 0 lên khi thẻ lọt vào tầm nhìn. Hook tự bỏ qua khi người dùng tắt
+     chuyển động ở cấp hệ điều hành. */
+  const { ref: countRef, value: shown } = useCountUp(Number(value) || 0);
+
   const tones = {
     slate: {
       card: "border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] shadow-sm shadow-slate-200/60 ring-1 ring-slate-100",
@@ -68,24 +74,33 @@ const MetricCard = ({ icon: Icon, label, value, tone = "slate" }) => {
   const t = tones[tone] || tones.slate;
 
   return (
-    <div className={`rounded-2xl border px-5 py-4 ${t.card}`}>
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <p className={`text-sm font-semibold ${t.label}`}>{label}</p>
-        {Icon && (
-          <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${t.icon}`}>
-            <Icon size={18} strokeWidth={2.25} />
-          </span>
-        )}
+    /* Stagger ở lớp ngoài, hover ở lớp trong: gộp chung thì transition-delay
+       của stagger rò sang hover, thẻ càng ở sau càng chậm nhấc lên. */
+    <div className="ui-stagger" style={{ "--i": index }}>
+      <div className={`group ui-card h-full rounded-2xl border px-5 py-4 ${t.card}`}>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <p className={`text-sm font-semibold ${t.label}`}>{label}</p>
+          {Icon && (
+            <span
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-xl transition-transform duration-300 ease-[cubic-bezier(0.34,1.4,0.5,1)] group-hover:-rotate-6 group-hover:scale-110 ${t.icon}`}
+            >
+              <Icon size={18} strokeWidth={2.25} />
+            </span>
+          )}
+        </div>
+        <p ref={countRef} className={`text-4xl font-bold tabular-nums tracking-tight ${t.value}`}>
+          {value == null ? "—" : shown.toLocaleString("vi-VN")}
+        </p>
       </div>
-      <p className={`text-4xl font-bold tabular-nums tracking-tight ${t.value}`}>
-        {value == null ? "—" : Number(value).toLocaleString("vi-VN")}
-      </p>
     </div>
   );
 };
 
 const FacebookPostsStatsPage = ({ basePath }) => {
   const navigate = useNavigate();
+  /* Gắn `is-in` cho các .ui-stagger con khi khối lọt vào tầm nhìn — bốn thẻ
+     số liệu vào lần lượt thay vì hiện cùng lúc. */
+  const metricsRef = useReveal({ threshold: 0.1 });
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -122,11 +137,11 @@ const FacebookPostsStatsPage = ({ basePath }) => {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard icon={Share2} label="Tổng bài đăng" value={summary.posts} tone="slate" />
-        <MetricCard icon={ThumbsUp} label={`Like (trang ${page + 1})`} value={summary.likes} tone="sky" />
-        <MetricCard icon={MessageCircle} label={`Comment (trang ${page + 1})`} value={summary.comments} tone="violet" />
-        <MetricCard icon={Share2} label={`Share (trang ${page + 1})`} value={summary.shares} tone="rose" />
+      <div ref={metricsRef} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard icon={Share2} label="Tổng bài đăng" value={summary.posts} tone="slate" index={0} />
+        <MetricCard icon={ThumbsUp} label={`Like (trang ${page + 1})`} value={summary.likes} tone="sky" index={1} />
+        <MetricCard icon={MessageCircle} label={`Comment (trang ${page + 1})`} value={summary.comments} tone="violet" index={2} />
+        <MetricCard icon={Share2} label={`Share (trang ${page + 1})`} value={summary.shares} tone="rose" index={3} />
       </div>
 
       <AdminCard
@@ -157,11 +172,17 @@ const FacebookPostsStatsPage = ({ basePath }) => {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-8 text-slate-400 dark:text-white/40">
-                    Đang tải danh sách...
-                  </td>
-                </tr>
+                /* Khung xương giữ đúng hình dạng bảng trong lúc chờ, thay vì
+                   một dòng chữ rồi bảng bật ra đột ngột khi có dữ liệu. */
+                [...Array(5)].map((_, i) => (
+                  <tr key={`sk-${i}`}>
+                    {[...Array(7)].map((__, c) => (
+                      <td key={c} className="py-3">
+                        <div className="ui-skeleton h-4 rounded" style={{ width: c === 3 ? "90%" : "70%" }} />
+                      </td>
+                    ))}
+                  </tr>
+                ))
               ) : posts.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8 text-slate-400 dark:text-white/40">
@@ -169,7 +190,7 @@ const FacebookPostsStatsPage = ({ basePath }) => {
                   </td>
                 </tr>
               ) : (
-                posts.map((post) => {
+                posts.map((post, idx) => {
                   const content = post.content || "";
                   const preview = content.length > CONTENT_PREVIEW_LEN
                     ? `${content.slice(0, CONTENT_PREVIEW_LEN).trim()}...`
@@ -177,7 +198,14 @@ const FacebookPostsStatsPage = ({ basePath }) => {
                   const synced = !!post.statsSyncedAt;
 
                   return (
-                    <tr key={post.id}>
+                    /* Cả hàng bấm được — nút "Xem chi tiết" giữ lại làm chỉ dẫn
+                       thị giác, nhưng không bắt người dùng nhắm vào đúng nó. */
+                    <tr
+                      key={post.id}
+                      className="ui-row ui-stagger is-in cursor-pointer border-l-2 border-l-transparent hover:bg-slate-50 dark:hover:bg-white/5"
+                      style={{ "--i": Math.min(idx, 11) }}
+                      onClick={() => navigate(`${basePath}/${post.id}`)}
+                    >
                       <td className="whitespace-nowrap text-sm">{fmtDateTime(post.postedAt)}</td>
                       <td className="text-sm">
                         {post.tournamentName || (
@@ -211,10 +239,13 @@ const FacebookPostsStatsPage = ({ basePath }) => {
                       <td>
                         <AdminButton
                           variant="secondary"
-                          onClick={() => navigate(`${basePath}/${post.id}`)}
+                          /* Chặn nổi bọt: không có dòng này thì bấm nút sẽ kích
+                             hoạt cả onClick của hàng, điều hướng hai lần. */
+                          onClick={(e) => { e.stopPropagation(); navigate(`${basePath}/${post.id}`); }}
                         >
                           <Eye size={14} />
                           Xem chi tiết
+                          <span className="ui-arrow-x inline-block">→</span>
                         </AdminButton>
                       </td>
                     </tr>
