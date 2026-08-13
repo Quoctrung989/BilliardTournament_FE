@@ -26,6 +26,20 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
     const value = field.value ?? field.defaultValue ?? "";
     const enumOptions = field.enumOptions || [];
 
+    // bracket_size là giá trị DẪN XUẤT — backend luôn trả về số cơ thủ đang thực sự có mặt
+    // trong giải. Cho sửa sẽ gây hiểu nhầm: nhập gì cũng bị ghi đè ở lần tải lại kế tiếp.
+    if (field.fieldKey === "bracket_size") {
+      return (
+        <div className="pt-1">
+          <span className="text-lg font-bold text-slate-900">{value || 0}</span>
+          <span className="ml-1.5 text-sm text-slate-500">người</span>
+          <p className="text-xs text-slate-400 mt-1">
+            Tự động theo số cơ thủ hiện có trong giải, không chỉnh tay được.
+          </p>
+        </div>
+      );
+    }
+
     if (ui === "NUMBER") {
       return (
         <input

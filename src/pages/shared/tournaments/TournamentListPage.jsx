@@ -27,7 +27,6 @@ const PARTICIPANT_TYPE_OPTIONS = [
   { value: "", label: "Tất cả hình thức" },
   { value: "SINGLE", label: "Đơn" },
   { value: "DOUBLE", label: "Đôi" },
-  { value: "TEAM", label: "Đội" },
 ];
 
 const IS_REGISTER_OPTIONS = [

@@ -48,6 +48,9 @@ const ParticipantListPage = ({ api, basePath }) => {
   const [withdrawModal, setWithdrawModal] = useState(null);
   const [tournamentStatus, setTournamentStatus] = useState(null);
   const [participantType, setParticipantType] = useState(null);
+  const [maxParticipants, setMaxParticipants] = useState(null);
+  const [closeRegModal, setCloseRegModal] = useState(null);
+  const [closingReg, setClosingReg] = useState(false);
 
   const tournamentApi = basePath.startsWith("/owner") ? ownerTournamentApi : managerTournamentApi;
   const rosterEditable = tournamentStatus == null || ROSTER_EDITABLE_STATUSES.includes(tournamentStatus);
@@ -64,6 +67,7 @@ const ParticipantListPage = ({ api, basePath }) => {
       if (tournament) {
         setTournamentStatus(tournament.status);
         setParticipantType(tournament.participantType);
+        setMaxParticipants(tournament.maxParticipants ?? null);
       }
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -174,6 +178,57 @@ const ParticipantListPage = ({ api, basePath }) => {
   };
 
   const active = items.filter((p) => p.status === "ACTIVE").length;
+
+  const isOpenReg = tournamentStatus === "OPEN_FOR_REGISTRATION";
+
+  /**
+   * Mở modal xác nhận đóng đăng ký, mức cảnh báo tuỳ theo số người hiện có.
+   *
+   * Đếm theo participant ACTIVE đang hiển thị trên bảng chứ không theo số đơn
+   * đăng ký — vì đây mới là danh sách thật sự đi vào bốc thăm, và nó gồm cả
+   * người được thêm thủ công lẫn import từ Excel.
+   */
+  const askCloseRegistration = () => {
+    const missing = maxParticipants != null ? maxParticipants - active : 0;
+
+    // Dưới 2 người thì không bốc thăm được — giải sẽ mắc kẹt ở trạng thái đã
+    // đóng đăng ký mà không đi tiếp được, nên cảnh báo nặng hơn hẳn.
+    if (active < 2) {
+      setCloseRegModal({
+        message: `Giải mới có ${active} người tham gia.`,
+        details:
+          "Cần tối thiểu 2 người mới bốc thăm và sinh bracket được. Đóng đăng ký bây giờ thì giải sẽ không đi tiếp được cho tới khi bạn thêm người hoặc mở lại đăng ký.",
+        danger: true,
+      });
+      return;
+    }
+
+    if (missing > 0) {
+      setCloseRegModal({
+        message: `Giải mới có ${active}/${maxParticipants} người, còn thiếu ${missing} suất.`,
+        details:
+          "Đóng đăng ký bây giờ nghĩa là giải sẽ thi đấu với đúng số người hiện tại. Người chơi mới sẽ không đăng ký được nữa.",
+        danger: true,
+      });
+      return;
+    }
+
+    setCloseRegModal({ message: "Đóng đăng ký giải này?", danger: false });
+  };
+
+  const confirmCloseRegistration = async () => {
+    setClosingReg(true);
+    try {
+      await tournamentApi.patchStatus(tournamentId, { status: "REGISTRATION_CLOSED" });
+      toast.success("Đã đóng đăng ký giải đấu");
+      setCloseRegModal(null);
+      await load();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setClosingReg(false);
+    }
+  };
   const ranked = items.filter(
     (p) => p.status === "ACTIVE" && p.billiardRank && p.billiardRank !== "UNKNOWN"
   ).length;
@@ -230,6 +285,18 @@ const ParticipantListPage = ({ api, basePath }) => {
                   <UserPlus size={15} />
                   Thêm thủ công
                 </AdminButton>
+                {/* Chỉ hiện khi giải đang mở đăng ký — các trạng thái khác đã chốt sổ rồi */}
+                {isOpenReg && (
+                  <AdminButton
+                    variant="secondary"
+                    disabled={closingReg}
+                    onClick={askCloseRegistration}
+                    className="flex items-center gap-1.5"
+                  >
+                    <Lock size={15} />
+                    Đóng đăng ký
+                  </AdminButton>
+                )}
               </>
             ) : (
               <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 dark:text-white/40 px-3 py-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
@@ -489,6 +556,18 @@ const ParticipantListPage = ({ api, basePath }) => {
         confirmText="Rút lui"
         confirmVariant="danger"
         loading={actionLoading}
+      />
+
+      <ConfirmModal
+        open={!!closeRegModal}
+        onCancel={() => setCloseRegModal(null)}
+        onConfirm={confirmCloseRegistration}
+        title={closeRegModal?.danger ? "Bạn có chắc chắn?" : "Xác nhận thao tác"}
+        message={closeRegModal?.message || ""}
+        details={closeRegModal?.details}
+        confirmText={closeRegModal?.danger ? "Vẫn đóng đăng ký" : "Xác nhận"}
+        confirmVariant={closeRegModal?.danger ? "danger" : "primary"}
+        loading={closingReg}
       />
     </div>
   );

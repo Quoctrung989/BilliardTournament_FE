@@ -175,23 +175,27 @@ const TournamentCard = ({ tournament, index }) => {
           </h3>
         </div>
 
-        {/* Game type + format – centered */}
-        <div className="absolute bottom-10 left-0 right-0 text-center px-4">
-          {tournament.gameType && (
-            <p style={{ color: "rgba(255,255,255,0.95)", fontSize: "0.85rem", fontWeight: 700 }}>
-              {tournament.gameType}
-            </p>
-          )}
-          {tournament.formatName && (
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.72rem" }}>
-              {tournament.formatName}
-            </p>
-          )}
-        </div>
+        {/* Khối đáy: thể loại + thể thức bên trái, trạng thái bên phải.
+            Trước đây hai cụm này tách rời (chữ căn giữa ở bottom-10, badge ở
+            bottom-0) nên rơi đúng vào giữa ảnh, đè lên mặt cơ thủ. Gộp thành
+            một hàng sát đáy, nơi gradient đã tối sẵn. */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            {tournament.gameType && (
+              <p className="truncate" style={{ color: "rgba(255,255,255,0.95)", fontSize: "0.85rem", fontWeight: 700 }}>
+                {tournament.gameType}
+              </p>
+            )}
+            {tournament.formatName && (
+              <p className="truncate" style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.72rem" }}>
+                {tournament.formatName}
+              </p>
+            )}
+          </div>
 
-        {/* Status badge – bottom-right only */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 flex justify-end">
-          <StatusPill badge={badge} />
+          <div className="shrink-0">
+            <StatusPill badge={badge} />
+          </div>
         </div>
 
         {/* Lớp phủ khi trỏ vào: làm mờ thông tin bên dưới, chỉ để nổi nút điều
