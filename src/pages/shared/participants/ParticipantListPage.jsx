@@ -18,6 +18,7 @@ const EMPTY_ADD_FORM = {
   partnerFullName: "",
   partnerPhone: "",
   billiardRank: "UNKNOWN",
+  seedNo: "",
 };
 
 const STATUS_STYLES = {
@@ -46,12 +47,16 @@ const ParticipantListPage = ({ api, basePath }) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [form, setForm] = useState(EMPTY_ADD_FORM);
   const [withdrawModal, setWithdrawModal] = useState(null);
+  const [editSeedModal, setEditSeedModal] = useState(null);
+  const [editSeedValue, setEditSeedValue] = useState("");
   const [tournamentStatus, setTournamentStatus] = useState(null);
   const [participantType, setParticipantType] = useState(null);
+  const [seedingMethod, setSeedingMethod] = useState(null);
 
   const tournamentApi = basePath.startsWith("/owner") ? ownerTournamentApi : managerTournamentApi;
   const rosterEditable = tournamentStatus == null || ROSTER_EDITABLE_STATUSES.includes(tournamentStatus);
   const isDouble = participantType === "DOUBLE";
+  const isSeedMethod = seedingMethod === "SEED";
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -64,6 +69,7 @@ const ParticipantListPage = ({ api, basePath }) => {
       if (tournament) {
         setTournamentStatus(tournament.status);
         setParticipantType(tournament.participantType);
+        setSeedingMethod(tournament.configSummary?.seedingMethod ?? null);
       }
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -83,6 +89,10 @@ const ParticipantListPage = ({ api, basePath }) => {
       toast.warn("Vui lòng nhập tên người chơi 2");
       return;
     }
+    if (isSeedMethod && form.seedNo && Number(form.seedNo) < 1) {
+      toast.warn("Số hạt giống phải từ 1 trở lên");
+      return;
+    }
     setActionLoading(true);
     try {
       await api.addManual(tournamentId, {
@@ -91,6 +101,7 @@ const ParticipantListPage = ({ api, basePath }) => {
         partnerFullName: isDouble ? form.partnerFullName.trim() : undefined,
         partnerPhone: isDouble ? form.partnerPhone.trim() || undefined : undefined,
         billiardRank: form.billiardRank || "UNKNOWN",
+        seedNo: isSeedMethod && form.seedNo ? Number(form.seedNo) : undefined,
       });
       toast.success("Đã thêm người tham gia");
       setAddModal(false);
@@ -134,6 +145,7 @@ const ParticipantListPage = ({ api, basePath }) => {
         name2: r.name2,
         phone2: r.phone2,
         billiardRank: r.billiardRank,
+        seedNo: r.seedNo,
       }));
       const result = await api.confirmImportExcel(tournamentId, rows);
       setImportResult(result);
@@ -148,6 +160,31 @@ const ParticipantListPage = ({ api, basePath }) => {
 
   const handleWithdraw = async (participantId, name) => {
     setWithdrawModal({ participantId, name });
+  };
+
+  const openEditSeed = (participant) => {
+    setEditSeedModal(participant);
+    setEditSeedValue(participant.seedNo != null ? String(participant.seedNo) : "");
+  };
+
+  const confirmEditSeed = async () => {
+    if (!editSeedModal) return;
+    if (editSeedValue && Number(editSeedValue) < 1) {
+      toast.warn("Số hạt giống phải từ 1 trở lên");
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const seedNo = editSeedValue ? Number(editSeedValue) : null;
+      await api.updateSeedNo(editSeedModal.id, seedNo);
+      toast.success("Đã cập nhật hạt giống");
+      setEditSeedModal(null);
+      load();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const confirmWithdraw = async () => {
@@ -257,6 +294,7 @@ const ParticipantListPage = ({ api, basePath }) => {
                   <th>Tên hiển thị</th>
                   <th>Số điện thoại</th>
                   <th>Hạng</th>
+                  {isSeedMethod && <th>Hạt giống</th>}
                   <th>Nguồn</th>
                   <th>Trạng thái</th>
                   <th className="align-right">Thao tác</th>
@@ -275,6 +313,22 @@ const ParticipantListPage = ({ api, basePath }) => {
                         {billiardRankShort(p.billiardRank)}
                       </span>
                     </td>
+                    {isSeedMethod && (
+                      <td className="text-xs font-semibold text-slate-700 dark:text-white/75">
+                        {rosterEditable && p.status === "ACTIVE" ? (
+                          <button
+                            type="button"
+                            className="hover:underline decoration-dotted underline-offset-2"
+                            title="Sửa số hạt giống"
+                            onClick={() => openEditSeed(p)}
+                          >
+                            {p.seedNo ?? "—"}
+                          </button>
+                        ) : (
+                          p.seedNo ?? "—"
+                        )}
+                      </td>
+                    )}
                     <td>
                       <span className="text-xs text-slate-500 dark:text-white/60">
                         {SOURCE_LABELS[p.source] || p.source}
@@ -372,6 +426,7 @@ const ParticipantListPage = ({ api, basePath }) => {
                     {isDouble && <th>Tên VĐV 2</th>}
                     {isDouble && <th>SĐT VĐV 2</th>}
                     <th>Hạng</th>
+                    {isSeedMethod && <th>Hạt giống</th>}
                     <th>Trạng thái</th>
                   </tr>
                 </thead>
@@ -384,6 +439,7 @@ const ParticipantListPage = ({ api, basePath }) => {
                       {isDouble && <td>{r.name2 || "—"}</td>}
                       {isDouble && <td>{r.phone2 || "—"}</td>}
                       <td>{billiardRankShort(r.billiardRank)}</td>
+                      {isSeedMethod && <td>{r.seedNo ?? "—"}</td>}
                       <td>
                         {r.valid ? (
                           <span className="text-emerald-600 text-xs font-medium">✓ Hợp lệ</span>
@@ -451,6 +507,23 @@ const ParticipantListPage = ({ api, basePath }) => {
               không rõ trình độ.
             </p>
           </div>
+          {isSeedMethod && (
+            <div>
+              <label className="admin-label">Hạt giống</label>
+              <input
+                type="number"
+                min={1}
+                className="admin-input w-full mt-1"
+                placeholder="VD: 1 (mạnh nhất)"
+                value={form.seedNo}
+                onChange={(e) => setForm((f) => ({ ...f, seedNo: e.target.value }))}
+              />
+              <p className="text-xs text-slate-400 dark:text-white/40 mt-1">
+                Số hạt giống (1 = mạnh nhất), mỗi số chỉ gán cho đúng 1 người trong giải. Để trống
+                nếu không xếp — người này sẽ bốc thăm ngẫu nhiên với nhóm chưa xếp hạt giống.
+              </p>
+            </div>
+          )}
           {isDouble && (
             <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100 dark:border-white/10">
               <div className="col-span-2 -mb-1 mt-3">
@@ -490,6 +563,43 @@ const ParticipantListPage = ({ api, basePath }) => {
         confirmVariant="danger"
         loading={actionLoading}
       />
+
+      {/* Edit seed number modal */}
+      <AdminModal
+        open={!!editSeedModal}
+        onClose={() => setEditSeedModal(null)}
+        title="Sửa số hạt giống"
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={() => setEditSeedModal(null)} disabled={actionLoading}>
+              Hủy
+            </AdminButton>
+            <AdminButton variant="primary" onClick={confirmEditSeed} disabled={actionLoading}>
+              {actionLoading ? "Đang lưu..." : "Lưu"}
+            </AdminButton>
+          </>
+        }
+      >
+        {editSeedModal && (
+          <div className="space-y-2">
+            <p className="text-sm text-slate-600 dark:text-white/70">
+              {editSeedModal.displayName}
+            </p>
+            <input
+              type="number"
+              min={1}
+              autoFocus
+              className="admin-input w-full"
+              placeholder="Để trống nếu không xếp hạt giống"
+              value={editSeedValue}
+              onChange={(e) => setEditSeedValue(e.target.value)}
+            />
+            <p className="text-xs text-slate-400 dark:text-white/40">
+              Mỗi số hạt giống chỉ gán cho đúng 1 người trong giải. Chỉ sửa được khi giải chưa bốc thăm.
+            </p>
+          </div>
+        )}
+      </AdminModal>
     </div>
   );
 };

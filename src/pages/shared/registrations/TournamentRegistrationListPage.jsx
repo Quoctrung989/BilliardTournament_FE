@@ -213,7 +213,8 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
                 </AdminButton>
                 <AdminButton
                   variant="primary"
-                  disabled={actionLoading}
+                  disabled={actionLoading || !detail.paymentConfirmed}
+                  title={!detail.paymentConfirmed ? "Chưa xác nhận thanh toán — không thể duyệt" : undefined}
                   onClick={() => handleApprove(detail.id)}
                 >
                   Duyệt
@@ -233,6 +234,12 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
                 {REGISTRATION_STATUS_LABELS[detail.status] || detail.status}
               </span>
             </div>
+            {detail.status === "PENDING_PAYMENT" && detail.paymentRequired && !detail.paymentConfirmed && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-500/10 dark:border-amber-500/30 px-3 py-2 text-sm text-amber-800 dark:text-amber-300">
+                Đăng ký này chưa xác nhận thanh toán — chưa thể duyệt. Chỉ có thể duyệt sau khi hệ
+                thống ghi nhận thanh toán thành công (hoặc từ chối nếu người đăng ký không thanh toán).
+              </div>
+            )}
             <dl className="text-sm space-y-2">
               <div>
                 <dt className="text-slate-500 dark:text-white/60">SĐT</dt>

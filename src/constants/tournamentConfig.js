@@ -17,6 +17,7 @@ export const SETUP_STATUS_LABELS = {
 export const SEEDING_OPTIONS = [
   { value: "RANDOM", label: "Ngẫu nhiên" },
   { value: "RANK", label: "Theo hạng cơ thủ" },
+  { value: "SEED", label: "Theo hạt giống" },
 ];
 
 export const PARTICIPANT_TYPES = [

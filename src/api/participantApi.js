@@ -28,6 +28,9 @@ export const createParticipantApi = (scope) => ({
   withdraw: (participantId) =>
     unwrap(axiosClient.patch(`/${scope}/participants/${participantId}/withdraw`)),
 
+  updateSeedNo: (participantId, seedNo) =>
+    unwrap(axiosClient.patch(`/${scope}/participants/${participantId}/seed-no`, { seedNo })),
+
   downloadImportTemplate: async (tournamentId) => {
     const res = await axiosClient.get(
       `/${scope}/tournaments/${tournamentId}/participants/import-template`,

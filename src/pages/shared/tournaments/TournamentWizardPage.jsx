@@ -1003,6 +1003,14 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
                     để các cơ thủ mạnh nằm ở những nhánh khác nhau, không gặp nhau sớm.
                   </p>
                 )}
+                {seedingMethod === "SEED" && (
+                  <p className="text-xs text-slate-400 dark:text-white/40 mt-3">
+                    BQT tự gán số hạt giống (1 = mạnh nhất) cho từng người khi thêm tay hoặc import
+                    Excel — form và template import sẽ hiện thêm cột "Hạt giống". Có thể seed một
+                    phần: người chưa được gán xếp sau, bốc thăm ngẫu nhiên với nhau. Mỗi số hạt
+                    giống chỉ được gán cho đúng 1 người trong giải.
+                  </p>
+                )}
               </div>
 
               <h3 className="text-sm font-semibold text-slate-700 dark:text-white/75 mb-3">Trường cấu hình giải</h3>
