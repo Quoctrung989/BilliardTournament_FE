@@ -32,6 +32,16 @@ const TIME_FILTERS = [
 ];
 
 /**
+ * Cỡ trang riêng cho lưới giải đấu — bội số của 4 để trang nào cũng kết thúc
+ * bằng một hàng đầy.
+ *
+ * Bộ dùng chung `PAGE_SIZE_OPTIONS` là [9, 18, 24], hợp với lưới 3 cột của các
+ * màn admin. Lưới ở đây bốn cột (`lg:grid-cols-4`), 9 chia 4 dư 1 nên trang nào
+ * cũng thừa một card lẻ loi ở hàng cuối.
+ */
+const EVENT_PAGE_SIZES = [8, 16, 24];
+
+/**
  * Màu chấm cho từng trạng thái. Nhãn chữ KHÔNG khai báo ở đây — lấy từ
  * `TOURNAMENT_STATUS_LABELS` để chỉ có một nguồn nhãn tiếng Việt trong toàn dự
  * án. Bảng tự viết trước đây thiếu DRAFT / DRAW_PREVIEW / FINAL_BRACKET_READY
@@ -233,10 +243,7 @@ const EventPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  /* 12 chứ không phải DEFAULT_PAGE_SIZE (9): lưới ở đây bốn cột, mà 9 chia cho
-     4 dư 1 nên trang nào cũng kết thúc bằng một hàng lẻ loi. 12 cho đúng ba
-     hàng đầy. Các màn khác vẫn ba cột nên giữ nguyên mặc định chung. */
-  const [pageSize, setPageSize] = useState(12);
+  const [pageSize, setPageSize] = useState(EVENT_PAGE_SIZES[0]);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -376,6 +383,7 @@ const EventPage = () => {
               totalElements={totalElements}
               pageSize={pageSize}
               disabled={loading}
+              pageSizeOptions={EVENT_PAGE_SIZES}
               onPageChange={setPage}
               onPageSizeChange={(size) => { setPageSize(size); setPage(0); }}
             />

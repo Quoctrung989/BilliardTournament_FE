@@ -11,6 +11,7 @@ import AdminButton from "../../components/admin/ui/AdminButton";
 import AdminModal from "../../components/admin/ui/AdminModal";
 import ChartOrEmpty from "../../components/admin/ui/ChartOrEmpty";
 import TransactionTable from "../../components/admin/ui/TransactionTable";
+import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { formatVND } from "../../utils/helpers";
 import { useThemeStore } from "../../store/themeStore";
@@ -27,6 +28,11 @@ const GRANULARITY_OPTIONS = [
 ];
 
 const RANK_MEDAL = ["🥇", "🥈", "🥉"];
+
+/* Cỡ trang cho hai bảng ở tab Tổng quan. Nhỏ hơn bộ dùng chung [9, 18, 24] vì
+   đây là bảng phụ nằm giữa trang dài — 10 dòng vừa đủ đọc mà không đẩy các
+   biểu đồ bên dưới ra khỏi tầm mắt. */
+const TABLE_PAGE_SIZES = [10, 20, 50];
 
 /** Khớp enum TournamentStatus ở BE — dùng cho bộ lọc trạng thái giải đấu. */
 const TOURNAMENT_STATUS_OPTIONS = [
@@ -132,6 +138,8 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailExporting, setDetailExporting] = useState(false);
   const [tournamentSearch, setTournamentSearch] = useState("");
+  const [tournamentPage, setTournamentPage] = useState(0);
+  const [tournamentPageSize, setTournamentPageSize] = useState(10);
   const [playerDetailId, setPlayerDetailId] = useState(null);
 
   // ── filters dùng chung Overview + Explore ──
@@ -259,6 +267,9 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
     {
       icon: Crown, accent: "indigo", label: "Giải đấu quán quân",
       value: overview.topTournamentName || "—",
+      /* Giá trị là tên giải chứ không phải con số — để cỡ 2xl thì tên dài
+         xuống mỗi dòng một chữ và kéo cao cả hàng thẻ. */
+      valueSize: "sm",
       hint: overview.topTournamentRevenue ? formatVND(overview.topTournamentRevenue) : undefined,
     },
   ] : [];
@@ -277,6 +288,15 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
   const filteredTournaments = tournamentSearch.trim()
     ? tournaments.filter((t) => t.name.toLowerCase().includes(tournamentSearch.trim().toLowerCase()))
     : tournaments;
+
+  /* Phân trang tại client: API thống kê trả về cả kỳ trong một lần gọi (biểu đồ
+     bên dưới cũng dùng chung mảng đó), nên cắt tại chỗ thay vì bắt server phân
+     trang lại. */
+  const tournamentTotalPages = Math.ceil(filteredTournaments.length / tournamentPageSize) || 0;
+  const pagedTournaments = filteredTournaments.slice(
+    tournamentPage * tournamentPageSize,
+    tournamentPage * tournamentPageSize + tournamentPageSize
+  );
 
   return (
     <div className="space-y-6">
@@ -355,7 +375,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
       {activeTab === "explore" ? (
         <ExploreTab analyticsApi={analyticsApi} range={range} filters={filters} />
       ) : loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="admin-card h-32 animate-pulse bg-slate-100 dark:bg-white/10" />
           ))}
@@ -364,7 +384,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
         <div className={`space-y-6 transition-opacity ${refreshing ? "opacity-60 pointer-events-none" : ""}`}>
           <InsightsChips analyticsApi={analyticsApi} range={range} branchId={filters.branchId} />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
             {kpis.map((c) => <AdminStatCard key={c.label} {...c} />)}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -381,7 +401,9 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
                   placeholder="Tìm giải đấu..."
                   className="admin-input w-56 pl-8"
                   value={tournamentSearch}
-                  onChange={(e) => setTournamentSearch(e.target.value)}
+                  /* Về trang 1 mỗi lần đổi từ khoá: đang ở trang 3 mà lọc còn
+                     5 kết quả thì bảng trống trơn dù rõ ràng có dữ liệu. */
+                  onChange={(e) => { setTournamentSearch(e.target.value); setTournamentPage(0); }}
                 />
               </div>
             }
@@ -406,7 +428,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTournaments.map((t) => (
+                    {pagedTournaments.map((t) => (
                       <tr key={t.id} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5" onClick={() => openTournamentDetail(t.id)}>
                         <td className="font-medium text-indigo-700">{t.name}</td>
                         <td className="text-xs text-slate-500 dark:text-white/60">{t.branchName}</td>
@@ -422,6 +444,15 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
                     ))}
                   </tbody>
                 </table>
+                <AdminPagination
+                  page={tournamentPage}
+                  totalPages={tournamentTotalPages}
+                  totalElements={filteredTournaments.length}
+                  pageSize={tournamentPageSize}
+                  onPageChange={setTournamentPage}
+                  onPageSizeChange={(size) => { setTournamentPageSize(size); setTournamentPage(0); }}
+                  pageSizeOptions={TABLE_PAGE_SIZES}
+                />
               </div>
             )}
           </AdminCard>
@@ -635,6 +666,8 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
   const [search, setSearch] = useState("");
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -642,7 +675,10 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
       const data = await analyticsApi.getPlayers({
         from: range.from, to: range.to,
         branchId: filters.branchId, gameTypes: filters.gameTypes, statuses: filters.statuses,
-        sortBy, limit: 20, segment, search: search.trim() || undefined,
+        /* 50 thay vì 20: giờ bảng có phân trang nên không còn lý do cắt sớm ở
+           20. Vẫn là trần cứng — API không phân trang, trả một lần cả danh
+           sách, nên đừng nâng thêm nữa kẻo nặng. */
+        sortBy, limit: 50, segment, search: search.trim() || undefined,
       });
       setPlayers(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -654,6 +690,13 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
   }, [analyticsApi, range.from, range.to, filters.branchId, filters.gameTypes, filters.statuses, sortBy, segment, search]);
 
   useEffect(() => { load(); }, [load]);
+
+  /* Danh sách nạp lại khi đổi sắp xếp / phân khúc / từ khoá — số bản ghi đổi
+     theo, nên phải về trang 1, nếu không sẽ đứng ở một trang không còn tồn tại. */
+  useEffect(() => { setPage(0); }, [sortBy, segment, search]);
+
+  const totalPages = Math.ceil(players.length / pageSize) || 0;
+  const pagedPlayers = players.slice(page * pageSize, page * pageSize + pageSize);
 
   return (
     <AdminCard
@@ -701,10 +744,15 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
               </tr>
             </thead>
             <tbody>
-              {players.map((p, idx) => (
+              {pagedPlayers.map((p, idx) => {
+                /* Huy chương bám thứ hạng THẬT trong cả danh sách, không phải
+                   vị trí trong trang — nếu không thì sang trang 2 lại có thêm
+                   một bộ vàng/bạc/đồng nữa. */
+                const rank = page * pageSize + idx;
+                return (
                 <tr key={p.userId} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5" onClick={() => onSelectPlayer(p.userId)}>
                   <td className="font-medium text-indigo-700">
-                    {RANK_MEDAL[idx] ? `${RANK_MEDAL[idx]} ` : ""}{p.playerName}
+                    {RANK_MEDAL[rank] ? `${RANK_MEDAL[rank]} ` : ""}{p.playerName}
                     {p.isNewPlayer && <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-cyan-100 text-cyan-700">Mới</span>}
                     {p.championCount > 0 && <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-700">🏆{p.championCount}</span>}
                   </td>
@@ -715,9 +763,19 @@ const PlayerLeaderboardCard = ({ analyticsApi, range, filters, onSelectPlayer })
                   <td className="text-xs">{p.matchesWon}/{p.matchesPlayed}{p.winRatePct != null ? ` (${Math.round(p.winRatePct)}%)` : ""}</td>
                   <td className="text-xs text-slate-500 dark:text-white/60">{p.daysSinceLastActivity != null ? `${p.daysSinceLastActivity} ngày trước` : "—"}</td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
+          <AdminPagination
+            page={page}
+            totalPages={totalPages}
+            totalElements={players.length}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => { setPageSize(size); setPage(0); }}
+            pageSizeOptions={TABLE_PAGE_SIZES}
+          />
         </div>
       )}
     </AdminCard>
