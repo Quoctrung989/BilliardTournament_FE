@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { normalizeRole } from "../../utils/auth";
 import { ROLES } from "../../constants/auth";
@@ -40,6 +40,13 @@ const PLAYER_MENU = [
 
 const Header = () => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  /* Khớp cả trang con: đang ở /event/24 thì tab "Giải Đấu" vẫn sáng. Dùng
+     `path + "/"` chứ không phải `startsWith(path)` trần — nếu không, một route
+     tương lai tên /eventual cũng sẽ làm sáng nhầm tab này. */
+  const isActivePath = (path) =>
+    Boolean(path) && (pathname === path || pathname.startsWith(`${path}/`));
   const { isAuthenticated, user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   // Xoá cả mốc đã đọc khi đăng xuất — người khác đăng nhập trên cùng máy mà giữ mốc của chủ
@@ -77,15 +84,23 @@ const Header = () => {
 
         {/* Nav links */}
         <div className="flex items-center justify-evenly h-full flex-1">
-          {NAV_ITEMS.map(({ label, path }) => (
-            <div
-              key={label}
-              onClick={() => path && navigate(path)}
-              className={`ui-underline flex items-center whitespace-nowrap h-full px-2 text-[11px] font-semibold tracking-widest uppercase text-[#1a1a2e] dark:text-gray-200 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors duration-150 ${path ? "cursor-pointer" : "cursor-default"}`}
-            >
-              {label}
-            </div>
-          ))}
+          {NAV_ITEMS.map(({ label, path }) => {
+            const active = isActivePath(path);
+            return (
+              <div
+                key={label}
+                onClick={() => path && navigate(path)}
+                aria-current={active ? "page" : undefined}
+                className={`ui-underline flex items-center whitespace-nowrap h-full px-2 text-[11px] font-semibold tracking-widest uppercase transition-colors duration-150 hover:text-[#EF342A] dark:hover:text-[#EF342A] ${
+                  active
+                    ? "ui-underline--active text-[#EF342A]"
+                    : "text-[#1a1a2e] dark:text-gray-200"
+                } ${path ? "cursor-pointer" : "cursor-default"}`}
+              >
+                {label}
+              </div>
+            );
+          })}
         </div>
 
         {/* Auth area */}
