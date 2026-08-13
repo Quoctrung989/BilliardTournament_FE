@@ -1535,24 +1535,8 @@ const DrawPage = ({ api, basePath }) => {
               <div className="min-w-0">
                 <p className="font-semibold text-slate-800 truncate">{walkoverTarget.displayName}</p>
                 <p className="text-xs text-amber-700">Được xử thắng, trận không thi đấu</p>
-        <p className="text-sm text-slate-500 dark:text-white/60 mb-4">Chọn người thắng trận này:</p>
-        <div className="space-y-2">
-          {[completeModal?.player1, completeModal?.player2].filter(Boolean).map(p => (
-            <div key={p.id}
-                 className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-4 py-3 rounded-xl border border-slate-100 dark:border-white/10">
-              <PlayerAvatar name={p.displayName} id={p.id} size="sm" />
-              <span className="flex-1 font-medium text-slate-800 dark:text-white/85">{p.displayName}</span>
-              <div className="flex gap-2">
-                <AdminButton variant="primary" disabled={saving} onClick={() => handleComplete(p.id)}
-                             className="flex items-center gap-1">
-                  <CheckCircle size={13} /> Thắng
-                </AdminButton>
-                <AdminButton variant="secondary" disabled={saving} onClick={() => handleWalkover(p.id)}>
-                  Walkover
-                </AdminButton>
               </div>
             </div>
-
             <label className="admin-label">Lý do xử thắng</label>
             <div className="flex flex-wrap gap-2 mt-1.5 mb-2">
               {["Đối thủ vắng mặt", "Đối thủ bỏ cuộc", "Đối thủ đến muộn quá giờ", "Đối thủ bị loại"]
