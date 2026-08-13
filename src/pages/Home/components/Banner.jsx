@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { useCountUp } from "../../../hooks/useCountUp";
 import { listPublicTournaments } from "../../../api/publicTournamentApi";
 import { listPublicBranches } from "../../../api/publicBranchApi";
-import { DEMO_HERO_STATS, withDemo } from "../../../constants/demoData";
 
 /** Một ô số liệu ở dải dưới hero — đếm tăng khi cuộn tới. */
 const HeroStat = ({ label, value, index }) => {
@@ -59,7 +58,7 @@ function useHeroStats() {
             : null
         )
         .filter(Boolean);
-      setStats(withDemo(real, DEMO_HERO_STATS, "Số liệu hero"));
+      setStats(real);
     });
 
     return () => {

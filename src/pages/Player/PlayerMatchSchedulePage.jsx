@@ -5,7 +5,6 @@ import { X, Swords, Calendar } from "lucide-react";
 import { getMyMatches } from "../../api/matchApi";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { useReveal } from "../../hooks/useReveal";
-import { USE_MOCK_MY_MATCHES, MOCK_MY_MATCHES } from "../../mock/myMatchesMock";
 import "../Profile/profile.scss";
 
 const STATUS_CFG = {
@@ -43,13 +42,6 @@ const PlayerMatchSchedulePage = () => {
   const [selectedMatch, setSelectedMatch] = useState(null);
 
   useEffect(() => {
-    // Dữ liệu giả để chụp ảnh tài liệu — tắt bằng USE_MOCK_MY_MATCHES trong src/mock/myMatchesMock.js
-    if (USE_MOCK_MY_MATCHES) {
-      setMatches(MOCK_MY_MATCHES);
-      setLoading(false);
-      return;
-    }
-
     getMyMatches()
       .then((data) => setMatches(Array.isArray(data) ? data : []))
       .catch((err) => toast.error(getApiErrorMessage(err)))

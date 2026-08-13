@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getPublicMatches } from "../../api/matchApi";
 import { getPublicTournamentDetail } from "../../api/publicTournamentApi";
 import SocketConnectionBadge from "../../components/shared/SocketConnectionBadge";
@@ -21,29 +21,13 @@ import {
   getRoundLabel,
   sortByTable,
 } from "./tvLayout";
-import {
-  TEMP_DEFAULT_MOCK_COUNT,
-  buildMockLiveMatches,
-  readMockCount,
-} from "./tvMockMatches";
 import "./tvLive.css";
 
 const FLASH_MS = 300;
 
 const TournamentLiveTvPage = () => {
   const { id } = useParams();
-  const { search } = useLocation();
   const tournamentId = Number(id);
-
-  /**
-   * Số trận giả: `?mock=<n>` ghi đè, `?mock=off` tắt hẳn, không có tham số thì
-   * dùng mặc định tạm thời trong tvMockMatches.js.
-   */
-  const mockCount = useMemo(() => {
-    const fromUrl = readMockCount(search);
-    if (fromUrl === null) return TEMP_DEFAULT_MOCK_COUNT;
-    return fromUrl || null;
-  }, [search]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -136,19 +120,6 @@ const TournamentLiveTvPage = () => {
   const loadSnapshot = useCallback(async () => {
     if (!tournamentId) return;
 
-    if (mockCount) {
-      const nextMap = {};
-      buildMockLiveMatches(mockCount, tournamentId).forEach((m) => {
-        nextMap[m.id] = m;
-      });
-      setMatchMap(nextMap);
-      setTournamentMeta({ name: "Giải mô phỏng — dữ liệu thử" });
-      setError(null);
-      setHasSnapshot(true);
-      setLoading(false);
-      return;
-    }
-
     try {
       setError(null);
       const [matches, detail] = await Promise.all([
@@ -174,7 +145,7 @@ const TournamentLiveTvPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [tournamentId, mockCount]);
+  }, [tournamentId]);
 
   useEffect(() => {
     setLoading(true);
@@ -186,7 +157,7 @@ const TournamentLiveTvPage = () => {
   }, [loadSnapshot]);
 
   const { connectionState } = useTournamentSocket(tournamentId, {
-    enabled: hasSnapshot && !loading && Boolean(tournamentId) && !mockCount,
+    enabled: hasSnapshot && !loading && Boolean(tournamentId),
     onMatchUpdate: upsertMatch,
     onBracketSync: applyBracketSync,
     onReconnect: loadSnapshot,
@@ -301,11 +272,6 @@ const TournamentLiveTvPage = () => {
       }}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_28%)]" />
-      {mockCount != null && (
-        <div className="pointer-events-none absolute left-1/2 top-2 z-30 -translate-x-1/2 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-amber-300">
-          Dữ liệu thử · {mockCount} trận
-        </div>
-      )}
 
       <div className="pointer-events-none absolute right-[4%] top-[4%] z-30">
         <SocketConnectionBadge
