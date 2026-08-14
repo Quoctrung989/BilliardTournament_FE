@@ -109,6 +109,20 @@ label {
   transform: scaleX(1);
 }
 
+/*
+ * Chip lọc ở thanh lọc trên cùng (danh sách giải đấu, tin tức).
+ *
+ * Chỉ chỉnh đúng hai đầu vạch. Bản gốc vẽ `width: 100%` ở `bottom: 0`, mà chip
+ * lại có padding ngang 1rem — vạch chạy hết bề ngang trông rộng hơn hẳn phần
+ * chữ. Thụt vào 1rem mỗi bên, đúng bằng padding ngang của chip, là vạch ôm sát
+ * nhãn.
+ */
+.ui-underline--chip::after {
+  left: 1rem;
+  right: 1rem;
+  width: auto;
+}
+
 /* Logo phóng to khi hover. `transform-origin: left` để logo nở sang phải,
    không đẩy các phần tử bên cạnh và không tràn mép trái màn hình. */
 .ui-logo-zoom {

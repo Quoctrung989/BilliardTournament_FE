@@ -550,20 +550,11 @@
 }
 
 /*
- * Chip lọc ở thanh trên: mượn gạch chân đỏ của nav link (`.ui-underline`
- * trong styles/global.css) để thao tác lọc có cùng ngôn ngữ với thanh điều
- * hướng.
- *
- * Chỉ chỉnh đúng hai đầu vạch. Bản gốc vẽ `width: 100%` ở `bottom: 0`, mà chip
- * lại bo tròn hoàn toàn — vạch thẳng sẽ chìa ra ngoài phần cong ở hai mép,
- * trông như lỗi dựng. Thụt vào 1rem mỗi bên, đúng bằng padding ngang của chip,
- * là vạch nằm gọn trong vùng đáy phẳng.
+ * Chip lọc ở thanh trên mượn gạch chân đỏ của nav link để thao tác lọc có cùng
+ * ngôn ngữ với thanh điều hướng — xem `.ui-underline--chip` trong
+ * styles/global.css. Trang tin tức dùng chung class đó nên nó không còn sống
+ * riêng ở đây nữa.
  */
-.evt-filter-chip::after {
-  left: 1rem;
-  right: 1rem;
-  width: auto;
-}
 
 /* ═══════════════════════════════════════════════════════════════════════
    Khung gradient + quầng sáng khi trỏ vào
