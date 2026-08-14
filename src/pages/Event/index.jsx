@@ -312,7 +312,7 @@ const EventPage = () => {
                 <button
                   key={f.value || "all"}
                   onClick={() => handleStatusChange(f.value)}
-                  className={`ui-underline evt-filter-chip px-4 py-1.5 text-sm font-semibold transition-colors duration-150 ${
+                  className={`ui-underline ui-underline--chip px-4 py-1.5 text-sm font-semibold transition-colors duration-150 ${
                     statusFilter === f.value
                       ? "ui-underline--active text-[#0e1116] dark:text-white"
                       : "text-[#333]/70 hover:text-[#0e1116] dark:text-white/60 dark:hover:text-white"
