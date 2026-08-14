@@ -132,7 +132,10 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
                 {field.label || field.fieldKey}
                 {field.isRequired && <span className="text-red-500 ml-1">*</span>}
               </p>
-              {field.source && (
+              {/* bracket_size luôn source=TOURNAMENT phía BE (đánh dấu "không phải default admin"),
+                  nhưng đó là giá trị dẫn xuất tự tính, không phải Owner chỉnh tay — hiện "Đã chỉnh"
+                  cho field đã ghi rõ "không chỉnh tay được" ngay bên dưới là tự mâu thuẫn. */}
+              {field.source && field.fieldKey !== "bracket_size" && (
                 <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-slate-400 dark:text-white/40 bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded">
                   {field.source === "TOURNAMENT" ? "Đã chỉnh" : "Mặc định"}
                 </span>
