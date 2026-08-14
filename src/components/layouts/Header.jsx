@@ -57,6 +57,10 @@ const Header = () => {
   const isPlayer = role === ROLES.PLAYER;
   const dashboardPath = DASHBOARD_PATH_BY_ROLE[role];
   const canManage = [ROLES.ADMIN, ROLES.OWNER, ROLES.MANAGER].includes(role);
+  /* Trọng tài cũng cần lối quay lại khu làm việc. Tách khỏi `canManage` vì
+     nhãn phải khác: họ không "quản lý" gì, chỉ trở về màn chấm điểm. */
+  const isStaff = role === ROLES.STAFF;
+  const backToWorkLabel = isStaff ? "Quay lại quản trị" : "Quản lý";
 
   useEffect(() => {
     const handler = (e) => {
@@ -134,14 +138,14 @@ const Header = () => {
                     <AiOutlineUser size={15} />
                     Hồ sơ
                   </button>
-                  {canManage && dashboardPath && (
+                  {(canManage || isStaff) && dashboardPath && (
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setMenuOpen(false); navigate(dashboardPath); }}
                       className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-white/5 dark:hover:bg-white/10 hover:text-[#EF342A] dark:hover:text-[#EF342A] transition-colors text-left"
                     >
                       <AiOutlineDashboard size={15} />
-                      Quản lý
+                      {backToWorkLabel}
                     </button>
                   )}
                   {isPlayer && (

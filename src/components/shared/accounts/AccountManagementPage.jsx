@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Eye, Pencil, Plus, Search, UserPlus, X } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Pencil, Plus, Search, UserPlus, X } from "lucide-react";
 import { toast } from "react-toastify";
 import AdminButton from "../../admin/ui/AdminButton";
 import AdminCard from "../../admin/ui/AdminCard";
@@ -310,6 +310,8 @@ const AccountManagementPage = ({ config }) => {
   const [search, setSearch] = useState("");
 
   const [createType, setCreateType] = useState(null);
+  // Hai form tạo tài khoản không bao giờ hiện cùng lúc nên dùng chung một cờ
+  const [showPassword, setShowPassword] = useState(false);
   const [simpleAccountForm, setSimpleAccountForm] = useState(EMPTY_SIMPLE_ACCOUNT_FORM);
   const [employeeForm, setEmployeeForm] = useState(EMPTY_EMPLOYEE_FORM);
   const [employeeFormErrors, setEmployeeFormErrors] = useState({});
@@ -579,17 +581,28 @@ const AccountManagementPage = ({ config }) => {
               </div>
               <div>
                 <label className="admin-label">Mật khẩu * (6–100 ký tự)</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  maxLength={100}
-                  className="admin-input mt-1"
-                  value={simpleAccountForm.password}
-                  onChange={(e) =>
-                    setSimpleAccountForm({ ...simpleAccountForm, password: e.target.value })
-                  }
-                />
+                <div className="relative mt-1">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    maxLength={100}
+                    className="admin-input pr-9"
+                    value={simpleAccountForm.password}
+                    onChange={(e) =>
+                      setSimpleAccountForm({ ...simpleAccountForm, password: e.target.value })
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white/70"
+                    tabIndex={-1}
+                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="admin-label">Số điện thoại</label>
@@ -626,14 +639,25 @@ const AccountManagementPage = ({ config }) => {
                 </div>
                 <div>
                   <label className="admin-label">Mật khẩu *</label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    className="admin-input mt-1"
-                    value={employeeForm.password}
-                    onChange={(e) => setEmployeeForm({ ...employeeForm, password: e.target.value })}
-                  />
+                  <div className="relative mt-1">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={6}
+                      className="admin-input pr-9"
+                      value={employeeForm.password}
+                      onChange={(e) => setEmployeeForm({ ...employeeForm, password: e.target.value })}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white/70"
+                      tabIndex={-1}
+                      aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
                 <EmployeeProfileFields
                   form={employeeForm}

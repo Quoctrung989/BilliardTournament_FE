@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import axiosClient from "../../../../api/axiosClient";
 import { toast } from "react-toastify";
 import Loading from "../../../../components/layouts/Loading/Loading";
@@ -12,6 +13,8 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("");
@@ -255,13 +258,24 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
           <label className="block mb-2">
             Mật khẩu <span className="text-red-500">*</span>
           </label>
-          <input
-            type="password"
-            placeholder="Mật khẩu"
-            className="w-full px-3 py-2 border rounded-md"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Mật khẩu"
+              className="w-full px-3 py-2 pr-9 border rounded-md"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
           {errors.password && (
             <p className="text-red-500 text-xs mt-1">{errors.password}</p>
           )}
@@ -270,13 +284,24 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
           <label className="block mb-2">
             Xác nhận mật khẩu <span className="text-red-500">*</span>
           </label>
-          <input
-            type="password"
-            placeholder="Xác nhận mật khẩu"
-            className="w-full px-3 py-2 border rounded-md"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Xác nhận mật khẩu"
+              className="w-full px-3 py-2 pr-9 border rounded-md"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
+              aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            >
+              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
           {errors.confirmPassword && (
             <p className="text-red-500 text-xs mt-1">
               {errors.confirmPassword}

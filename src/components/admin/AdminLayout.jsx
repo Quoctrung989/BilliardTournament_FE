@@ -22,18 +22,22 @@ export const DEFAULT_PAGE_META = {
  * không remount theo từng trang, nhờ đó AdminSidebar không bị reset state khi điều hướng. Trang
  * con (qua with*Page) tự báo title/subtitle/... lên đây bằng useOutletContext (pageMetaLeaf.jsx).
  */
-const AdminLayout = ({ navConfig }) => {
+const AdminLayout = ({ navConfig, hideSidebar = false }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [pageMeta, setPageMeta] = useState(DEFAULT_PAGE_META);
-  const sidebarW = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
+  /* Không có sidebar thì phần nội dung chiếm trọn bề ngang, và nút "Về trang chủ"
+     — vốn nằm ở chân sidebar — phải chuyển lên header, nếu không sẽ mất lối ra. */
+  const sidebarW = hideSidebar ? 0 : collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
 
   return (
     <div className="admin-shell min-h-screen bg-[var(--admin-bg)]">
-      <AdminSidebar
-        navConfig={navConfig}
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((v) => !v)}
-      />
+      {!hideSidebar && (
+        <AdminSidebar
+          navConfig={navConfig}
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((v) => !v)}
+        />
+      )}
       <div
         className="admin-main min-h-screen"
         style={{ marginLeft: sidebarW, width: `calc(100% - ${sidebarW}px)` }}
@@ -44,6 +48,7 @@ const AdminLayout = ({ navConfig }) => {
           hideBreadcrumb={pageMeta.hideBreadcrumb}
           hideSearch={pageMeta.hideSearch}
           hideTitles={pageMeta.hideTitles}
+          showHomeButton={hideSidebar}
         />
         <main
           className={`${pageMeta.fullWidth ? "admin-content admin-content--full" : "admin-content"} ${pageMeta.contentClassName}`.trim()}

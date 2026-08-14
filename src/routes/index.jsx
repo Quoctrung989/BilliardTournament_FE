@@ -21,7 +21,10 @@ const SECTIONS = {
   admin: { Guard: AdminRoute, navConfig: ADMIN_NAV },
   owner: { Guard: OwnerRoute, navConfig: OWNER_NAV },
   manager: { Guard: ManagerRoute, navConfig: MANAGER_NAV },
-  staff: { Guard: StaffRoute, navConfig: STAFF_NAV },
+  /* Trọng tài chỉ có đúng một mục ("Trận của tôi") — một cột dọc 260px để chứa
+     một dòng là phí, nhất là trên tablet cầm tay ở bàn đấu. Bỏ sidebar, mọi
+     đường đi dồn lên header. */
+  staff: { Guard: StaffRoute, navConfig: STAFF_NAV, hideSidebar: true },
 };
 
 function AppRoutes() {
@@ -50,8 +53,15 @@ function AppRoutes() {
           />
         ))}
 
-        {Object.entries(SECTIONS).map(([key, { Guard, navConfig }]) => (
-          <Route key={key} element={<Guard><AdminLayout navConfig={navConfig} /></Guard>}>
+        {Object.entries(SECTIONS).map(([key, { Guard, navConfig, hideSidebar }]) => (
+          <Route
+            key={key}
+            element={
+              <Guard>
+                <AdminLayout navConfig={navConfig} hideSidebar={hideSidebar} />
+              </Guard>
+            }
+          >
             {sectioned[key].map((route) => (
               <Route key={route.path} path={route.path} element={<route.component />} />
             ))}

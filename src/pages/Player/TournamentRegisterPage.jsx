@@ -8,6 +8,7 @@ import {
 } from "../../api/playerRegistrationApi";
 import { createCheckout } from "../../api/paymentApi";
 import { getProfile } from "../../api/profileApi";
+import * as authApi from "../../api/authApi";
 import RegistrationDynamicForm from "../../components/registration-form/RegistrationDynamicForm";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { useReveal } from "../../hooks/useReveal";
@@ -93,11 +94,16 @@ const TournamentRegisterPage = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [data, profile] = await Promise.all([
+      const [data, profile, me] = await Promise.all([
         getTournamentRegistrationForm(tournamentId),
         // Hồ sơ chỉ dùng để điền hộ. Tài khoản chưa tạo hồ sơ thì backend trả
         // 404 — nuốt lỗi tại đây, vì không có nó form vẫn phải mở được bình thường
         getProfile().catch(() => null),
+        /* Số điện thoại có ngay từ lúc đăng ký tài khoản, nhưng `POST /auth/login`
+           chỉ trả token — store auth không có `phone` cho tới lần tải lại trang kế
+           tiếp (`hydrateAuth` mới gọi `/auth/me`). Hỏi thẳng ở đây để người vừa
+           đăng nhập xong, chưa kịp tạo hồ sơ, vẫn được điền hộ số của mình. */
+        authApi.getMe().catch(() => null),
       ]);
       setFormPreview(data);
 
@@ -111,7 +117,9 @@ const TournamentRegisterPage = () => {
       if (!prefilledOnce.current) {
         prefilledOnce.current = true;
 
-        const prefill = buildPrefill(data.fields, profile, userRef.current);
+        /* `me` mới nhất nên đứng trước; `userRef.current` là lối lùi khi `/auth/me`
+           hỏng (mất mạng giữa chừng) mà store đã có sẵn dữ liệu từ lần hydrate trước */
+        const prefill = buildPrefill(data.fields, profile, me || userRef.current);
         if (Object.keys(prefill).length > 0) {
           Object.assign(initial, prefill);
           setPrefilled(true);

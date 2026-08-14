@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import {
+  AiOutlineCheckCircle,
+  AiOutlineEye,
+  AiOutlineEyeInvisible,
+  AiOutlineLoading3Quarters,
+} from "react-icons/ai";
 import * as authApi from "../../api/authApi";
 import { getPostLoginPath } from "../../utils/auth";
 
@@ -10,7 +15,15 @@ const LoginPage = () => {
   const location = useLocation();
   const { loginFromResponse } = useAuthStore();
   const redirectAfterLogin = location.state?.from?.pathname;
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  /* Lời nhắn từ màn khác chuyển sang (hiện chỉ có màn Đăng ký). Đọc một lần lúc
+     mount: giữ trong state để còn xoá được khi người dùng bắt đầu đăng nhập,
+     thay vì đọc thẳng `location.state` ở mỗi lần render. */
+  const [notice, setNotice] = useState(location.state?.notice || "");
+  const [formData, setFormData] = useState({
+    email: location.state?.registeredEmail || "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -44,6 +57,9 @@ const LoginPage = () => {
     newErrors = validateField("password", formData.password, newErrors);
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setErrors({});
+    // Đã bắt tay vào đăng nhập thì lời chúc mừng đăng ký xong không còn chỗ đứng —
+    // nhất là khi lát nữa có lỗi hiện ra, hai khung xanh/đỏ cạnh nhau rất khó hiểu
+    setNotice("");
     setIsLoading(true);
 
     try {
@@ -97,6 +113,13 @@ const LoginPage = () => {
             Đăng nhập.
           </h2>
 
+          {notice && (
+            <div className="mb-4 p-3 rounded text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 flex items-start gap-2">
+              <AiOutlineCheckCircle size={14} className="mt-0.5 shrink-0" />
+              <span>{notice}</span>
+            </div>
+          )}
+
           {errors.submit && (
             <div className="mb-4 p-3 rounded text-xs text-red-600 bg-red-50 border border-red-200">
               {errors.submit}
@@ -122,15 +145,25 @@ const LoginPage = () => {
 
             <div className="mb-2">
               <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Mật khẩu</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                onBlur={() => setTouched((p) => ({ ...p, password: true }))}
-                className={inputClass("password")}
-                placeholder="Nhập mật khẩu"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  onBlur={() => setTouched((p) => ({ ...p, password: true }))}
+                  className={`${inputClass("password")} pr-9`}
+                  placeholder="Nhập mật khẩu"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <AiOutlineEyeInvisible size={16} /> : <AiOutlineEye size={16} />}
+                </button>
+              </div>
               {touched.password && errors.password && (
                 <p className="text-red-500 text-xs mt-1">{errors.password}</p>
               )}
