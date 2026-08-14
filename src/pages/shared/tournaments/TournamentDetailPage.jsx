@@ -148,7 +148,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (
-      basePath === "/manager/tournaments" &&
+      (basePath === "/manager/tournaments" || basePath === "/owner/tournaments") &&
       params.get("tab") === "live" &&
       tournamentId
     ) {
@@ -613,7 +613,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
           </AdminButton>
         )}
 
-        {basePath === "/manager/tournaments" && (
+        {(basePath === "/manager/tournaments" || basePath === "/owner/tournaments") && (
           <AdminButton
             variant="secondary"
             onClick={() => navigate(`${basePath}/${id}/live`)}
