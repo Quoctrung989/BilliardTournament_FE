@@ -193,13 +193,20 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
               <Clock size={28} style={{ color: "rgba(255,255,255,0.4)", flexShrink: 0 }} />
               <div>
                 <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 0.2rem" }}>
-                  {t.status === "REGISTRATION_CLOSED" || t.status === "DRAW_DONE" ? "Đã đóng đăng ký"
+                  {t.status === "OPEN_FOR_REGISTRATION" && t.isRegister ? "Giải đấu đang mở đăng ký"
+                    : t.status === "REGISTRATION_CLOSED" || t.status === "DRAW_DONE" ? "Đã đóng đăng ký"
                     : t.status === "IN_PROGRESS" ? "Giải đấu đang diễn ra"
                     : t.status === "COMPLETED" ? "Giải đấu đã kết thúc"
                     : "Chưa mở đăng ký"}
                 </p>
                 <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.8rem", margin: 0 }}>
-                  {t.isRegister ? "Đã đóng nhận đăng ký online" : "Giải đấu không nhận đăng ký online"}
+                  {/* Tới được đây mà status vẫn đang mở nghĩa là lý do không đăng ký được là VAI TRÒ
+                      người xem (không phải Player), không phải bản thân giải đã đóng — hai câu dưới
+                      trước đây dùng chung 1 ternary theo t.isRegister nên hiện SAI (và bị đảo ngược
+                      nghĩa) cho đúng trường hợp này. */}
+                  {t.status === "OPEN_FOR_REGISTRATION" && t.isRegister
+                    ? "Chỉ tài khoản Cơ thủ (Player) mới đăng ký được — đăng nhập bằng tài khoản cơ thủ để tham dự"
+                    : t.isRegister ? "Đã đóng nhận đăng ký online" : "Giải đấu không nhận đăng ký online"}
                 </p>
               </div>
             </div>

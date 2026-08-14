@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ArrowLeft, CheckCircle, CreditCard, Loader, UserCheck } from "lucide-react";
 import {
+  getMyRegistrationForTournament,
   getTournamentRegistrationForm,
   submitTournamentRegistration,
 } from "../../api/playerRegistrationApi";
@@ -78,6 +79,12 @@ const TournamentRegisterPage = () => {
   const [formPreview, setFormPreview] = useState(null);
   const [values, setValues] = useState({});
   const [note, setNote] = useState("");
+  /* Trang này vào được thẳng bằng URL, không chỉ qua nút "Đăng ký" đã bị ẩn khi
+     đã đăng ký rồi — nếu không tự kiểm tra ở đây, người dùng gõ thẳng link vẫn
+     mở được form và bấm gửi lại, nhận về lỗi 409 REGISTRATION_ALREADY_EXISTS mà
+     không hiểu vì sao (xem PlayerTournamentDetailPage/EventDetailPage — hai màn
+     đó chỉ ẩn nút, không chặn thẳng URL này). */
+  const [existingRegistration, setExistingRegistration] = useState(null);
   /** Có điền hộ được ô nào không — quyết định việc hiện dòng nhắc phía trên form */
   const [prefilled, setPrefilled] = useState(false);
 
@@ -93,13 +100,19 @@ const TournamentRegisterPage = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [data, profile] = await Promise.all([
+      const [data, profile, myRegistration] = await Promise.all([
         getTournamentRegistrationForm(tournamentId),
         // Hồ sơ chỉ dùng để điền hộ. Tài khoản chưa tạo hồ sơ thì backend trả
         // 404 — nuốt lỗi tại đây, vì không có nó form vẫn phải mở được bình thường
         getProfile().catch(() => null),
+        // Chưa đăng ký thì backend cũng trả 404 — coi như "chưa có" thay vì lỗi
+        getMyRegistrationForTournament(tournamentId).catch(() => null),
       ]);
       setFormPreview(data);
+      if (myRegistration) {
+        setExistingRegistration(myRegistration);
+        return;
+      }
 
       const initial = {};
       (data.fields || []).forEach((f) => {
@@ -215,6 +228,39 @@ const TournamentRegisterPage = () => {
   }
 
   if (!formPreview) return null;
+
+  /* ── Đã đăng ký giải này rồi — vào thẳng bằng URL vẫn phải thấy trạng thái
+     thật, không phải form trống chờ gửi lại để rồi nhận lỗi khó hiểu ── */
+  if (existingRegistration) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-12 content-dark">
+        <div className="admin-card p-8 text-center">
+          <UserCheck size={56} className="mx-auto mb-4 text-indigo-500" />
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Bạn đã đăng ký giải này rồi</h2>
+          <p className="text-slate-500 dark:text-white/60 mb-6">
+            Trạng thái hiện tại: <span className="font-semibold">{existingRegistration.status}</span>.
+            Xem chi tiết hoặc thanh toán (nếu còn thiếu) trong mục "Đăng ký của tôi".
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/player/registrations")}
+              className="admin-btn admin-btn-primary w-full py-3 text-base font-semibold"
+            >
+              Xem đăng ký của tôi
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(`/player/tournaments/${tournamentId}`)}
+              className="text-sm text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70"
+            >
+              Quay lại giải đấu
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /* ── Đang chuyển tới cổng thanh toán ── */
   if (submitState === "paying") {
