@@ -42,6 +42,15 @@ const defaultBasic = {
   registrationFormTemplateId: "",
 };
 
+/**
+ * Bước nhảy của nút +/- ở ô "Tổng giải thưởng".
+ *
+ * Giải thưởng thực tế toàn ở mức vài triệu tới vài chục triệu, mà mũi tên mặc
+ * định của `input[type=number]` chỉ nhảy 1 đồng — bấm cả ngày không tới đâu.
+ * Vẫn cho gõ tay số lẻ, hai nút này chỉ là lối tắt.
+ */
+const PRIZE_STEP = 1_000_000;
+
 const toInstantOrNull = (localValue) => {
   if (!localValue) return null;
   const d = new Date(localValue);
@@ -455,6 +464,27 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     setDateErrors(validateDates(next));
   };
 
+  /**
+   * Cộng/trừ tổng giải thưởng theo bước 1 triệu.
+   *
+   * Cộng thẳng vào số đang có chứ không làm tròn về bội số của 1 triệu: người
+   * nhập 5.500.000 rồi bấm "+" là muốn 6.500.000, không phải bị nắn về 6.000.000.
+   * Chặn dưới ở 0 để không ra giải thưởng âm.
+   */
+  const stepPrizePool = (delta) => {
+    setBasic((b) => {
+      const current = Number(b.prizePool);
+      const base = Number.isFinite(current) && b.prizePool !== "" ? current : 0;
+      return { ...b, prizePool: String(Math.max(0, base + delta)) };
+    });
+  };
+
+  /* Số tiền dài rất khó soi bằng mắt (5000000 hay 50000000?) — in lại có dấu phân cách */
+  const prizePoolHint =
+    basic.prizePool === "" || !Number.isFinite(Number(basic.prizePool))
+      ? "Bỏ trống nếu chưa công bố. Hai nút +/- thay đổi 1.000.000 đ mỗi lần."
+      : `${Number(basic.prizePool).toLocaleString("vi-VN")} đ`;
+
   const validateStep1 = () => {
     const errs = {};
     if (!basic.name.trim()) errs.name = "Tên giải đấu không được để trống.";
@@ -757,14 +787,38 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
 
             <div>
               <label className="admin-label">Tổng giải thưởng (VNĐ)</label>
-              <input
-                type="number"
-                min={0}
-                className="admin-input w-full"
-                placeholder="Tùy chọn"
-                value={basic.prizePool}
-                onChange={(e) => setBasic((b) => ({ ...b, prizePool: e.target.value }))}
-              />
+              <div className="flex items-stretch gap-2">
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-secondary px-3 shrink-0"
+                  onClick={() => stepPrizePool(-PRIZE_STEP)}
+                  aria-label="Giảm 1 triệu"
+                  title="Giảm 1 triệu"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min={0}
+                  step={PRIZE_STEP}
+                  className="admin-input w-full text-center"
+                  placeholder="Tùy chọn"
+                  value={basic.prizePool}
+                  onChange={(e) => setBasic((b) => ({ ...b, prizePool: e.target.value }))}
+                />
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-secondary px-3 shrink-0"
+                  onClick={() => stepPrizePool(PRIZE_STEP)}
+                  aria-label="Tăng 1 triệu"
+                  title="Tăng 1 triệu"
+                >
+                  +
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-slate-400 dark:text-white/40">
+                {prizePoolHint}
+              </p>
             </div>
 
             <div className="sm:col-span-2">

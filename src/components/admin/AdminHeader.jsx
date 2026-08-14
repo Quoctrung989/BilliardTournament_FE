@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, LayoutDashboard, LogOut, Search, Settings } from "lucide-react";
+import { ChevronDown, Home, LayoutDashboard, LogOut, Search, Settings, User } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { useNotificationStore } from "../../store/notificationStore";
 import { ROLES } from "../../constants/auth";
@@ -28,6 +28,9 @@ const AdminHeader = ({
   hideBreadcrumb = false,
   hideSearch = false,
   hideTitles = false,
+  /* Bật cho section không có sidebar (Trọng tài): nút "Về trang chủ" vốn nằm ở
+     chân sidebar phải xuất hiện ở đây, nếu không người dùng không còn lối ra. */
+  showHomeButton = false,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -100,6 +103,18 @@ const AdminHeader = ({
       )}
 
       <div className="flex items-center gap-2 flex-shrink-0">
+        {showHomeButton && (
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="admin-btn admin-btn-ghost h-10 gap-1.5 px-3"
+            title="Về trang chủ"
+          >
+            <Home size={16} />
+            <span className="hidden sm:inline">Về trang chủ</span>
+          </button>
+        )}
+
         <ThemeSwitch />
 
         <NotificationBell className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full flex" />
@@ -124,6 +139,16 @@ const AdminHeader = ({
 
           {menuOpen && (
             <div className="absolute right-0 mt-2 w-56 admin-card py-1 shadow-xl border border-slate-200 dark:border-white/10 z-50">
+              <button
+                type="button"
+                className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
+                onClick={() => {
+                  navigate("/profile");
+                  setMenuOpen(false);
+                }}
+              >
+                <User size={16} /> Hồ sơ của tôi
+              </button>
               {canManage && dashboardPath && (
                 <button
                   type="button"

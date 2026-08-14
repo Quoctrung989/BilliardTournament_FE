@@ -116,7 +116,7 @@ const SectionHeader = ({ tone, label, count }) => {
 const StatusBadge = ({ match }) => {
   if (isMatchLive(match.status)) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 text-white px-2.5 py-1 text-xs font-bold shadow-sm shadow-emerald-200">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 text-white px-2.5 py-1 text-xs font-bold shadow-sm shadow-emerald-200 dark:shadow-none">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white dark:bg-[#161a22] opacity-70" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-white dark:bg-[#161a22]" />
@@ -179,7 +179,7 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
       <button
         type="button"
         onClick={() => onOpen(match.id)}
-        className="w-full sm:w-auto whitespace-nowrap rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:from-emerald-700 active:to-teal-700 text-white font-bold text-sm px-4 py-2.5 transition-all touch-manipulation shadow-md shadow-emerald-200/80"
+        className="w-full sm:w-auto whitespace-nowrap rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:from-emerald-700 active:to-teal-700 text-white font-bold text-sm px-4 py-2.5 transition-all touch-manipulation shadow-md shadow-emerald-200/80 dark:shadow-none"
       >
         Tiếp tục chấm →
       </button>
@@ -190,7 +190,7 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
         type="button"
         disabled={isStarting}
         onClick={() => onStart(match)}
-        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 disabled:opacity-55 text-white font-semibold text-sm px-4 py-2.5 transition-all touch-manipulation shadow-md shadow-indigo-200/70"
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 disabled:opacity-55 text-white font-semibold text-sm px-4 py-2.5 transition-all touch-manipulation shadow-md shadow-indigo-200/70 dark:shadow-none"
       >
         {isStarting ? (
           <RefreshCw size={15} className="animate-spin" />
@@ -208,7 +208,7 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
         type="button"
         disabled={isStarting}
         onClick={() => onStart(match)}
-        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-amber-300/80 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:border-amber-400 disabled:opacity-55 font-semibold text-sm px-4 py-2.5 transition-colors touch-manipulation"
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-amber-300/80 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:border-amber-400 dark:border-amber-400/30 dark:bg-amber-400/12 dark:text-amber-300 dark:hover:bg-amber-400/20 dark:hover:border-amber-400/50 disabled:opacity-55 font-semibold text-sm px-4 py-2.5 transition-colors touch-manipulation"
         title="Trận chưa tới giờ theo lịch — bắt đầu sớm nếu hai cơ thủ đã sẵn sàng"
       >
         {isStarting ? (
@@ -261,8 +261,8 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
       <div className={`flex-1 min-w-0 space-y-2.5 sm:pl-1 sm:border-l ${tone.divider}`}>
         <div className="flex flex-wrap items-center gap-2 sm:pl-4">
           <StatusBadge match={match} />
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 text-sky-800 ring-1 ring-inset ring-sky-200/90 px-2.5 py-1 text-xs font-semibold max-w-[14rem] truncate">
-            <Trophy size={12} className="shrink-0 text-sky-500" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 text-sky-800 ring-1 ring-inset ring-sky-200/90 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/30 px-2.5 py-1 text-xs font-semibold max-w-[14rem] truncate">
+            <Trophy size={12} className="shrink-0 text-sky-500 dark:text-sky-400" />
             <span className="truncate">{getTournamentName(match)}</span>
           </span>
           {(match.matchCode || match.raceTo != null) && (
@@ -282,7 +282,7 @@ const MatchCard = ({ match, startingId, onStart, onOpen }) => {
             <span className="truncate inline-block max-w-[38%] align-bottom">
               {p1}
             </span>
-            <span className="mx-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-100/80 px-2 py-0.5 tabular-nums text-emerald-700 font-black text-base sm:text-lg">
+            <span className="mx-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-100/80 dark:bg-emerald-500/20 px-2 py-0.5 tabular-nums text-emerald-700 dark:text-emerald-300 font-black text-base sm:text-lg">
               {score1}
               <span className="text-emerald-400 font-bold">–</span>
               {score2}
@@ -398,13 +398,13 @@ const StaffMatchListPage = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
       {/* Header layer */}
-      <div className="relative overflow-hidden rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-white via-indigo-50/40 to-violet-50/30 px-5 py-5 sm:px-6 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl border border-indigo-100/80 dark:border-indigo-400/20 bg-gradient-to-br from-white via-indigo-50/40 to-violet-50/30 dark:from-[#161a22] dark:via-indigo-500/[0.07] dark:to-violet-500/[0.05] px-5 py-5 sm:px-6 shadow-sm dark:shadow-none">
         <div
-          className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-indigo-200/30 blur-2xl"
+          className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-indigo-200/30 dark:bg-indigo-500/15 blur-2xl"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -bottom-12 left-1/3 h-28 w-28 rounded-full bg-emerald-200/25 blur-2xl"
+          className="pointer-events-none absolute -bottom-12 left-1/3 h-28 w-28 rounded-full bg-emerald-200/25 dark:bg-emerald-500/12 blur-2xl"
           aria-hidden
         />
 
@@ -423,7 +423,7 @@ const StaffMatchListPage = () => {
                 {summaryTournaments > 0 && (
                   <>
                     {" · "}
-                    <span className="font-semibold text-indigo-600">
+                    <span className="font-semibold text-indigo-600 dark:text-indigo-300">
                       {summaryTournaments}
                     </span>{" "}
                     giải đấu
@@ -509,12 +509,12 @@ const StaffMatchListPage = () => {
       )}
 
       {!loading && error && (
-        <div className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white px-5 py-10 text-center space-y-4 shadow-sm">
+        <div className="rounded-2xl border border-rose-200 dark:border-rose-400/25 bg-gradient-to-br from-rose-50 to-white dark:from-rose-500/10 dark:to-[#161a22] px-5 py-10 text-center space-y-4 shadow-sm dark:shadow-none">
           <p className="text-slate-700 dark:text-white/75">{error}</p>
           <button
             type="button"
             onClick={() => loadMatches()}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-2.5 shadow-md shadow-indigo-200"
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-2.5 shadow-md shadow-indigo-200 dark:shadow-none"
           >
             Thử lại
           </button>
@@ -522,8 +522,8 @@ const StaffMatchListPage = () => {
       )}
 
       {!loading && !error && summaryCount === 0 && (
-        <div className="rounded-2xl border border-dashed border-indigo-200 bg-gradient-to-b from-white to-indigo-50/40 px-5 py-16 text-center space-y-2">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">
+        <div className="rounded-2xl border border-dashed border-indigo-200 dark:border-indigo-400/25 bg-gradient-to-b from-white to-indigo-50/40 dark:from-[#161a22] dark:to-indigo-500/[0.07] px-5 py-16 text-center space-y-2">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
             <Trophy size={22} />
           </div>
           <p className="text-lg font-semibold text-slate-900 dark:text-white">Chưa có trận nào</p>
@@ -540,7 +540,7 @@ const StaffMatchListPage = () => {
       {!loading && !error && summaryCount > 0 && (
         <div className="space-y-7">
           {groups.live.length > 0 && (
-            <section className="space-y-3 rounded-2xl bg-emerald-50/35 p-3 sm:p-4 ring-1 ring-emerald-100/70">
+            <section className="space-y-3 rounded-2xl bg-emerald-50/35 dark:bg-emerald-500/[0.07] p-3 sm:p-4 ring-1 ring-emerald-100/70 dark:ring-emerald-400/20">
               <SectionHeader
                 tone="live"
                 label="Đang diễn ra"

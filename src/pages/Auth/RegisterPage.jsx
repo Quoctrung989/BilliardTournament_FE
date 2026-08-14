@@ -85,7 +85,17 @@ const RegisterPage = () => {
         password: formData.password,
       });
       if (!data.success) throw new Error(data.message || "Đăng ký thất bại. Vui lòng thử lại.");
-      navigate("/login");
+      /* Báo thành công ở màn đăng nhập chứ không phải ở đây: màn này biến mất
+         ngay sau `navigate`, người dùng sẽ không kịp đọc. Kèm luôn email vừa
+         đăng ký để màn kia điền sẵn, đỡ phải gõ lại.
+         `replace` để nút Back không quay lại form đăng ký đã gửi. */
+      navigate("/login", {
+        replace: true,
+        state: {
+          registeredEmail: formData.email,
+          notice: "Đăng ký tài khoản thành công. Vui lòng đăng nhập để tiếp tục.",
+        },
+      });
     } catch (err) {
       setErrors({ submit: err.message });
     } finally {

@@ -211,7 +211,10 @@ const MatchCard = ({ match, isFlashing }) => {
   );
 };
 
-const ManagerLiveDashboardPage = () => {
+const ManagerLiveDashboardPage = ({
+  api = managerMatchApi,
+  basePath = "/manager/tournaments",
+}) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const tournamentId = Number(id);
@@ -254,7 +257,7 @@ const ManagerLiveDashboardPage = () => {
     if (!tournamentId) return;
     try {
       setError(null);
-      const matches = await managerMatchApi.getMatches(tournamentId);
+      const matches = await api.getMatches(tournamentId);
       const nextMap = {};
       (matches || []).forEach((m) => {
         if (m?.id != null) nextMap[m.id] = m;
@@ -271,7 +274,7 @@ const ManagerLiveDashboardPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [tournamentId]);
+  }, [api, tournamentId]);
 
   useEffect(() => {
     setLoading(true);
@@ -411,7 +414,7 @@ const ManagerLiveDashboardPage = () => {
         <button
           type="button"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
-          onClick={() => navigate(`/manager/tournaments/${tournamentId}`)}
+          onClick={() => navigate(`${basePath}/${tournamentId}`)}
         >
           <ArrowLeft size={14} /> Quay lại chi tiết giải
         </button>

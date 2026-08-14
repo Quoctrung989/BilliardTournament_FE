@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { X } from "lucide-react";
 import { getPublicMatches } from "../../api/matchApi";
 import { getPublicTournamentDetail } from "../../api/publicTournamentApi";
 import SocketConnectionBadge from "../../components/shared/SocketConnectionBadge";
 import { useTournamentSocket } from "../../hooks/useTournamentSocket";
 import { useWakeLock } from "../../hooks/useWakeLock";
+import { useAuthStore } from "../../store/authStore";
+import { ROLES } from "../../constants/auth";
+import { extractRoleFromUser } from "../../utils/auth";
 import { getFriendlyApiErrorMessage } from "../../utils/apiError";
 import { isMatchFinished, isMatchLive } from "../../utils/refereeMatch";
 import TvLiveBoard from "./TvLiveBoard";
@@ -27,6 +31,7 @@ const FLASH_MS = 300;
 
 const TournamentLiveTvPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const tournamentId = Number(id);
 
   const [loading, setLoading] = useState(true);
@@ -41,6 +46,33 @@ const TournamentLiveTvPage = () => {
   const flashTimersRef = useRef({});
 
   useWakeLock(Boolean(tournamentId));
+
+  const handleExitTv = useCallback(() => {
+    if (window.opener && !window.opener.closed) {
+      window.close();
+      return;
+    }
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    const role = extractRoleFromUser(useAuthStore.getState().user);
+    if (role === ROLES.OWNER) {
+      navigate(`/owner/tournaments/${tournamentId}/live`);
+      return;
+    }
+    if (role === ROLES.MANAGER) {
+      navigate(`/manager/tournaments/${tournamentId}/live`);
+    }
+  }, [navigate, tournamentId]);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") handleExitTv();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handleExitTv]);
 
   const triggerScoreFlash = useCallback((matchId, p1Changed, p2Changed) => {
     const idStr = String(matchId);
@@ -264,6 +296,30 @@ const TournamentLiveTvPage = () => {
   const showBoard = !loading && displayMatches.length > 0;
   const showWaiting = !loading && displayMatches.length === 0;
 
+  /* Nút Thoát và chấm kết nối phải có mặt ở mọi trạng thái, kể cả lúc đang tải
+     hay chờ trận. Nhưng header chỉ xuất hiện khi có bảng đấu — nên khi có
+     header thì thả chúng vào lưới của header (không chồng lên chữ), còn khi
+     không có header thì mới neo vào hai góc trên của trang. */
+  const exitButton = (
+    <button
+      type="button"
+      onClick={handleExitTv}
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-200 backdrop-blur-md transition hover:border-white/30 hover:bg-black/75 hover:text-white"
+      title="Thoát chiếu TV (Esc)"
+    >
+      <X size={14} />
+      Thoát
+    </button>
+  );
+
+  const statusBadge = (
+    <SocketConnectionBadge
+      connectionState={connectionState}
+      compact
+      className="!bg-[#0D1119]/90 !text-zinc-600 !ring-zinc-800/80 backdrop-blur-sm"
+    />
+  );
+
   return (
     <div
       className="relative flex h-screen max-h-screen flex-col overflow-hidden text-white selection:bg-transparent"
@@ -273,21 +329,22 @@ const TournamentLiveTvPage = () => {
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_28%)]" />
 
-      <div className="pointer-events-none absolute right-[4%] top-[4%] z-30">
-        <SocketConnectionBadge
-          connectionState={connectionState}
-          compact
-          className="!bg-[#0D1119]/90 !text-zinc-600 !ring-zinc-800/80 backdrop-blur-sm"
-        />
-      </div>
-
-      {showBoard && (
+      {showBoard ? (
         <TvScreenHeader
           tournamentName={tournamentName}
           formatLabel={formatLabel}
           roundLabel={roundLabel}
           liveTableCount={liveMatches.length}
+          exitSlot={exitButton}
+          statusSlot={statusBadge}
         />
+      ) : (
+        <>
+          <div className="absolute left-[4%] top-[4%] z-40">{exitButton}</div>
+          <div className="pointer-events-none absolute right-[4%] top-[4%] z-30">
+            {statusBadge}
+          </div>
+        </>
       )}
 
       <main className="relative z-10 flex min-h-0 flex-1 flex-col px-[4%] pb-[3%] pt-[2%]">

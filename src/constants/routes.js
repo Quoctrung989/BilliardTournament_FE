@@ -101,6 +101,12 @@ const OwnerTournamentDetail = () => (
     basePath="/owner/tournaments"
   />
 );
+const OwnerTournamentLive = () => (
+  <ManagerLiveDashboardPage
+    api={ownerMatchApi}
+    basePath="/owner/tournaments"
+  />
+);
 
 const ManagerTournamentHub = () => (
   <TournamentListPage
@@ -447,6 +453,15 @@ export const ROUTES = [
       OwnerTournamentDetail,
       "Chi tiết giải",
       "Thông tin và trạng thái giải",
+    ),
+  },
+  {
+    path: "/owner/tournaments/:id/live",
+    component: withOwnerPage(
+      OwnerTournamentLive,
+      "Dashboard trực tiếp",
+      "Theo dõi tỉ số realtime theo dải bàn",
+      { fullWidth: true }
     ),
   },
   {
