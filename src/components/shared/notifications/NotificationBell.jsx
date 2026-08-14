@@ -101,11 +101,12 @@ const NotificationBell = ({ className = "", align = "right" }) => {
       <button
         type="button"
         onClick={handleToggle}
-        className={`relative ${className}`}
+        className={`ui-bell relative ${className}`}
         aria-label={unreadCount > 0 ? `Thông báo, ${unreadCount} chưa đọc` : "Thông báo"}
         title="Thông báo"
       >
-        <Bell size={20} />
+        {/* Chuông lắc khi trỏ vào — nhịp rung nằm ở `.ui-bell` trong global.css */}
+        <Bell size={20} className="ui-bell__icon" />
 
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-[#EF342A] text-white text-[10px] font-bold leading-none">

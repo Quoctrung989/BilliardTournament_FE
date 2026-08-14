@@ -169,6 +169,52 @@ label {
   color: inherit;
 }
 
+/*
+ * Chuông thông báo lắc khi trỏ vào — mượn nhịp của nút chuông Uiverse
+ * (vinodjangid07). Biên độ tụt dần 10° → 2° nên tiếng rung tắt dần như chuông
+ * thật, chứ không lắc đều rồi dừng khựng.
+ *
+ * `transform-origin: top` nằm ngoài keyframes chứ không ở mốc 0%: chuông phải
+ * xoay quanh quai treo. Để tâm mặc định (giữa) thì nó lắc quanh bụng, nhìn như
+ * bị ai lúc lắc chứ không phải đang đổ chuông.
+ */
+.ui-bell {
+  transition: transform 0.2s ease;
+}
+
+.ui-bell__icon {
+  transform-origin: top;
+}
+
+.ui-bell:hover .ui-bell__icon {
+  animation: ui-bell-ring 0.9s both;
+}
+
+.ui-bell:active {
+  transform: scale(0.88);
+}
+
+@keyframes ui-bell-ring {
+  15% {
+    transform: rotateZ(10deg);
+  }
+  30% {
+    transform: rotateZ(-10deg);
+  }
+  45% {
+    transform: rotateZ(5deg);
+  }
+  60% {
+    transform: rotateZ(-5deg);
+  }
+  75% {
+    transform: rotateZ(2deg);
+  }
+  100% {
+    transform: rotateZ(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ui-underline::after {
     transition: none;
@@ -181,6 +227,14 @@ label {
   .ui-icon-lift:hover,
   .ui-logo-zoom:hover,
   .ui-logo-zoom:focus-visible {
+    transform: none;
+  }
+
+  .ui-bell:hover .ui-bell__icon {
+    animation: none;
+  }
+
+  .ui-bell:active {
     transform: none;
   }
 }

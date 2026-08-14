@@ -469,7 +469,10 @@ const RankingsPage = () => {
       <div className="relative z-10 mx-auto -mt-[100px] sm:-mt-[118px] w-full max-w-[1290px] px-3 sm:px-6 pb-16">
         {/* Bộ lọc kỳ thống kê. Nút rời chứ không còn dính mép thẻ — đàn sao lúc
             hover cần chỗ bung ra khỏi khung nút. */}
-        <div className="mb-5 flex flex-wrap items-center gap-2 px-2 sm:gap-3 sm:px-4">
+        {/* `sm:mb-14` chứ không phải khoảng hở tuỳ hứng: thẻ quán quân được kéo
+            lên 32px (`sm:-mt-8`), nên phải chừa hơn ngần ấy ở đây, không thì nó
+            trèo lên đè mất hàng nút. Màn hẹp thẻ không kéo lên nên giữ mb-5. */}
+        <div className="mb-5 flex flex-wrap items-center gap-2 px-2 sm:mb-14 sm:gap-3 sm:px-4">
           {PERIODS.map((p) => (
             <PeriodButton
               key={p.value}
