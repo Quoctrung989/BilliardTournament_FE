@@ -215,6 +215,122 @@ label {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Công tắc Sáng ⇄ Tối (mẫu của Uiverse — JustCode14)
+
+   Bật = giao diện SÁNG (trời xanh, mặt trời, mây); tắt = TỐI (nền đêm, trăng
+   lưỡi liềm, sao).
+
+   Mọi số đo viết bằng `em` — kể cả những chỗ bản gốc ghi `px` cứng (bề dày
+   lưỡi liềm, cỡ ngôi sao). Nhờ vậy đổi đúng một dòng `font-size` là cả công
+   tắc co giãn nguyên tỉ lệ; để `px` lẫn vào thì thu nhỏ cho vừa navbar sẽ ra
+   mặt trăng méo và sao to quá khổ.
+   ═══════════════════════════════════════════════════════════════════════ */
+.ui-theme-switch {
+  /* Bản gốc 17px (68×37px) quá khổ cho thanh điều hướng — 13px cho ra 52×29px,
+     xấp xỉ chiều cao các nút tròn bên cạnh. */
+  font-size: 13px;
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 4em;
+  height: 2.2em;
+  border-radius: 30px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.ui-theme-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ui-theme-switch__slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  background-color: #2a2a2a;
+  border-radius: 30px;
+  overflow: hidden;
+  transition: background-color 0.4s;
+}
+
+/* Mặt trăng: hình tròn rỗng, phần sáng do bóng đổ vào trong vẽ ra. Bóng lệch
+   sang phải và lên trên nên chừa lại vệt khuyết ở góc trái dưới — đúng dáng
+   trăng lưỡi liềm. */
+.ui-theme-switch__slider::before {
+  position: absolute;
+  content: "";
+  height: 1.2em;
+  width: 1.2em;
+  left: 0.5em;
+  bottom: 0.5em;
+  border-radius: 50%;
+  box-shadow: inset 0.47em -0.235em 0 0 #fff;
+  transition: 0.4s;
+  transition-timing-function: cubic-bezier(0.81, -0.04, 0.38, 1.5);
+}
+
+.ui-theme-switch input:checked + .ui-theme-switch__slider {
+  background-color: #00a6ff;
+}
+
+/* Sang chế độ sáng: con trượt chạy hết đường, đồng thời bóng nở rộng (spread
+   0.88em) phủ kín hình tròn — trăng khuyết thành mặt trời đầy đặn. */
+.ui-theme-switch input:checked + .ui-theme-switch__slider::before {
+  transform: translateX(1.8em);
+  box-shadow: inset 0.88em -0.235em 0 0.88em #ffcf48;
+}
+
+.ui-theme-switch__star {
+  position: absolute;
+  width: 0.29em;
+  height: 0.29em;
+  border-radius: 50%;
+  background-color: #fff;
+  transition: opacity 0.4s;
+}
+
+.ui-theme-switch__star--1 {
+  left: 2.5em;
+  top: 0.5em;
+}
+
+.ui-theme-switch__star--2 {
+  left: 2.2em;
+  top: 1.2em;
+}
+
+.ui-theme-switch__star--3 {
+  left: 3em;
+  top: 0.9em;
+}
+
+.ui-theme-switch input:checked ~ .ui-theme-switch__slider .ui-theme-switch__star {
+  opacity: 0;
+}
+
+.ui-theme-switch__cloud {
+  position: absolute;
+  width: 3.5em;
+  bottom: -1.4em;
+  left: -1.1em;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.ui-theme-switch input:checked ~ .ui-theme-switch__slider .ui-theme-switch__cloud {
+  opacity: 1;
+}
+
+/* Ô nhập bị ẩn hoàn toàn nên vòng focus của trình duyệt không hiện ở đâu cả —
+   phải tự vẽ lên con trượt, nếu không người dùng bàn phím mất dấu con trỏ. */
+.ui-theme-switch input:focus-visible + .ui-theme-switch__slider {
+  outline: 2px solid var(--wnt25-color-red);
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ui-underline::after {
     transition: none;
@@ -236,6 +352,14 @@ label {
 
   .ui-bell:active {
     transform: none;
+  }
+
+  /* Công tắc vẫn nhảy sang vị trí mới, chỉ bỏ phần trượt và mờ dần */
+  .ui-theme-switch__slider,
+  .ui-theme-switch__slider::before,
+  .ui-theme-switch__star,
+  .ui-theme-switch__cloud {
+    transition: none;
   }
 }
 

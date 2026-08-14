@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, LayoutDashboard, LogOut, Moon, Search, Settings, Sun } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut, Search, Settings } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
-import { useThemeStore } from "../../store/themeStore";
 import { useNotificationStore } from "../../store/notificationStore";
 import { ROLES } from "../../constants/auth";
 import { normalizeRole } from "../../utils/auth";
 import NotificationBell from "../shared/notifications/NotificationBell";
+import ThemeSwitch from "../shared/ThemeSwitch";
 
 const DASHBOARD_PATH_BY_ROLE = {
   [ROLES.ADMIN]: "/admin/dashboard",
@@ -34,9 +34,7 @@ const AdminHeader = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
-  const { theme, toggleTheme } = useThemeStore();
   const resetNotifications = useNotificationStore((s) => s.reset);
-  const isDark = theme === "dark";
 
   const breadcrumb =
     breadcrumbMap[location.pathname] ||
@@ -102,15 +100,7 @@ const AdminHeader = ({
       )}
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full"
-          aria-label={isDark ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
-          title={isDark ? "Giao diện sáng" : "Giao diện tối"}
-        >
-          {isDark ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
+        <ThemeSwitch />
 
         <NotificationBell className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full flex" />
 
