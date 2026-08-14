@@ -29,6 +29,14 @@ function roundLabel(roundNo, totalRounds) {
   return `Vòng ${roundNo}`;
 }
 
+/**
+ * Nhánh thắng/thua của thể thức loại kép cắt sớm (CUT_TO_SE) không tự nhiên hết ở vòng cuối cùng
+ * được sinh ra — số vòng vòng dùng để gắn nhãn ("Bán kết"/"Chung kết") phải suy từ cỡ bracket gốc
+ * (winnersBracketSize, xem {@link BracketDiagram}), KHÔNG phải số vòng thật sự có trong dữ liệu.
+ * Xem BracketGenerationServiceImpl#generateCutToSEDE (BE) — cùng một loại lỗi, sửa song song.
+ */
+const log2 = (n) => Math.round(Math.log2(n));
+
 const STATUS_LABEL = {
   PENDING: "Chờ", IN_PROGRESS: "Đang đấu", COMPLETED: "Xong", WALKOVER: "Xử thắng", BYE: "Miễn đấu",
 };
@@ -234,7 +242,7 @@ export function buildFeedersMap(allMatches) {
   return result;
 }
 
-const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onComplete, feedersMap }) => {
+const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onComplete, feedersMap, winnersBracketSize }) => {
   const containerRef = useRef(null);
   const nodesRef = useRef(new Map());
   const registerNode = useCallback((id, el) => {
@@ -247,7 +255,14 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
   const sortedRounds = Object.entries(rounds)
     .sort((a, b) => Number(a[0]) - Number(b[0]))
     .map(([roundNo, ms]) => [roundNo, [...ms].sort((a, b) => a.positionNo - b.positionNo)]);
-  const totalRounds = sortedRounds.length;
+
+  // WINNERS/LOSERS của DE cắt sớm (CUT_TO_SE) không tự nhiên hết ở vòng cuối cùng được sinh ra —
+  // nhãn vòng đấu phải tính theo cỡ bracket gốc (winnersBracketSize), KHÔNG phải sortedRounds.length.
+  let totalRounds = sortedRounds.length;
+  if (winnersBracketSize) {
+    if (stage.stageType === "WINNERS") totalRounds = log2(winnersBracketSize);
+    else if (stage.stageType === "LOSERS") totalRounds = 2 * (log2(winnersBracketSize) - 1);
+  }
 
   const links = matches.filter(m => m.nextMatchWinId).map(m => ({ from: m.id, to: m.nextMatchWinId }));
   const signal = matches.map(m => `${m.id}:${m.status}:${m.player1?.id}:${m.player2?.id}:${m.winner?.id}`).join("|");
@@ -334,6 +349,11 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
 ══════════════════════════════════════════════════════════ */
 const BracketDiagram = ({ stages, startingId, flashIds, onStart, onScore, onComplete, ListStageSection, listProps }) => {
   const feedersMap = buildFeedersMap(stages.flatMap(s => s.matches ?? []));
+  // Vòng 1 nhánh thắng luôn có đúng bracketSize/2 trận bất kể điểm cắt CUT_TO_SE ở đâu.
+  const winnersR1Count = stages
+    .find(s => s.stageType === "WINNERS")
+    ?.matches?.filter(m => Number(m.roundNo) === 1)?.length;
+  const winnersBracketSize = winnersR1Count ? winnersR1Count * 2 : null;
 
   return (
     <div className="space-y-5">
@@ -349,6 +369,7 @@ const BracketDiagram = ({ stages, startingId, flashIds, onStart, onScore, onComp
               onScore={onScore}
               onComplete={onComplete}
               feedersMap={feedersMap}
+              winnersBracketSize={winnersBracketSize}
             />
           );
         }
