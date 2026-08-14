@@ -97,12 +97,26 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Tên cơ thủ.
+ *
+ * `truncate` ở JSX bật overflow:hidden để cắt tên dài bằng dấu ba chấm. Với
+ * line-height: 1, hộp dòng cao đúng bằng cỡ chữ — vừa đủ cho chữ hoa Latin
+ * trơn, nhưng dấu chồng của chữ hoa tiếng Việt (Ồ, Ố, Ằ, Ế) vươn cao hơn
+ * cap-height nên bị xén mất đỉnh, và dấu nặng (Ộ, Ợ, Ậ) tụt xuống dưới baseline
+ * cũng vậy.
+ *
+ * Nới hộp dòng cho vừa cả hai đầu dấu, thêm chút đệm dọc phòng font có dấu vươn
+ * cao hơn nữa — overflow:hidden cắt ở padding box nên phần đệm này là vùng an
+ * toàn thật sự, không phải chỉ khoảng trống trang trí.
+ */
 .rnk-name {
   font-style: italic;
   text-transform: uppercase;
   letter-spacing: -0.015em;
   color: var(--rnk-name);
-  line-height: 1;
+  line-height: 1.3;
+  padding-block: 0.06em;
 }
 
 .rnk-tab {
