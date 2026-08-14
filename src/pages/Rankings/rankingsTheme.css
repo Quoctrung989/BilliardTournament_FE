@@ -12,10 +12,16 @@
   --rnk-meta: #9aa3b2;
   --rnk-value: #92a5c9;
   --rnk-photo-bg: #f1f3f7;
-  --rnk-tab-bg: rgba(255, 255, 255, 0.55);
-  --rnk-tab-active-bg: #ffffff;
-  --rnk-tab-text: #4b5563;
   --rnk-red: #ef342a;
+  --rnk-gold: #e0a415;
+  --rnk-silver: #97a3b4;
+  --rnk-bronze: #c07a3e;
+  /* Bản đậm của ba màu trên, chỉ dùng cho chữ. Màu huy chương tươi đủ đẹp làm
+     viền và nền badge, nhưng đặt lên nền thẻ trắng ở cỡ 10px thì nhãn "Á QUÂN"
+     mờ đến mức khó đọc. Viền và badge vẫn giữ màu tươi. */
+  --rnk-gold-ink: #a9760a;
+  --rnk-silver-ink: #66717f;
+  --rnk-bronze-ink: #96551f;
 }
 
 :root.dark {
@@ -30,9 +36,15 @@
   --rnk-meta: rgba(255, 255, 255, 0.45);
   --rnk-value: #8fb0e8;
   --rnk-photo-bg: rgba(255, 255, 255, 0.06);
-  --rnk-tab-bg: rgba(255, 255, 255, 0.08);
-  --rnk-tab-active-bg: #161a22;
-  --rnk-tab-text: rgba(255, 255, 255, 0.7);
+  /* Nền tối nuốt mất sắc vàng/đồng của bản sáng — nâng độ sáng cho ba màu huy
+     chương để chúng còn ra chất kim loại chứ không thành nâu xỉn. */
+  --rnk-gold: #f5c451;
+  --rnk-silver: #c7ced8;
+  --rnk-bronze: #d98f4e;
+  /* Nền tối đã cho màu tươi đủ tương phản — chữ dùng thẳng màu huy chương */
+  --rnk-gold-ink: var(--rnk-gold);
+  --rnk-silver-ink: var(--rnk-silver);
+  --rnk-bronze-ink: var(--rnk-bronze);
 }
 
 /* Dùng đúng font mặc định toàn app (reset.css/global.css) — giống Header, Home và trang
@@ -119,16 +131,179 @@
   padding-block: 0.06em;
 }
 
-.rnk-tab {
-  background: var(--rnk-tab-bg);
-  color: var(--rnk-tab-text);
-  backdrop-filter: blur(4px);
+/* ═══════════════════════════════════════════════════════════════════════
+   Nút lọc kỳ thống kê — kiểu "sao bay"
+
+   Mượn nút của Uiverse (MuhammadHasann): trỏ vào thì nền rỗng đi, quầng sáng
+   nổi lên và sáu ngôi sao bung ra khỏi nút. Đổi cam gốc sang đỏ WNT cho ăn với
+   huy hiệu giữa hero.
+
+   Khác bản gốc một chỗ: bản gốc giấu đàn sao bằng `z-index: -5` để chúng nấp
+   sau nền đặc của nút. Ở đây kỳ không được chọn có nền trong suốt, sao sẽ lộ
+   nguyên hình lúc nghỉ — nên giấu bằng `opacity`. Cách này cũng khỏi phụ thuộc
+   việc nút có mở stacking context hay không.
+   ═══════════════════════════════════════════════════════════════════════ */
+.rnk-period {
+  position: relative;
+  border: 2px solid var(--rnk-red);
+  border-radius: 8px;
+  background: var(--rnk-red);
+  color: #ffffff;
+  box-shadow: 0 0 0 rgba(239, 52, 42, 0.55);
+  cursor: pointer;
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out,
+    border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 
-.rnk-tab--active {
-  background: var(--rnk-tab-active-bg);
-  color: var(--rnk-name);
-  box-shadow: 0 -4px 18px rgba(15, 23, 42, 0.08);
+/* Kỳ không xem: cùng dáng nhưng rỗng ruột, nhường sự chú ý cho kỳ đang mở */
+.rnk-period:not(.rnk-period--active) {
+  background: transparent;
+  color: var(--rnk-red);
+  border-color: rgba(239, 52, 42, 0.35);
+}
+
+.rnk-period:hover {
+  background: transparent;
+  color: var(--rnk-red);
+  border-color: var(--rnk-red);
+  box-shadow: 0 0 25px rgba(239, 52, 42, 0.55);
+}
+
+.rnk-star {
+  position: absolute;
+  height: auto;
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 0 0 #fffdef);
+}
+
+.rnk-star svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.rnk-star path {
+  fill: #fffdef;
+}
+
+.rnk-period:hover .rnk-star {
+  opacity: 1;
+  filter: drop-shadow(0 0 10px #fffdef);
+}
+
+/* Mỗi sao một quỹ đạo và một nhịp riêng — đàn sao bung ra so le chứ không
+   trôi đồng loạt như một khối. */
+.rnk-star-1 {
+  top: 20%;
+  left: 20%;
+  width: 25px;
+  transition: all 1s cubic-bezier(0.05, 0.83, 0.43, 0.96), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-1 {
+  top: -80%;
+  left: -30%;
+}
+
+.rnk-star-2 {
+  top: 45%;
+  left: 45%;
+  width: 15px;
+  transition: all 1s cubic-bezier(0, 0.4, 0, 1.01), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-2 {
+  top: -25%;
+  left: 10%;
+}
+
+.rnk-star-3 {
+  top: 40%;
+  left: 40%;
+  width: 5px;
+  transition: all 1s cubic-bezier(0, 0.4, 0, 1.01), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-3 {
+  top: 55%;
+  left: 25%;
+}
+
+.rnk-star-4 {
+  top: 20%;
+  left: 40%;
+  width: 8px;
+  transition: all 0.8s cubic-bezier(0, 0.4, 0, 1.01), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-4 {
+  top: 30%;
+  left: 80%;
+}
+
+.rnk-star-5 {
+  top: 25%;
+  left: 45%;
+  width: 15px;
+  transition: all 0.6s cubic-bezier(0, 0.4, 0, 1.01), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-5 {
+  top: 25%;
+  left: 115%;
+}
+
+.rnk-star-6 {
+  top: 5%;
+  left: 50%;
+  width: 5px;
+  transition: all 0.8s ease, opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-6 {
+  top: 5%;
+  left: 60%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Bục vinh danh top 3
+
+   Ba thẻ đứng riêng phía trên bảng, quán quân ở giữa và nhô cao hơn hai bên.
+   Màu huy chương đi qua biến `--rnk-medal` đặt trên từng thẻ, nên viền, badge
+   và quầng sáng chỉ đọc một nguồn.
+   ═══════════════════════════════════════════════════════════════════════ */
+.rnk-podium-card {
+  position: relative;
+  background: var(--rnk-card-bg);
+  border-radius: 18px;
+  border-top: 4px solid var(--rnk-medal);
+  box-shadow: var(--rnk-card-shadow);
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.rnk-podium-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--rnk-card-shadow), 0 0 30px var(--rnk-medal-glow);
+}
+
+.rnk-podium-photo {
+  border-radius: 9999px;
+  border: 3px solid var(--rnk-medal);
+  background: var(--rnk-photo-bg);
+  overflow: hidden;
+}
+
+.rnk-podium-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 9999px;
+  background: var(--rnk-medal);
+  color: #10182b;
+  font-weight: 900;
+  font-style: italic;
+  font-size: 15px;
+  box-shadow: 0 4px 14px var(--rnk-medal-glow);
 }
 
 @media (max-width: 640px) {

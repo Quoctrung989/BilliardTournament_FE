@@ -78,6 +78,182 @@ const Squiggle = ({ className, flip }) => (
   </svg>
 );
 
+/* Ngôi sao bốn cánh cho hiệu ứng hover của nút lọc (path gốc từ Uiverse) */
+const StarIcon = () => (
+  <svg viewBox="0 0 784.11 815.53" aria-hidden="true">
+    <path d="M392.05 0c-20.9,210.08 -184.06,378.41 -392.05,407.78 207.96,29.37 371.12,197.68 392.05,407.74 20.93,-210.06 184.09,-378.37 392.05,-407.74 -207.98,-29.38 -371.16,-197.69 -392.06,-407.78z" />
+  </svg>
+);
+
+/**
+ * Nút lọc kỳ thống kê.
+ *
+ * Sáu ngôi sao nằm sẵn trong nút, chỉ hiện ra và bung theo sáu quỹ đạo khác
+ * nhau khi trỏ vào — toàn bộ chuyển động nằm ở `.rnk-period` trong
+ * rankingsTheme.css, đây chỉ dựng khung.
+ */
+const PeriodButton = ({ label, active, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    className={`rnk-period px-4 sm:px-6 py-2.5 text-[12px] sm:text-[13px] font-bold uppercase tracking-wide ${
+      active ? "rnk-period--active" : ""
+    }`}
+  >
+    {label}
+    {[1, 2, 3, 4, 5, 6].map((i) => (
+      <span key={i} className={`rnk-star rnk-star-${i}`}>
+        <StarIcon />
+      </span>
+    ))}
+  </button>
+);
+
+/* Màu huy chương lấy theo vị trí trên bục (0-1-2), KHÔNG theo entry.rank — hai
+   cơ thủ bằng điểm sẽ cùng mang rank 1, lúc đó tra theo rank sẽ ra hai thẻ vàng
+   và không còn thẻ bạc. */
+const MEDALS = [
+  {
+    color: "var(--rnk-gold)",
+    ink: "var(--rnk-gold-ink)",
+    glow: "rgba(224, 164, 21, 0.45)",
+    title: "Vô địch",
+  },
+  {
+    color: "var(--rnk-silver)",
+    ink: "var(--rnk-silver-ink)",
+    glow: "rgba(151, 163, 180, 0.45)",
+    title: "Á quân",
+  },
+  {
+    color: "var(--rnk-bronze)",
+    ink: "var(--rnk-bronze-ink)",
+    glow: "rgba(192, 122, 62, 0.45)",
+    title: "Hạng ba",
+  },
+];
+
+const PodiumCard = ({ entry, place, onOpen }) => {
+  const medal = MEDALS[place];
+  const { lead, tail } = splitName(entry.playerName);
+  const champion = place === 0;
+
+  return (
+    <div
+      className={`rnk-podium-card flex flex-col items-center px-4 pb-6 pt-7 text-center ${
+        champion ? "order-first sm:order-none sm:-mt-8" : ""
+      }`}
+      style={{
+        "--rnk-medal": medal.color,
+        "--rnk-medal-ink": medal.ink,
+        "--rnk-medal-glow": medal.glow,
+      }}
+      onClick={() => onOpen(entry.userId)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onOpen(entry.userId)}
+    >
+      <div
+        className={`rnk-podium-photo ${
+          champion
+            ? "h-[104px] w-[104px] sm:h-[132px] sm:w-[132px]"
+            : "h-[84px] w-[84px] sm:h-[104px] sm:w-[104px]"
+        }`}
+      >
+        <img
+          src={entry.avatarUrl || DEFAULT_PLAYER_AVATAR}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = DEFAULT_PLAYER_AVATAR;
+          }}
+        />
+      </div>
+
+      {/* Badge đè lên mép dưới ảnh — vẽ sau nên luôn nằm trên */}
+      <span className="rnk-podium-badge -mt-4">#{entry.rank}</span>
+
+      <p
+        className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em]"
+        style={{ color: "var(--rnk-medal-ink)" }}
+      >
+        {medal.title}
+      </p>
+
+      <h3
+        className={`rnk-name mt-1 ${
+          champion ? "text-[19px] sm:text-[24px]" : "text-[16px] sm:text-[20px]"
+        }`}
+      >
+        {lead && <span className="font-medium">{lead} </span>}
+        <span className="font-black">{tail}</span>
+      </h3>
+
+      <p
+        className="mt-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em]"
+        style={{ color: "var(--rnk-meta)" }}
+      >
+        <span className="text-[13px] leading-none">{DEFAULT_COUNTRY.flag}</span>
+        {DEFAULT_COUNTRY.name}
+      </p>
+
+      <div
+        className={`rnk-numeric mt-3 ${
+          champion ? "text-[30px] sm:text-[36px]" : "text-[24px] sm:text-[28px]"
+        }`}
+        style={{ color: "var(--rnk-value)" }}
+      >
+        {Number(entry.totalPoints || 0).toLocaleString("vi-VN")}
+        <span className="ml-1 text-[11px] font-bold not-italic uppercase tracking-wider">
+          đ<span className="lowercase">iểm</span>
+        </span>
+      </div>
+
+      <div
+        className="mt-4 flex items-center justify-center gap-6"
+        style={{ color: "var(--rnk-meta)" }}
+      >
+        {[
+          { value: entry.tournamentsPlayed, label: "Giải" },
+          { value: entry.championCount, label: "Vô địch" },
+          { value: entry.top3Count, label: "Top 3" },
+        ].map((stat) => (
+          <div key={stat.label}>
+            <div className="text-[16px] font-bold leading-none" style={{ color: "var(--rnk-name)" }}>
+              {stat.value}
+            </div>
+            <div className="mt-1 text-[9px] font-semibold uppercase tracking-[0.12em]">
+              {stat.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Bục vinh danh top 3.
+ *
+ * Trên màn rộng xếp á quân – quán quân – hạng ba để quán quân đứng giữa và nhô
+ * cao hơn hai bên. Màn hẹp lưới về một cột, lúc đó quán quân được `order-first`
+ * kéo lên đầu (xem PodiumCard) — đứng giữa chỉ có nghĩa khi còn ba cột.
+ */
+const Podium = ({ entries, onOpen }) => (
+  <div className="mb-6 grid grid-cols-1 items-start gap-4 sm:grid-cols-3 sm:gap-6">
+    {[
+      { entry: entries[1], place: 1 },
+      { entry: entries[0], place: 0 },
+      { entry: entries[2], place: 2 },
+    ].map(({ entry, place }) =>
+      entry ? (
+        <PodiumCard key={entry.userId} entry={entry} place={place} onOpen={onOpen} />
+      ) : null
+    )}
+  </div>
+);
+
 const PlayerRow = ({ entry, onOpen }) => {
   const { lead, tail } = splitName(entry.playerName);
   return (
@@ -244,6 +420,11 @@ const RankingsPage = () => {
 
   const openProfile = (userId) => navigate(`/event/players/user/${userId}`);
 
+  /* Bục chỉ dựng ở trang đầu — sang trang 2 thì ba cái tên đứng đầu bảng là
+     hạng 21, 22, 23, vinh danh chúng là sai. Lúc đó bảng chạy đủ từ dòng một. */
+  const podiumEntries = page === 0 ? items.slice(0, 3) : [];
+  const rows = page === 0 ? items.slice(3) : items;
+
   const selectClass =
     "rounded-full border border-black/10 bg-white/80 px-3 py-1.5 text-sm font-medium text-[#1d2430] " +
     "focus:outline-none focus:border-black/40 dark:border-white/15 dark:bg-white/10 dark:text-white";
@@ -286,22 +467,20 @@ const RankingsPage = () => {
 
       {/* ══ Thẻ xếp hạng nổi lên trên hero ══ */}
       <div className="relative z-10 mx-auto -mt-[100px] sm:-mt-[118px] w-full max-w-[1290px] px-3 sm:px-6 pb-16">
-        {/* Tab kỳ thống kê — dính vào mép trên thẻ */}
-        <div className="flex flex-wrap items-end gap-1 pl-2 sm:pl-4">
+        {/* Bộ lọc kỳ thống kê. Nút rời chứ không còn dính mép thẻ — đàn sao lúc
+            hover cần chỗ bung ra khỏi khung nút. */}
+        <div className="mb-5 flex flex-wrap items-center gap-2 px-2 sm:gap-3 sm:px-4">
           {PERIODS.map((p) => (
-            <button
+            <PeriodButton
               key={p.value}
+              label={p.label}
+              active={period === p.value}
               onClick={() => patchParams({ period: p.value === "ALL" ? null : p.value })}
-              className={`rnk-tab rounded-t-xl px-4 sm:px-6 py-2.5 text-[12px] sm:text-[13px] font-bold uppercase tracking-wide transition-all ${
-                period === p.value ? "rnk-tab--active" : "hover:brightness-105"
-              }`}
-            >
-              {p.label}
-            </button>
+            />
           ))}
 
           {period !== "ALL" && (
-            <div className="mb-2 ml-auto flex flex-wrap gap-2 pr-2">
+            <div className="ml-auto flex flex-wrap gap-2 pr-2">
               {period === "MONTH" && (
                 <select
                   className={selectClass}
@@ -346,6 +525,10 @@ const RankingsPage = () => {
           )}
         </div>
 
+        {!loading && podiumEntries.length > 0 && (
+          <Podium entries={podiumEntries} onOpen={openProfile} />
+        )}
+
         <div className="rnk-card overflow-hidden rounded-2xl">
           {loading ? (
             <div className="py-28 text-center text-sm" style={{ color: "var(--rnk-meta)" }}>
@@ -370,9 +553,14 @@ const RankingsPage = () => {
             </div>
           ) : (
             <>
-              {items.map((entry) => (
+              {rows.map((entry) => (
                 <PlayerRow key={entry.userId} entry={entry} onOpen={openProfile} />
               ))}
+              {rows.length === 0 && (
+                <p className="py-12 text-center text-sm" style={{ color: "var(--rnk-meta)" }}>
+                  Kỳ này mới có {items.length} cơ thủ tích lũy điểm — tất cả đều đã lên bục.
+                </p>
+              )}
               {totalElements > 0 && (
                 <AdminPagination
                   page={page}
