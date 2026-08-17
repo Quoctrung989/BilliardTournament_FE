@@ -5,7 +5,7 @@ import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
   ArrowLeft, ArrowLeftRight, Eye, Lock, Search, GripVertical,
   ChevronRight, Users, Swords, Zap, BarChart2,
-  Loader2, X, MapPin, CheckSquare, List, GitBranch, UserCheck,
+  Loader2, X, MapPin, CheckSquare, List, GitBranch, UserCheck, Sparkles, Trash2,
 } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
@@ -16,6 +16,8 @@ import { getApiErrorMessage } from "../../../utils/apiError";
 import { ownerTournamentApi, managerTournamentApi } from "../../../api/tournamentManagementApi";
 import { useTournamentSocket } from "../../../hooks/useTournamentSocket";
 import BracketDiagram, { buildFeedersMap } from "./BracketDiagram";
+import DrawCeremonyOverlay from "./draw-ceremony/DrawCeremonyOverlay";
+import { ceremonyAvailability, NON_RANDOM_SEEDING_LABEL } from "./draw-ceremony/buildDrawScript";
 
 /* ══════════════════════════════════════════════════════════
    Constants & helpers
@@ -66,6 +68,15 @@ const MATCH_FILTERS = [
   { key: "NO_TABLE", label: "Chưa gán bàn" },
   { key: "NO_SCHEDULE", label: "Chưa xếp giờ" },
 ];
+
+/** Nhãn tải của trọng tài, hiện ngay trong <option> để chọn được mà không cần bấm thử. */
+function refereeLoadLabel({ live, total, overlapping }) {
+  if (total === 0) return "đang rảnh";
+  const parts = [`${total} trận`];
+  if (live > 0) parts.push(`${live} đang đấu`);
+  if (overlapping > 0) parts.push(`${overlapping} trùng giờ`);
+  return parts.join(" · ");
+}
 
 /** Trận có thể gán bàn/giờ — khoá lại khi đã resolved (khớp rule ở BE). */
 function canAssignTable(match) {
@@ -159,6 +170,26 @@ function swapPlayersInState(stages, mId1, sl1, mId2, sl2) {
   }));
 }
 
+/* Nút mở lễ bốc thăm công khai — cố tình KHÔNG dùng AdminButton: đây là hành
+   động trình diễn trước khán giả, cần nổi hẳn khỏi dàn nút quản trị xung quanh. */
+const CeremonyButton = ({ drawing, disabled, onClick, redo }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={drawing || disabled}
+    title="Trình chiếu bốc thăm cho cơ thủ theo dõi"
+    className={[
+      "inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-white transition-all",
+      "bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-amber-200 dark:shadow-none",
+      "hover:brightness-110 hover:shadow-lg",
+      (drawing || disabled) ? "opacity-50 cursor-not-allowed" : "",
+    ].join(" ")}
+  >
+    <Sparkles size={15} />
+    {drawing ? "Đang bốc thăm..." : redo ? "Bốc thăm công khai lại" : "Bốc thăm công khai"}
+  </button>
+);
+
 /* ══════════════════════════════════════════════════════════
    Main Component
 ══════════════════════════════════════════════════════════ */
@@ -242,6 +273,11 @@ const DrawPage = ({ api, basePath }) => {
   const [progStandings,  setProgStandings]  = useState(null); // { stageName, rows } | null
   const [loadingProgStd, setLoadingProgStd] = useState(false);
   const [activeStageId,  setActiveStageId]  = useState(null); // tab giai đoạn đang xem
+
+  /* ── Lễ bốc thăm công khai ── */
+  // Giữ lại DrawResultResponse của lần bốc vừa rồi làm kịch bản trình chiếu.
+  const [ceremonyResult, setCeremonyResult] = useState(null);
+  const [cancellingDraw, setCancellingDraw] = useState(false);
 
   const isPreview          = tournament?.status === "DRAW_PREVIEW";
   // Bracket đã chốt nhưng giải chưa chạy — đây là lúc cần nút "Bắt đầu giải đấu"
@@ -515,6 +551,83 @@ const DrawPage = ({ api, basePath }) => {
     );
   };
 
+  /* ══ Bốc thăm công khai ═════════════════════════════════
+     Vẫn gọi đúng API sinh bracket như nút thường — chỉ khác ở chỗ GIỮ LẠI
+     response để trình chiếu thay vì bỏ đi rồi load() ngay. Logic bốc thăm
+     nằm trọn ở BE, FE không xáo trộn lại gì.                              */
+  const seedingMethod = tournament?.configSummary?.seedingMethod;
+  const ceremony = ceremonyAvailability(tournament?.format, seedingMethod);
+  const ceremonySupported = ceremony.available;
+  /* Xếp theo hạng/hạt giống thì cặp đấu tính trước được → không có lễ bốc thăm.
+     Nói rõ lý do, nếu không BQT sẽ tưởng nút bị lỗi hoặc thiếu quyền. */
+  const ceremonyBlockedBySeeding = ceremony.blockedBy === "seeding";
+  const seedingLabel = NON_RANDOM_SEEDING_LABEL[seedingMethod];
+
+  const handlePublicDraw = () => {
+    const isRedo = isPreview;
+    showConfirm(
+      "Bốc thăm công khai",
+      isRedo
+        ? "Kết quả bốc thăm hiện tại sẽ bị xóa và bốc lại ngẫu nhiên ngay trên màn chiếu. Tiếp tục?"
+        : "Màn hình sẽ chuyển sang chế độ trình chiếu và bốc từng cơ thủ vào cây thi đấu. Tiếp tục?",
+      async () => {
+        setDrawing(true); setEditMode(false); setSwapFirst(null);
+        try {
+          const result = await api.generateDraw(tournamentId);
+          setCeremonyResult(result);
+        } catch (err) { toast.error(getApiErrorMessage(err)); }
+        finally { setDrawing(false); }
+      },
+      { okLabel: "Bắt đầu bốc thăm", okVariant: isRedo ? "danger" : "primary" }
+    );
+  };
+
+  /* Đóng màn chiếu → quay về đúng luồng cũ: nạp lại stages + tournament. */
+  const handleCeremonyClose = useCallback(() => {
+    setCeremonyResult(null);
+    setParticipants([]);
+    toast.success("Bốc thăm thành công!");
+    load();
+  }, [load]);
+
+  /* Dừng giữa buổi và bỏ hết. Bracket đã nằm trong DB từ lúc bấm bốc, nên "thoát" thôi
+     không đủ — phải gọi BE xoá, nếu không mọi cặp đấu vẫn còn dù chưa công bố hết.
+     Lỗi thì GIỮ overlay lại: đóng luôn sẽ để lại bracket mà người dùng tưởng đã xoá. */
+  const handleCeremonyCancel = useCallback(async () => {
+    setCancellingDraw(true);
+    try {
+      await api.cancelDraw(tournamentId);
+      setCeremonyResult(null);
+      setParticipants([]);
+      toast.info("Đã huỷ bốc thăm — bracket vừa sinh đã được xóa.");
+      load();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setCancellingDraw(false);
+    }
+  }, [api, tournamentId, load]);
+
+  /* Huỷ bốc thăm từ chính trang quản lý (ngoài màn chiếu). */
+  const handleCancelDraw = () => {
+    showConfirm(
+      "Hủy bốc thăm",
+      "Toàn bộ cặp đấu vừa sinh sẽ bị xóa và giải trở về trạng thái Đóng đăng ký. Lần bốc thăm sau sẽ cho kết quả ngẫu nhiên khác. Tiếp tục?",
+      async () => {
+        setCancellingDraw(true);
+        try {
+          await api.cancelDraw(tournamentId);
+          setParticipants([]);
+          setEditMode(false); setSwapFirst(null);
+          toast.info("Đã hủy bốc thăm.");
+          load();
+        } catch (err) { toast.error(getApiErrorMessage(err)); }
+        finally { setCancellingDraw(false); }
+      },
+      { okLabel: "Hủy bốc thăm", okVariant: "danger" }
+    );
+  };
+
   const handleConfirmDraw = () => {
     showConfirm(
       "Xác nhận bracket",
@@ -747,27 +860,32 @@ const DrawPage = ({ api, basePath }) => {
   }, [allMatches, tournament]);
 
   /**
-   * Trọng tài `staffId` có đang BẬN với trận khác (ngoài `targetMatch`) không?
-   * Bận nếu: đang IN_PROGRESS ở trận khác, HOẶC trùng khung giờ với target (nếu target có giờ).
-   * Chỉ xét trong giải hiện tại (best-effort) — BE chốt chặn toàn cục.
+   * Tải hiện tại của trọng tài `staffId` — bao nhiêu trận chưa kết thúc đang gán cho họ.
+   *
+   * Một trọng tài ĐƯỢC phép phụ trách nhiều trận cùng lúc (họ đứng giữa vài bàn kề nhau
+   * và ghi tỉ số qua lại), nên hàm này KHÔNG còn để chặn như trước — chỉ để hiện số liệu
+   * cho người phân công tự cân. `overlapping` vẫn tính riêng vì trùng giờ là thứ đáng
+   * cảnh báo, dù không cấm.
+   *
+   * Chỉ xét trong giải hiện tại; trọng tài có thể còn trận ở giải khác mà FE không thấy.
    */
-  const refereeBusyInfo = useCallback((staffId, targetMatch) => {
-    if (!staffId || !targetMatch) return null;
+  const refereeLoadInfo = useCallback((staffId, targetMatch) => {
     const gameType = tournament?.gameType;
-    const tStart = targetMatch.scheduledAt ? new Date(targetMatch.scheduledAt).getTime() : null;
-    const tEnd = tStart != null ? tStart + estMatchMinutes(targetMatch.raceTo, gameType) * 60000 : null;
+    const tStart = targetMatch?.scheduledAt ? new Date(targetMatch.scheduledAt).getTime() : null;
+    const tEnd = tStart != null ? tStart + estMatchMinutes(targetMatch?.raceTo, gameType) * 60000 : null;
+    let live = 0, upcoming = 0, overlapping = 0;
     for (const m of allMatches()) {
-      if (m.id === targetMatch.id) continue;
+      if (targetMatch && m.id === targetMatch.id) continue;
       if (["BYE", "COMPLETED", "WALKOVER"].includes(m.status)) continue;
       if (String(m.assignedStaff?.id ?? "") !== String(staffId)) continue;
-      if (m.status === "IN_PROGRESS") return { match: m, reason: "ongoing" };
+      if (m.status === "IN_PROGRESS") live += 1; else upcoming += 1;
       if (tStart != null && tEnd != null && m.scheduledAt) {
         const oStart = new Date(m.scheduledAt).getTime();
         const oEnd = matchEndMs(m, gameType);
-        if (oEnd != null && tStart < oEnd && oStart < tEnd) return { match: m, reason: "overlap" };
+        if (oEnd != null && tStart < oEnd && oStart < tEnd) overlapping += 1;
       }
     }
-    return null;
+    return { live, upcoming, overlapping, total: live + upcoming };
   }, [allMatches, tournament]);
 
   const doSaveAssign = useCallback(async (opts = {}) => {
@@ -951,15 +1069,23 @@ const DrawPage = ({ api, basePath }) => {
 
         <div className="flex items-center gap-2 flex-wrap">
           {noDrawYet && (
-            <AdminButton variant="primary" disabled={drawing} onClick={handleDraw}
-                         className="flex items-center gap-2">
-              <Shuffle size={15} />
-              {drawing ? "Đang bốc thăm..." : "Sinh bracket (Bốc thăm)"}
-            </AdminButton>
+            <>
+              {ceremonySupported && (
+                <CeremonyButton drawing={drawing} onClick={handlePublicDraw} />
+              )}
+              <AdminButton variant={ceremonySupported ? "secondary" : "primary"} disabled={drawing} onClick={handleDraw}
+                           className="flex items-center gap-2">
+                <Shuffle size={15} />
+                {drawing ? "Đang bốc thăm..." : "Sinh bracket (Bốc thăm)"}
+              </AdminButton>
+            </>
           )}
 
           {!noDrawYet && isPreview && (
             <>
+              {ceremonySupported && (
+                <CeremonyButton drawing={drawing} disabled={confirming||swapping} onClick={handlePublicDraw} redo />
+              )}
               <AdminButton variant="secondary" disabled={drawing||confirming||swapping} onClick={handleDraw}
                            className="flex items-center gap-2">
                 <Shuffle size={14} />
@@ -982,6 +1108,14 @@ const DrawPage = ({ api, basePath }) => {
                            className="flex items-center gap-2">
                 <Lock size={14} />
                 {confirming ? "Đang xác nhận..." : "Xác nhận bracket"}
+              </AdminButton>
+
+              {/* Cùng một hành động với "Huỷ bốc thăm" trong màn chiếu — người dẫn có thể
+                  chọn "Giữ kết quả & đóng" rồi mới quyết định bỏ, nên phải có cả ở đây. */}
+              <AdminButton variant="danger" disabled={cancellingDraw||confirming||drawing||swapping}
+                           onClick={handleCancelDraw} className="flex items-center gap-2">
+                <Trash2 size={14} />
+                {cancellingDraw ? "Đang hủy..." : "Hủy bốc thăm"}
               </AdminButton>
             </>
           )}
@@ -1189,11 +1323,28 @@ const DrawPage = ({ api, basePath }) => {
                 Đảm bảo giải đang ở trạng thái <span className="font-medium">Đóng đăng ký</span> và có ít nhất 2 người tham gia.
               </p>
             </div>
-            <AdminButton variant="primary" disabled={drawing} onClick={handleDraw}
-                         className="inline-flex items-center gap-2 mx-auto">
-              <Shuffle size={15} />
-              {drawing ? "Đang bốc thăm..." : "Sinh bracket ngay"}
-            </AdminButton>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              {ceremonySupported && (
+                <CeremonyButton drawing={drawing} onClick={handlePublicDraw} />
+              )}
+              <AdminButton variant={ceremonySupported ? "secondary" : "primary"} disabled={drawing} onClick={handleDraw}
+                           className="inline-flex items-center gap-2">
+                <Shuffle size={15} />
+                {drawing ? "Đang bốc thăm..." : "Sinh bracket ngay"}
+              </AdminButton>
+            </div>
+            {ceremonySupported && (
+              <p className="text-xs text-slate-400 dark:text-white/40">
+                Bốc thăm công khai: cùng một kết quả, nhưng trình chiếu từng cơ thủ vào cây thi đấu để khán giả theo dõi.
+              </p>
+            )}
+            {ceremonyBlockedBySeeding && (
+              <p className="text-xs text-slate-400 dark:text-white/40 max-w-lg mx-auto">
+                Giải này xếp cặp <span className="font-medium">{seedingLabel ?? "theo cấu hình sẵn"}</span>, không
+                phải bốc thăm ngẫu nhiên — nên không có phần bốc thăm công khai. Vị trí các cơ thủ do cấu hình quyết
+                định, ban tổ chức chỉnh lại cặp đấu sau khi sinh bracket.
+              </p>
+            )}
           </div>
         </AdminCard>
       ) : viewMode === "diagram" ? (
@@ -1732,13 +1883,14 @@ const DrawPage = ({ api, basePath }) => {
         {(() => {
           if (!refereeModal) return null;
           const target = refereeModal.match;
-          const currentId = target.assignedStaff?.id ?? null;
-          // Ẩn trọng tài đang bận (đang điều hành trận khác / trùng giờ) — trừ người đang gán cho chính trận này
-          const available = referees.filter(r => {
-            if (String(r.id) === String(currentId)) return true;
-            return !refereeBusyInfo(r.id, target);
-          });
-          const hiddenCount = referees.length - available.length;
+          /* KHÔNG lọc bỏ ai. Một trọng tài phụ trách được nhiều trận cùng lúc, nên việc
+             của màn này là cho thấy ai đang gánh nhiều để người phân công tự cân —
+             xếp người rảnh nhất lên đầu thay vì ẩn người đang bận. */
+          const options = referees
+            .map(r => ({ ...r, load: refereeLoadInfo(r.id, target) }))
+            .sort((a, b) => a.load.total - b.load.total
+              || String(a.displayName).localeCompare(String(b.displayName), "vi"));
+          const picked = options.find(r => String(r.id) === String(refereeStaffId));
           return (
             <div className="space-y-3">
               <p className="text-xs text-slate-500 dark:text-white/60">
@@ -1754,25 +1906,58 @@ const DrawPage = ({ api, basePath }) => {
                   onChange={(e) => setRefereeStaffId(e.target.value)}
                 >
                   <option value="">— Chọn trọng tài —</option>
-                  {available.map(r => (
-                    <option key={r.id} value={r.id}>{r.displayName}</option>
+                  {options.map(r => (
+                    <option key={r.id} value={r.id}>
+                      {r.displayName} — {refereeLoadLabel(r.load)}
+                    </option>
                   ))}
                 </select>
               </div>
+
+              {picked && picked.load.total > 0 && (
+                <div className={[
+                  "rounded-lg px-3 py-2 text-[11px] border",
+                  picked.load.overlapping > 0
+                    ? "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-400/10 dark:border-amber-400/30 dark:text-amber-300"
+                    : "bg-slate-50 border-slate-200 text-slate-600 dark:bg-white/5 dark:border-white/10 dark:text-white/60",
+                ].join(" ")}>
+                  <span className="font-semibold">{picked.displayName}</span> đang giữ {picked.load.total} trận
+                  chưa kết thúc
+                  {picked.load.live > 0 && <> ({picked.load.live} đang đấu)</>}
+                  {picked.load.overlapping > 0 && (
+                    <>, trong đó <span className="font-semibold">{picked.load.overlapping} trận trùng khung giờ</span> với
+                    trận này. Vẫn gán được — chỉ cần chắc là bàn đủ gần để một người bao được.</>
+                  )}
+                  {picked.load.overlapping === 0 && <>. Không trận nào trùng giờ với trận này.</>}
+                </div>
+              )}
               {referees.length === 0 ? (
                 <p className="text-[11px] text-amber-600">
                   Chi nhánh của giải chưa có nhân viên (staff) nào để làm trọng tài.
                 </p>
               ) : (
                 <p className="text-[11px] text-slate-400 dark:text-white/40">
-                  Chỉ hiện trọng tài đang rảnh. {hiddenCount > 0 && <>({hiddenCount} người đang bận đã bị ẩn.)</>}
-                  {" "}Một trọng tài không thể phụ trách 2 trận cùng lúc.
+                  Một trọng tài có thể phụ trách nhiều trận cùng lúc và ghi tỉ số cho tất cả
+                  các trận được gán. Danh sách xếp người đang giữ ít trận lên trước.
                 </p>
               )}
             </div>
           );
         })()}
       </AdminModal>
+
+      {/* ── Lễ bốc thăm công khai ──
+          Bracket đã nằm trên server ngay khi API trả về; overlay chỉ trình diễn
+          lại kết quả đó. Đóng overlay mới nạp lại trang như luồng cũ. */}
+      {ceremonyResult && (
+        <DrawCeremonyOverlay
+          drawResult={ceremonyResult}
+          tournament={tournament}
+          onClose={handleCeremonyClose}
+          onCancel={handleCeremonyCancel}
+          cancelling={cancellingDraw}
+        />
+      )}
     </div>
   );
 };
