@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Search, X } from "lucide-react";
 import { toast } from "react-toastify";
@@ -258,6 +258,26 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   const [validateResult, setValidateResult] = useState(null);
   const [templatePreview, setTemplatePreview] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+
+  /** "Trận tranh hạng 3" tắt → ẩn ngay dòng "third_place" khỏi bảng race-to bên dưới, không
+   * cần lưu/reload. Vẫn giữ nguyên rule đó trong raceToRules (chỉ ẩn, không xoá) để bật lại
+   * là hiện ra với giá trị cũ, và để lưu form không vô tình mất override đã có. */
+  const thirdPlaceEnabled = useMemo(() => {
+    const field = configFields.find((f) => f.fieldKey === "third_place_match");
+    if (!field) return true;
+    return String(field.value ?? field.defaultValue ?? "true") === "true";
+  }, [configFields]);
+
+  const visibleRaceToRules = useMemo(
+    () => (thirdPlaceEnabled ? raceToRules : raceToRules.filter((r) => r.roundKey !== "third_place")),
+    [raceToRules, thirdPlaceEnabled]
+  );
+
+  const handleRaceToChange = useCallback((updatedVisibleRules) => {
+    setRaceToRules((prev) =>
+      prev.map((r) => updatedVisibleRules.find((u) => u.roundKey === r.roundKey) || r)
+    );
+  }, []);
 
   const loadOptions = useCallback(async () => {
     try {
@@ -1141,7 +1161,7 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               <TournamentConfigFieldForm fields={configFields} onChange={setConfigFields} />
 
               <h3 className="text-sm font-semibold text-slate-700 dark:text-white/75 mt-8 mb-3">Số ván thắng theo vòng đấu</h3>
-              <TournamentRaceToOverrides rules={raceToRules} onChange={setRaceToRules} />
+              <TournamentRaceToOverrides rules={visibleRaceToRules} onChange={handleRaceToChange} />
 
               <div className="flex justify-between gap-2 mt-6 pt-4 border-t border-slate-100 dark:border-white/10">
                 {isCloseRegistrationMode ? (
