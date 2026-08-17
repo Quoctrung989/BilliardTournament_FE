@@ -71,11 +71,11 @@ const StaffManagement = () => {
   };
 
   return (
-    <div className="rounded-lg bg-white p-16 shadow min-h-[90vh]">
+    <div className="rounded-lg bg-white dark:bg-[#161a22] p-16 shadow min-h-[90vh]">
       <h1 className="font-black text-3xl">Quản lý nhân viên</h1>
 
       <div className="flex mt-6 flex-col gap-4 md:flex-row justify-between">
-        <div className="relative grow rounded-md border-2 border-gray-300">
+        <div className="relative grow rounded-md border-2 border-gray-300 dark:border-white/15">
           <FaSearch className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
           <input
             type="text"
@@ -98,7 +98,7 @@ const StaffManagement = () => {
 
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg mt-10">
         <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+          <thead className="text-xs text-gray-700 dark:text-white/75 uppercase bg-gray-50 dark:bg-white/5">
             <tr>
               <th scope="col" className="px-6 py-3">
                 Tên Nhân Viên
@@ -131,10 +131,10 @@ const StaffManagement = () => {
           </thead>
           <tbody>
             {listStaffs.map((staff, index) => (
-              <tr key={index} className="odd:bg-white even:bg-gray-50 border-b">
+              <tr key={index} className="odd:bg-white dark:odd:bg-[#161a22] even:bg-gray-50 dark:even:bg-white/5 border-b dark:border-white/10">
                 <th
                   scope="row"
-                  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                  className="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap"
                 >
                   {staff.fullName}
                 </th>
@@ -182,11 +182,11 @@ const StaffManagement = () => {
         >
           <span className="text-sm font-normal text-gray-500 mb-4 md:mb-0 block w-full md:inline md:w-auto">
             Hiển thị{" "}
-            <span className="font-semibold text-gray-900">
+            <span className="font-semibold text-gray-900 dark:text-white">
               {start}-{end}
             </span>{" "}
             trong{" "}
-            <span className="font-semibold text-gray-900">
+            <span className="font-semibold text-gray-900 dark:text-white">
               {pagination.totalElements}
             </span>{" "}
             nhân viên
@@ -194,7 +194,7 @@ const StaffManagement = () => {
           <ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
             <li>
               <button
-                className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700"
+                className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white dark:bg-[#161a22] border border-gray-300 dark:border-white/15 rounded-s-lg hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-700 dark:hover:text-white/75"
                 onClick={() => handlePageChange(pagination.pageNumber - 1)}
               >
                 Trước
@@ -207,7 +207,7 @@ const StaffManagement = () => {
                   className={`flex items-center justify-center px-3 h-8 leading-tight border border-gray-300 ${
                     pagination.pageNumber === index
                       ? "text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
-                      : "text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700"
+                      : "text-gray-500 bg-white dark:bg-[#161a22] hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-700 dark:hover:text-white/75"
                   }`}
                 >
                   {index + 1}
@@ -217,7 +217,7 @@ const StaffManagement = () => {
             <li>
               <button
                 onClick={() => handlePageChange(pagination.pageNumber + 1)}
-                className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700"
+                className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white dark:bg-[#161a22] border border-gray-300 dark:border-white/15 rounded-e-lg hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-700 dark:hover:text-white/75"
               >
                 Sau
               </button>

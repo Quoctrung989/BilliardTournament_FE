@@ -20,14 +20,12 @@ export const createMatchApi = (scope) => ({
   // Bracket generation
   generateDraw:        (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/draw`, {})),
   confirmDraw:         (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/draw/confirm`)),
+  // Hủy bốc thăm nháp (DRAW_PREVIEW → REGISTRATION_CLOSED). Dùng khi lễ bốc thăm công khai
+  // bị dừng giữa buổi: bracket đã sinh ở BE ngay lúc bấm bốc nên phải xoá hẳn.
+  cancelDraw:          (tournamentId)    => unwrap(axiosClient.delete(`/${scope}/tournaments/${tournamentId}/draw`)),
   swapPlayers:         (tournamentId, body) => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/draw/swap`, body)),
   // CUT_TO_SE: điền SE bracket từ DE survivors
   populateFinalBracket:(tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/populate-final-bracket`)),
-  // GROUP_PLAYOFF: xếp hạng + loại bottom
-  getStandings:        (tournamentId)    => unwrap(axiosClient.get(`/${scope}/tournaments/${tournamentId}/standings`)),
-  eliminateBottom:     (tournamentId, body) => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/eliminate-bottom`, body)),
-  // GROUP_PLAYOFF: populate playoff bracket từ standings
-  generatePlayoff:     (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/generate-playoff`)),
   // PROGRESSIVE_ROUND_ROBIN: chuyển giai đoạn + standings từng giai đoạn
   advanceStage:        (tournamentId)    => unwrap(axiosClient.post(`/${scope}/tournaments/${tournamentId}/advance-stage`)),
   getStageStandings:   (tournamentId, stageId) => unwrap(axiosClient.get(`/${scope}/tournaments/${tournamentId}/stage-standings`, { params: { stageId } })),

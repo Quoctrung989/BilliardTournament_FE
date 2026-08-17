@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import {
   ArrowLeft, Calendar, Trophy, Gamepad2, Award,
   Info, List, Radio, BarChart2, UserCheck,
-  CreditCard, Clock, CheckCircle2, XCircle, ChevronRight, Search,
+  CreditCard, Clock, CheckCircle2, XCircle, ChevronRight, Search, MapPin, Phone,
 } from "lucide-react";
 import MatchesTab, { apiMatchToComp, MatchRow } from "./MatchesTab";
 import RankingTab from "./RankingTab";
@@ -58,7 +58,7 @@ const participantLabel = (type) =>
 /* ── Shared sub-components ── */
 const InfoCol = ({ icon: Icon, label, value, border = true }) => (
   <div className={`flex flex-col gap-1 py-4 px-5 ${border ? "border-l border-slate-200 dark:border-white/10 first:border-l-0" : ""}`}>
-    <div className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold uppercase tracking-wide">
+    <div className="flex items-center gap-1.5 text-slate-400 dark:text-white/40 text-xs font-semibold uppercase tracking-wide">
       <Icon size={12} /> {label}
     </div>
     <p className="text-slate-800 dark:text-white font-semibold text-sm">{value}</p>
@@ -193,13 +193,20 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
               <Clock size={28} style={{ color: "rgba(255,255,255,0.4)", flexShrink: 0 }} />
               <div>
                 <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 0.2rem" }}>
-                  {t.status === "REGISTRATION_CLOSED" || t.status === "DRAW_DONE" ? "Đã đóng đăng ký"
+                  {t.status === "OPEN_FOR_REGISTRATION" && t.isRegister ? "Giải đấu đang mở đăng ký"
+                    : t.status === "REGISTRATION_CLOSED" || t.status === "DRAW_DONE" ? "Đã đóng đăng ký"
                     : t.status === "IN_PROGRESS" ? "Giải đấu đang diễn ra"
                     : t.status === "COMPLETED" ? "Giải đấu đã kết thúc"
                     : "Chưa mở đăng ký"}
                 </p>
                 <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.8rem", margin: 0 }}>
-                  {t.isRegister ? "Đã đóng nhận đăng ký online" : "Giải đấu không nhận đăng ký online"}
+                  {/* Tới được đây mà status vẫn đang mở nghĩa là lý do không đăng ký được là VAI TRÒ
+                      người xem (không phải Player), không phải bản thân giải đã đóng — hai câu dưới
+                      trước đây dùng chung 1 ternary theo t.isRegister nên hiện SAI (và bị đảo ngược
+                      nghĩa) cho đúng trường hợp này. */}
+                  {t.status === "OPEN_FOR_REGISTRATION" && t.isRegister
+                    ? "Chỉ tài khoản Cơ thủ (Player) mới đăng ký được — đăng nhập bằng tài khoản cơ thủ để tham dự"
+                    : t.isRegister ? "Đã đóng nhận đăng ký online" : "Giải đấu không nhận đăng ký online"}
                 </p>
               </div>
             </div>
@@ -287,8 +294,46 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
         </div>
       </div>
 
+      {/* Organizing branch card */}
+      {t.venue && (
+        <div className="ui-stagger" style={{ "--i": 2, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+            <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
+            <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+              Chi nhánh tổ chức
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+            {t.venue.images?.[0]?.url && (
+              <img
+                src={t.venue.images[0].url}
+                alt={t.venue.name}
+                style={{ width: "72px", height: "72px", borderRadius: "0.75rem", objectFit: "cover", flexShrink: 0, border: "1px solid var(--evt-card-border)" }}
+              />
+            )}
+            <div style={{ flex: 1, minWidth: "180px", display: "grid", gap: "0.6rem" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem" }}>
+                <MapPin size={15} style={{ color: "var(--evt-accent)", marginTop: "0.15rem", flexShrink: 0 }} />
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--evt-heading)", margin: 0 }}>{t.venue.name}</p>
+                  {t.venue.address && (
+                    <p style={{ fontSize: "0.8125rem", color: "var(--evt-text-3)", margin: "0.15rem 0 0" }}>{t.venue.address}</p>
+                  )}
+                </div>
+              </div>
+              {t.venue.phone && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <Phone size={14} style={{ color: "var(--evt-text-4)", flexShrink: 0 }} />
+                  <p style={{ fontSize: "0.8125rem", color: "var(--evt-text-2)", margin: 0 }}>{t.venue.phone}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Participants + Fee card */}
-      <div className="ui-stagger" style={{ "--i": 2, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+      <div className="ui-stagger" style={{ "--i": 3, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
         {!isEndedOrClosed && (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
@@ -335,7 +380,7 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
 
       {/* Format / Config card */}
       {(t.configSummary || t.formatName) && (
-        <div className="ui-stagger" style={{ "--i": 3, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+        <div className="ui-stagger" style={{ "--i": 4, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
             <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
             <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
@@ -348,12 +393,12 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
               t.participantType && { label: "Hình thức", value: participantLabel(t.participantType) },
               t.configSummary?.seedingMethod && {
                 label: "Bốc thăm",
-                value: { RANDOM: "Ngẫu nhiên", ELO: "Theo ELO", MANUAL: "Thủ công" }[t.configSummary.seedingMethod] || t.configSummary.seedingMethod,
+                value: { RANDOM: "Ngẫu nhiên", RANK: "Theo hạng cơ thủ" }[t.configSummary.seedingMethod] || t.configSummary.seedingMethod,
               },
-              t.configSummary?.bracketSize != null && { label: "Bracket", value: `${t.configSummary.bracketSize} slot` },
-              t.configSummary?.finalRaceTo != null && { label: "Final", value: `Race to ${t.configSummary.finalRaceTo}` },
+              t.configSummary?.bracketSize != null && { label: "Số người tối đa", value: `${t.configSummary.bracketSize} người` },
+              t.configSummary?.finalRaceTo != null && { label: "Chung kết", value: `Đánh tới ${t.configSummary.finalRaceTo} ván` },
               t.configSummary?.breakRule && {
-                label: "Break rule",
+                label: "Luật giao bóng",
                 value: { ALTERNATE_BREAK: "Luân phiên", WINNER_BREAK: "Người thắng", LOSER_BREAK: "Người thua" }[t.configSummary.breakRule] || t.configSummary.breakRule,
               },
               t.configSummary?.thirdPlaceMatch != null && { label: "Tranh hạng 3", value: t.configSummary.thirdPlaceMatch ? "Có" : "Không" },
@@ -369,7 +414,7 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
 
       {/* Description card */}
       {t.description && (
-        <div className="ui-stagger" style={{ "--i": 4, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
+        <div className="ui-stagger" style={{ "--i": 5, background: "var(--evt-card-bg)", borderRadius: "1rem", border: "1px solid var(--evt-card-border)", padding: "1.5rem", boxShadow: "0 1px 3px rgba(15,23,42,0.06)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
             <span style={{ width: "3px", height: "1rem", background: "var(--evt-accent)", borderRadius: "2px" }} aria-hidden />
             <p style={{ fontWeight: 700, fontSize: "0.7rem", color: "var(--evt-text-3)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
@@ -384,91 +429,6 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
 };
 
 const DEFAULT_AVATAR = "/player-default.webp";
-
-/* Split "Nguyen Van A" → { first: "Nguyen Van", last: "A" } */
-const splitName = (full = "") => {
-  const parts = full.trim().split(" ");
-  if (parts.length <= 1) return { first: "", last: full };
-  const last = parts.pop();
-  return { first: parts.join(" "), last };
-};
-
-/* ── Player detail modal (WNT style) ── */
-const PlayerModal = ({ player, onClose }) => {
-  const { first, last } = splitName(player.displayName);
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 200,
-        background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)",
-        display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%", maxWidth: "640px",
-          background: "#152840", borderRadius: "0.75rem",
-          overflow: "hidden", display: "flex", position: "relative",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.5)",
-        }}
-      >
-        {/* Left: avatar */}
-        <div style={{ width: "45%", flexShrink: 0, position: "relative", minHeight: "300px" }}>
-          <img
-            src={player.avatarUrl || player.avtarUrl || DEFAULT_AVATAR}
-            alt={player.displayName}
-            onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-          />
-          {/* subtle right-edge fade */}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent 60%, #152840 100%)" }} />
-        </div>
-
-        {/* Vertical divider */}
-        <div style={{ width: "1px", background: "rgba(255,255,255,0.08)", flexShrink: 0 }} />
-
-        {/* Right: info */}
-        <div style={{ flex: 1, padding: "2rem 2rem 2rem 1.75rem", display: "flex", flexDirection: "column", justifyContent: "center", gap: "0.5rem" }}>
-          {/* Name */}
-          <div>
-            {first && (
-              <p style={{ margin: "0 0 0.15rem", color: "rgba(148,178,218,0.75)", fontWeight: 600, fontStyle: "italic", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                {first}
-              </p>
-            )}
-            <p style={{ margin: 0, color: "#fff", fontWeight: 900, fontStyle: "italic", fontSize: "1.2rem", textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.2 }}>
-              {last}
-            </p>
-          </div>
-
-          {/* Divider */}
-          <div style={{ width: "2.5rem", height: "2px", background: "#EF342A", borderRadius: "2px", margin: "0.5rem 0" }} />
-
-          {/* Extra info */}
-          {player.seedNo && (
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Hạt giống #{player.seedNo}
-            </p>
-          )}
-        </div>
-
-        {/* Close button */}
-        <button type="button" className="ui-press" onClick={onClose}
-          style={{
-            position: "absolute", top: "0.75rem", right: "0.75rem",
-            background: "rgba(255,255,255,0.1)", border: "none",
-            color: "rgba(255,255,255,0.7)", borderRadius: "50%",
-            width: "2rem", height: "2rem", cursor: "pointer",
-            fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-          ✕
-        </button>
-      </div>
-    </div>
-  );
-};
 
 /* ── Players tab ── */
 const PlayersTab = ({ participants }) => {
@@ -485,7 +445,7 @@ const PlayersTab = ({ participants }) => {
           position: "absolute", top: 0, left: "50%",
           transform: "translateX(-50%)", zIndex: 10,
           width: "min(560px, calc(100% - 4rem))",
-          background: "linear-gradient(180deg, #0d1b2e 0%, #152842 100%)",
+          background: "linear-gradient(180deg, #161a22 0%, #20242e 100%)",
           borderRadius: "0 0 0.75rem 0.75rem",
           padding: "0.7rem 2.5rem",
           boxShadow: "0 4px 16px rgba(13,27,46,0.25)",
@@ -560,11 +520,6 @@ const PlayersTab = ({ participants }) => {
                         <span style={{ fontSize: "0.75rem", lineHeight: 1 }}>🇻🇳</span>
                         Việt Nam
                       </p>
-                      {p.seedNo && (
-                        <p className="evt-meta" style={{ marginTop: "0.2rem", letterSpacing: "0.05em" }}>
-                          Hạt #{p.seedNo}
-                        </p>
-                      )}
                     </div>
                   </button>
                 </div>
@@ -661,7 +616,7 @@ const LiveTab = ({ tournamentId }) => {
       <div className="flex items-center justify-between px-5 py-2.5"
            style={{ background: "linear-gradient(135deg,#9b1c1c 0%,#7f1616 100%)" }}>
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#161a22] animate-pulse" />
           <span className="text-xs font-semibold text-white tracking-wide">Đang diễn ra</span>
         </div>
         <span className="text-[10px] font-light text-white/70">{liveMatches.length} trận</span>
@@ -806,7 +761,7 @@ const EventDetailPage = () => {
             style={{
               display: "inline-flex", alignItems: "center", gap: "0.5rem",
               background: "#fff", border: "1px solid #e2e8f0", borderRadius: "100px",
-              padding: "0.4rem 0.9rem", color: "#0d1b2e",
+              padding: "0.4rem 0.9rem", color: "#0b0d12",
               fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
               boxShadow: "0 1px 3px rgba(15,23,42,0.06)",
             }}>
@@ -899,13 +854,13 @@ const EventDetailPage = () => {
                 title={isDisabled ? "Lịch thi đấu chưa được xếp" : undefined}
                 className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl transition-all duration-200 ${
                   isDisabled ? "text-white/15 cursor-not-allowed"
-                  : isActive  ? "bg-white text-[#0d1b2e]"
+                  : isActive  ? "bg-white dark:bg-[#161a22] text-[#0b0d12]"
                   : "text-white/50 hover:text-white/80"
                 }`}>
                 <span className="relative">
                   <tab.Icon size={16} strokeWidth={isActive ? 2 : 1.5} />
                   {tab.live && isLive && (
-                    <span className={`absolute -top-0.5 -right-1.5 w-1.5 h-1.5 rounded-full bg-[#ef342a] border ${isActive ? "border-white" : "border-[#0d1b2e]"}`} />
+                    <span className={`absolute -top-0.5 -right-1.5 w-1.5 h-1.5 rounded-full bg-[#ef342a] border ${isActive ? "border-white" : "border-[#0b0d12]"}`} />
                   )}
                 </span>
                 <span className={`text-[10px] leading-none ${isActive ? "font-semibold" : "font-light"}`}>

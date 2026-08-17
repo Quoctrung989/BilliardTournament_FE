@@ -1,0 +1,5 @@
+# Cloudflare Pages: SPA fallback.
+# Mọi đường dẫn không khớp file tĩnh đều trả index.html để React Router tự xử lý.
+# Thiếu dòng này, deep link (vd. /player/tournaments/5) sẽ 404 khi F5 hoặc mở trực tiếp.
+# Tương đương "try_files $uri /index.html" trong nginx.conf của bản deploy Docker.
+/*    /index.html   200

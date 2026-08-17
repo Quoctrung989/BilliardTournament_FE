@@ -25,7 +25,7 @@ const TournamentWizardStepper = ({ currentStep, closeRegistrationMode = false })
               {index > 0 && (
                 <div
                   className={`hidden sm:block flex-1 h-0.5 rounded ${
-                    done ? "bg-indigo-500" : "bg-slate-200"
+                    done ? "bg-indigo-500" : "bg-slate-200 dark:bg-white/10"
                   }`}
                 />
               )}
@@ -36,14 +36,14 @@ const TournamentWizardStepper = ({ currentStep, closeRegistrationMode = false })
                       ? "bg-indigo-600 text-white ring-4 ring-indigo-100"
                       : done
                       ? "bg-emerald-500 text-white"
-                      : "bg-slate-100 text-slate-500"
+                      : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/60"
                   }`}
                 >
                   {done ? <Check size={16} /> : step.id}
                 </div>
                 <span
                   className={`text-sm font-medium truncate ${
-                    active ? "text-indigo-700" : done ? "text-slate-700" : "text-slate-400"
+                    active ? "text-indigo-700" : done ? "text-slate-700 dark:text-white/75" : "text-slate-400 dark:text-white/40"
                   }`}
                 >
                   {step.label}

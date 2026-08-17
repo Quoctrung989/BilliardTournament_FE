@@ -1,7 +1,7 @@
 const TournamentRaceToOverrides = ({ rules, onChange }) => {
   if (!rules?.length) {
     return (
-      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white">
+      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white dark:bg-[#161a22]">
         Chưa có quy tắc race-to cho thể thức này
       </p>
     );
@@ -29,7 +29,7 @@ const TournamentRaceToOverrides = ({ rules, onChange }) => {
             <tr>
               <th className="px-3 py-2 text-left">Vòng</th>
               <th className="px-3 py-2 text-left">Pha</th>
-              <th className="px-3 py-2 text-left">Race-to</th>
+              <th className="px-3 py-2 text-left">Số ván thắng</th>
               <th className="px-3 py-2 text-left">Mặc định</th>
             </tr>
           </thead>
@@ -37,7 +37,7 @@ const TournamentRaceToOverrides = ({ rules, onChange }) => {
             {rules.map((rule, index) => (
               <tr key={rule.roundKey} className="border-t">
                 <td className="px-3 py-2 text-sm">{rule.label || rule.roundKey}</td>
-                <td className="px-3 py-2 text-sm text-slate-500">{rule.bracketPhase}</td>
+                <td className="px-3 py-2 text-sm text-slate-500 dark:text-white/60">{rule.bracketPhase}</td>
                 <td className="px-3 py-2">
                   <input
                     type="number"
@@ -47,7 +47,7 @@ const TournamentRaceToOverrides = ({ rules, onChange }) => {
                     onChange={(e) => updateRaceTo(index, Number(e.target.value))}
                   />
                 </td>
-                <td className="px-3 py-2 text-sm text-slate-500">
+                <td className="px-3 py-2 text-sm text-slate-500 dark:text-white/60">
                   {rule.defaultRaceTo ?? rule.raceTo}
                   {rule.isOverridden && (
                     <span className="ml-2 text-xs text-amber-600 font-medium">đã chỉnh</span>
@@ -58,7 +58,7 @@ const TournamentRaceToOverrides = ({ rules, onChange }) => {
           </tbody>
         </table>
       </div>
-      <p className="px-3 py-2 text-xs text-slate-500 border-t">
+      <p className="px-3 py-2 text-xs text-slate-500 dark:text-white/60 border-t">
         Chỉ lưu override khi race-to khác mặc định Admin
       </p>
     </div>

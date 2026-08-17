@@ -192,7 +192,7 @@ const FormatWizardPage = () => {
         navigate(`/admin/tournament-config/formats/${newCode}/edit`, { replace: true });
         setStep(2);
       } else if (!infoDirty) {
-        toast.info("Không có thay đổi — chuyển sang bước Config fields.");
+        toast.info("Không có thay đổi — chuyển sang bước Thông số thi đấu.");
         setStep(2);
       } else {
         await updateFormat(effectiveCode, body);
@@ -295,7 +295,7 @@ const FormatWizardPage = () => {
 
   const handleSaveConfigFields = async () => {
     if (!fieldsDirty) {
-      toast.info("Không có thay đổi — chuyển sang bước Race-to.");
+      toast.info("Không có thay đổi — chuyển sang bước Số ván mỗi vòng.");
       setStep(3);
       return;
     }
@@ -380,7 +380,7 @@ const FormatWizardPage = () => {
             <div>
               <label className="admin-label">Code *</label>
               <input
-                className="admin-input mt-1 disabled:bg-slate-100"
+                className="admin-input mt-1 disabled:bg-slate-100 dark:disabled:bg-white/10"
                 value={info.code}
                 disabled={!isNew && !!formatCode}
                 onChange={(e) => setInfo({ ...info, code: e.target.value })}
@@ -420,7 +420,7 @@ const FormatWizardPage = () => {
               />
             </div>
             <div className="md:col-span-2 xl:col-span-3 flex items-center pt-1">
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/75">
                 <input
                   type="checkbox"
                   checked={info.isActive}
@@ -568,14 +568,14 @@ const FormatWizardPage = () => {
               <div className="grid gap-4 md:grid-cols-3">
                 <PreviewBlock title="Thông tin" items={[{ label: "Code", value: effectiveCode }]} />
                 <PreviewBlock
-                  title="Config fields"
+                  title="Thông số thi đấu"
                   items={(summary.configFields || []).map((f) => ({
                     label: f.fieldKey || f.label,
                     value: f.defaultValue,
                   }))}
                 />
                 <PreviewBlock
-                  title="Race-to rules"
+                  title="Số ván thắng theo vòng"
                   items={(summary.raceToRules || []).map((r) => ({
                     label: r.label || r.roundKey,
                     value: `raceTo: ${r.raceTo}`,
@@ -608,7 +608,7 @@ const FormatWizardPage = () => {
                 </AdminButton>
               </div>
               {!summary.canActivate && (
-                <p className="text-xs text-slate-500 mt-2 text-right max-w-md ml-auto">
+                <p className="text-xs text-slate-500 dark:text-white/60 mt-2 text-right max-w-md ml-auto">
                   Nút xám = chưa đủ điều kiện từ server. Lưu đủ bước 2–3 hoặc Bootstrap rồi bấm
                   &quot;Làm mới trạng thái&quot;.
                 </p>
@@ -631,7 +631,7 @@ const WizardNav = ({ step, setStep, onSave, saving, canBack, isDirty = true }) =
       </AdminButton>
     )}
     {!isDirty && (
-      <span className="text-xs text-slate-500">Không có thay đổi — bấm Tiếp tục sẽ không gọi API lưu.</span>
+      <span className="text-xs text-slate-500 dark:text-white/60">Không có thay đổi — bấm Tiếp tục sẽ không gọi API lưu.</span>
     )}
     <AdminButton className="ml-auto" onClick={onSave} disabled={saving}>
       {saving ? "Đang xử lý..." : isDirty ? "Lưu & tiếp" : "Tiếp tục"}
@@ -641,9 +641,9 @@ const WizardNav = ({ step, setStep, onSave, saving, canBack, isDirty = true }) =
 
 const PreviewBlock = ({ title, items }) => (
   <div className="admin-card p-4">
-    <h4 className="font-semibold text-slate-800 mb-3">{title}</h4>
+    <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-3">{title}</h4>
     {items?.length ? (
-      <ul className="text-xs space-y-2 text-gray-600">
+      <ul className="text-xs space-y-2 text-gray-600 dark:text-white/70">
         {items.map((item, i) => (
           <li key={i}>
             <span className="font-medium">{item.label}:</span> {item.value ?? "—"}

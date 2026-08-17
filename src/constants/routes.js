@@ -2,6 +2,7 @@ import CommonLayout from "../components/layouts/CommonLayout";
 import EventPage from "../pages/Event";
 import EventDetailPage from "../pages/Event/EventDetailPage";
 import BranchListPage from "../pages/Branch";
+import RankingsPage from "../pages/Rankings";
 import BranchDetailPage from "../pages/Branch/BranchDetailPage";
 import Dashboard from "../pages/Admin/Dashboard";
 import Home from "../pages/Home";
@@ -70,6 +71,7 @@ import {
 import { ownerEmailApi, managerEmailApi } from "../api/emailApi";
 import { getOwnerStats, getManagerStats } from "../api/dashboardApi";
 import { ownerAnalyticsApi, managerAnalyticsApi } from "../api/analyticsApi";
+import { ownerBranchApi, managerBranchApi } from "../api/branchApi";
 import StatisticsPage from "../pages/shared/StatisticsPage";
 import TransactionsPage from "../pages/shared/TransactionsPage";
 import { ownerMatchApi, managerMatchApi } from "../api/matchApi";
@@ -81,6 +83,7 @@ import { withManagerPage } from "../components/manager/withManagerPage";
 const OwnerTournamentHub = () => (
   <TournamentListPage
     api={ownerTournamentApi}
+    branchApi={ownerBranchApi}
     basePath="/owner/tournaments"
     roleLabel="Owner"
   />
@@ -98,10 +101,17 @@ const OwnerTournamentDetail = () => (
     basePath="/owner/tournaments"
   />
 );
+const OwnerTournamentLive = () => (
+  <ManagerLiveDashboardPage
+    api={ownerMatchApi}
+    basePath="/owner/tournaments"
+  />
+);
 
 const ManagerTournamentHub = () => (
   <TournamentListPage
     api={managerTournamentApi}
+    branchApi={managerBranchApi}
     basePath="/manager/tournaments"
     roleLabel="Manager"
   />
@@ -148,7 +158,7 @@ const OwnerDashboard = () => (
   <DashboardPage statsLoader={getOwnerStats} basePath="/owner" title="Owner — Tổng quan" />
 );
 const OwnerStatistics = () => (
-  <StatisticsPage analyticsApi={ownerAnalyticsApi} title="Owner — Thống kê & Phân tích" />
+  <StatisticsPage analyticsApi={ownerAnalyticsApi} branchApi={ownerBranchApi} title="Owner — Thống kê & Phân tích" />
 );
 const OwnerTransactions = () => (
   <TransactionsPage analyticsApi={ownerAnalyticsApi} title="Owner — Quản lý giao dịch" />
@@ -157,7 +167,7 @@ const ManagerDashboard = () => (
   <DashboardPage statsLoader={getManagerStats} basePath="/manager" title="Manager — Tổng quan" />
 );
 const ManagerStatistics = () => (
-  <StatisticsPage analyticsApi={managerAnalyticsApi} title="Manager — Thống kê & Phân tích" />
+  <StatisticsPage analyticsApi={managerAnalyticsApi} branchApi={managerBranchApi} title="Manager — Thống kê & Phân tích" />
 );
 const ManagerTransactions = () => (
   <TransactionsPage analyticsApi={managerAnalyticsApi} title="Manager — Quản lý giao dịch" />
@@ -170,8 +180,12 @@ const ManagerDrawPage = () => (
   <DrawPage api={managerMatchApi} basePath="/manager/tournaments" />
 );
 
-const OwnerTournamentNotifications = () => <TournamentNotificationsPage api={ownerEmailApi} />;
-const ManagerTournamentNotifications = () => <TournamentNotificationsPage api={managerEmailApi} />;
+const OwnerTournamentNotifications = () => (
+  <TournamentNotificationsPage api={ownerEmailApi} basePath="/owner/tournaments" />
+);
+const ManagerTournamentNotifications = () => (
+  <TournamentNotificationsPage api={managerEmailApi} basePath="/manager/tournaments" />
+);
 
 const OwnerNewsCMS = () => (
   <NewsCMSPage api={ownerNewsCmsApi} editorPath="/owner/news" taxonomyPath="/owner/news/categories" />
@@ -442,6 +456,15 @@ export const ROUTES = [
     ),
   },
   {
+    path: "/owner/tournaments/:id/live",
+    component: withOwnerPage(
+      OwnerTournamentLive,
+      "Dashboard trực tiếp",
+      "Theo dõi tỉ số realtime theo dải bàn",
+      { fullWidth: true }
+    ),
+  },
+  {
     path: "/owner/tournaments/:id/registrations",
     component: withOwnerPage(
       OwnerTournamentRegistrations,
@@ -662,6 +685,7 @@ export const ROUTES = [
   { path: "/event/:id", component: EventDetailPage, layout: CommonLayout },
   { path: "/branches", component: BranchListPage, layout: CommonLayout },
   { path: "/branches/:id", component: BranchDetailPage, layout: CommonLayout },
+  { path: "/rankings", component: RankingsPage, layout: CommonLayout },
   { path: "/", component: Home, layout: CommonLayout },
   { path: "/login", component: LoginPage, layout: null },
   { path: "/register", component: RegisterPage, layout: null },

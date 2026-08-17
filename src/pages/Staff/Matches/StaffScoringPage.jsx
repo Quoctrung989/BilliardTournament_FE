@@ -66,7 +66,7 @@ function formatHeaderMeta(match) {
   const table =
     match?.tableNo != null ? `Bàn ${match.tableNo}` : `Trận #${match.id}`;
   const raceGame = [
-    match?.raceTo != null ? `Race to ${match.raceTo}` : null,
+    match?.raceTo != null ? `Đánh tới ${match.raceTo} ván` : null,
     inferGameTypeLabel(match),
   ]
     .filter(Boolean)

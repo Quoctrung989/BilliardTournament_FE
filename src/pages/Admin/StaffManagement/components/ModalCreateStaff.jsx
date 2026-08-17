@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import axiosClient from "../../../../api/axiosClient";
 import { toast } from "react-toastify";
 import Loading from "../../../../components/layouts/Loading/Loading";
@@ -12,6 +13,8 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("");
@@ -180,7 +183,7 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50 ">
-      <div className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-xl z-50 overflow-y-auto max-h-screen ">
+      <div className="relative bg-white dark:bg-[#161a22] p-6 rounded-lg shadow-lg w-full max-w-xl z-50 overflow-y-auto max-h-screen ">
         <button
           type="button"
           onClick={closeModal}
@@ -255,13 +258,24 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
           <label className="block mb-2">
             Mật khẩu <span className="text-red-500">*</span>
           </label>
-          <input
-            type="password"
-            placeholder="Mật khẩu"
-            className="w-full px-3 py-2 border rounded-md"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Mật khẩu"
+              className="w-full px-3 py-2 pr-9 border rounded-md"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
           {errors.password && (
             <p className="text-red-500 text-xs mt-1">{errors.password}</p>
           )}
@@ -270,13 +284,24 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
           <label className="block mb-2">
             Xác nhận mật khẩu <span className="text-red-500">*</span>
           </label>
-          <input
-            type="password"
-            placeholder="Xác nhận mật khẩu"
-            className="w-full px-3 py-2 border rounded-md"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Xác nhận mật khẩu"
+              className="w-full px-3 py-2 pr-9 border rounded-md"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
+              aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            >
+              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
           {errors.confirmPassword && (
             <p className="text-red-500 text-xs mt-1">
               {errors.confirmPassword}
@@ -333,9 +358,9 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
                   value="MALE"
                   checked={gender === "MALE"}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/15 focus:ring-blue-500"
                 />
-                <span className="ms-2 text-sm font-medium text-gray-900">
+                <span className="ms-2 text-sm font-medium text-gray-900 dark:text-white">
                   Nam
                 </span>
               </label>
@@ -347,9 +372,9 @@ const ModalCreateStaff = ({ closeModal, setIsCreateSuccess }) => {
                   value="FEMALE"
                   checked={gender === "FEMALE"}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/15 focus:ring-blue-500"
                 />
-                <span className="ms-2 text-sm font-medium text-gray-900">
+                <span className="ms-2 text-sm font-medium text-gray-900 dark:text-white">
                   Nữ
                 </span>
               </label>

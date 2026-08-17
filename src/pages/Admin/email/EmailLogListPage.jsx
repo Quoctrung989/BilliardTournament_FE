@@ -6,7 +6,11 @@ import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
 import AdminModal from "../../../components/admin/ui/AdminModal";
 import AdminPagination from "../../../components/admin/ui/AdminPagination";
-import { EMAIL_SEND_STATUS_LABELS, EMAIL_SEND_STATUS_STYLES } from "../../../constants/emailConfig";
+import {
+  EMAIL_SEND_STATUS_LABELS,
+  EMAIL_SEND_STATUS_STYLES,
+  EMAIL_TRIGGER_TYPE_LABELS,
+} from "../../../constants/emailConfig";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { buildListParams, DEFAULT_PAGE_SIZE } from "../../../utils/pagination";
 
@@ -25,9 +29,22 @@ const EmailLogListPage = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
   const [tournamentIdFilter, setTournamentIdFilter] = useState("");
+  const [triggerTypeFilter, setTriggerTypeFilter] = useState("");
+  const [templateCodeFilter, setTemplateCodeFilter] = useState("");
+  const [recipientEmailFilter, setRecipientEmailFilter] = useState("");
+  const [fromDateFilter, setFromDateFilter] = useState("");
+  const [toDateFilter, setToDateFilter] = useState("");
+  const [templates, setTemplates] = useState([]);
 
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  useEffect(() => {
+    adminEmailApi
+      .listTemplates({ size: 200 })
+      .then((result) => setTemplates(result.content))
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,6 +55,11 @@ const EmailLogListPage = () => {
           size: pageSize,
           status: statusFilter || undefined,
           tournamentId: tournamentIdFilter || undefined,
+          triggerType: triggerTypeFilter || undefined,
+          templateCode: templateCodeFilter || undefined,
+          recipientEmail: recipientEmailFilter || undefined,
+          fromDate: fromDateFilter || undefined,
+          toDate: toDateFilter || undefined,
         })
       );
       setLogs(result.content);
@@ -48,11 +70,32 @@ const EmailLogListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, statusFilter, tournamentIdFilter]);
+  }, [
+    page,
+    pageSize,
+    statusFilter,
+    tournamentIdFilter,
+    triggerTypeFilter,
+    templateCodeFilter,
+    recipientEmailFilter,
+    fromDateFilter,
+    toDateFilter,
+  ]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const resetFilters = () => {
+    setPage(0);
+    setStatusFilter("");
+    setTournamentIdFilter("");
+    setTriggerTypeFilter("");
+    setTemplateCodeFilter("");
+    setRecipientEmailFilter("");
+    setFromDateFilter("");
+    setToDateFilter("");
+  };
 
   const openDetail = async (row) => {
     setDetailLoading(true);
@@ -96,6 +139,68 @@ const EmailLogListPage = () => {
               setTournamentIdFilter(e.target.value.replace(/\D/g, ""));
             }}
           />
+          <select
+            className="admin-select w-auto"
+            value={triggerTypeFilter}
+            onChange={(e) => {
+              setPage(0);
+              setTriggerTypeFilter(e.target.value);
+            }}
+          >
+            <option value="">Tất cả kích hoạt</option>
+            {Object.entries(EMAIL_TRIGGER_TYPE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <select
+            className="admin-select w-auto"
+            value={templateCodeFilter}
+            onChange={(e) => {
+              setPage(0);
+              setTemplateCodeFilter(e.target.value);
+            }}
+          >
+            <option value="">Tất cả mẫu email</option>
+            {templates.map((t) => (
+              <option key={t.code} value={t.code}>
+                {t.name} ({t.code})
+              </option>
+            ))}
+          </select>
+          <input
+            className="admin-input w-auto"
+            placeholder="Lọc theo email người nhận"
+            value={recipientEmailFilter}
+            onChange={(e) => {
+              setPage(0);
+              setRecipientEmailFilter(e.target.value);
+            }}
+          />
+          <input
+            type="date"
+            className="admin-input w-auto"
+            title="Từ ngày"
+            value={fromDateFilter}
+            onChange={(e) => {
+              setPage(0);
+              setFromDateFilter(e.target.value);
+            }}
+          />
+          <input
+            type="date"
+            className="admin-input w-auto"
+            title="Đến ngày"
+            value={toDateFilter}
+            onChange={(e) => {
+              setPage(0);
+              setToDateFilter(e.target.value);
+            }}
+          />
+          <AdminButton variant="secondary" onClick={resetFilters}>
+            Xóa lọc
+          </AdminButton>
         </div>
 
         <div className="overflow-x-auto">
@@ -115,13 +220,13 @@ const EmailLogListPage = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-6 text-slate-400">
+                  <td colSpan={8} className="text-center py-6 text-slate-400 dark:text-white/40">
                     Đang tải...
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-6 text-slate-400">
+                  <td colSpan={8} className="text-center py-6 text-slate-400 dark:text-white/40">
                     Chưa có nhật ký
                   </td>
                 </tr>
@@ -184,7 +289,7 @@ const EmailLogListPage = () => {
         }
       >
         {detailLoading || !detail ? (
-          <p className="text-slate-400 text-sm">Đang tải...</p>
+          <p className="text-slate-400 dark:text-white/40 text-sm">Đang tải...</p>
         ) : (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3 text-xs">
@@ -218,7 +323,7 @@ const EmailLogListPage = () => {
             <div>
               <p className="admin-label mb-1">Nội dung đã gửi</p>
               <div
-                className="border border-slate-200 rounded-lg p-4 bg-white"
+                className="border border-slate-200 dark:border-white/10 rounded-lg p-4 bg-white dark:bg-[#101319]"
                 dangerouslySetInnerHTML={{ __html: detail.bodyRendered }}
               />
             </div>

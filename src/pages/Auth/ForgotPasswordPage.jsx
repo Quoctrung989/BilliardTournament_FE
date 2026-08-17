@@ -49,10 +49,29 @@ const ForgotPasswordPage = () => {
     }
   };
 
-  const handleResetPassword = async (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     const newErrors = {};
     if (!otp) newErrors.otp = "OTP là bắt buộc";
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
+    setErrors({});
+    setIsLoading(true);
+    try {
+      const { data } = await authApi.verifyOtp({ email, otp });
+      if (!data.success) throw new Error(data.message || "Mã OTP không hợp lệ.");
+      setSuccessMessage("");
+      setSuccessType("");
+      setStep(3);
+    } catch (err) {
+      setErrors({ server: err.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    const newErrors = {};
     if (!newPassword) newErrors.newPassword = "Mật khẩu là bắt buộc";
     else if (newPassword.length < 6) newErrors.newPassword = "Mật khẩu phải có ít nhất 6 ký tự";
     if (!confirmPassword) newErrors.confirmPassword = "Vui lòng xác nhận mật khẩu";
@@ -81,7 +100,7 @@ const ForgotPasswordPage = () => {
     `w-full px-3 py-2 text-sm border rounded focus:outline-none transition-colors ${
       errors[field]
         ? "border-red-400 bg-red-50 focus:border-red-400"
-        : "border-gray-300 bg-gray-50 focus:border-gray-500 focus:bg-white"
+        : "border-gray-300 dark:border-white/15 bg-gray-50 dark:bg-white/5 focus:border-gray-500 focus:bg-white dark:focus:bg-[#161a22]"
     }`;
 
   return (
@@ -97,16 +116,16 @@ const ForgotPasswordPage = () => {
         {/* Logo */}
         <div className="text-center mb-5">
           <div style={{ fontSize: 42, fontWeight: 900, color: "#fff", fontStyle: "italic", letterSpacing: -1.5, lineHeight: 1, textTransform: "uppercase" }}>
-            capstone<span style={{ color: "#e8471a" }}>.</span>
+            btms<span style={{ color: "#e8471a" }}>.</span>
           </div>
           <p style={{ fontSize: 13, color: "#ccc", marginTop: 6 }}>
             Chào mừng bạn đến với nền tảng tỉ số trực tuyến{" "}
-            <strong style={{ color: "#fff", fontStyle: "italic", textTransform: "uppercase" }}>capstone</strong>.
+            <strong style={{ color: "#fff", fontStyle: "italic", textTransform: "uppercase" }}>btms</strong>.
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-lg w-full max-w-sm mx-4" style={{ padding: "28px 28px 24px" }}>
+        <div className="bg-white dark:bg-[#161a22] rounded-lg w-full max-w-sm mx-4" style={{ padding: "28px 28px 24px" }}>
           <h2 style={{ fontSize: 13, fontWeight: 700, color: "#1a2a4a", textTransform: "uppercase", letterSpacing: "1.5px", fontStyle: "italic", marginBottom: 16 }}>
             Khôi phục mật khẩu.
           </h2>
@@ -126,13 +145,13 @@ const ForgotPasswordPage = () => {
                 Nhập địa chỉ email liên kết với tài khoản của bạn. Chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.
               </p>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Địa chỉ E-mail</label>
+                <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Địa chỉ E-mail</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={inputClass("email")}
-                  placeholder="Nhập email đã đăng ký với Capstone"
+                  placeholder="Nhập email đã đăng ký với BTMS"
                 />
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
@@ -161,29 +180,62 @@ const ForgotPasswordPage = () => {
             </form>
           )}
 
-          {/* Step 2: OTP + New Password */}
+          {/* Step 2: OTP only — phải xác thực đúng OTP mới được sang bước đổi mật khẩu */}
           {step === 2 && (
-            <form onSubmit={handleResetPassword} noValidate className="space-y-3">
+            <form onSubmit={handleVerifyOtp} noValidate className="space-y-3">
               <p className="text-xs text-gray-500 mb-3">
-                Nhập mã OTP đã được gửi đến <strong>{email}</strong> và mật khẩu mới của bạn.
+                Nhập mã OTP đã được gửi đến <strong>{email}</strong>.
               </p>
 
-              {/* OTP */}
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Mã OTP</label>
+                <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Mã OTP</label>
                 <input
                   type="text"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   className={inputClass("otp")}
                   placeholder="Nhập mã OTP từ email"
+                  autoFocus
                 />
                 {errors.otp && <p className="text-red-500 text-xs mt-1">{errors.otp}</p>}
               </div>
 
+              {errors.server && (
+                <div className="p-2 bg-red-50 border border-red-200 rounded text-red-600 text-xs">
+                  {errors.server}
+                </div>
+              )}
+              {successType === "otp_sent" && (
+                <div className="p-2 bg-green-50 border border-green-200 rounded text-green-600 text-xs">
+                  ✓ {successMessage}
+                </div>
+              )}
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-6 py-2 rounded-full text-sm font-semibold text-white transition-colors"
+                  style={{ background: isLoading ? "#9ca3af" : "#1a2a4a" }}
+                >
+                  {isLoading ? (
+                    <><AiOutlineLoading3Quarters className="animate-spin" size={14} /> Đang xác thực...</>
+                  ) : "Xác nhận OTP"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Step 3: New Password — chỉ hiện sau khi OTP đã được xác thực đúng ở bước 2 */}
+          {step === 3 && (
+            <form onSubmit={handleResetPassword} noValidate className="space-y-3">
+              <p className="text-xs text-gray-500 mb-3">
+                Mã OTP hợp lệ. Nhập mật khẩu mới của bạn.
+              </p>
+
               {/* New Password */}
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Mật khẩu mới</label>
+                <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Mật khẩu mới</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -191,6 +243,7 @@ const ForgotPasswordPage = () => {
                     onChange={(e) => setNewPassword(e.target.value)}
                     className={`${inputClass("newPassword")} pr-9`}
                     placeholder="Ít nhất 6 ký tự"
+                    autoFocus
                   />
                   <button
                     type="button"
@@ -206,7 +259,7 @@ const ForgotPasswordPage = () => {
 
               {/* Confirm Password */}
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Xác nhận mật khẩu</label>
+                <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Xác nhận mật khẩu</label>
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
@@ -248,7 +301,7 @@ const ForgotPasswordPage = () => {
             </form>
           )}
 
-          <hr className="my-5 border-gray-200" />
+          <hr className="my-5 border-gray-200 dark:border-white/10" />
 
           <div className="text-right">
             <button
@@ -267,7 +320,7 @@ const ForgotPasswordPage = () => {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1.4fr", gap: 24, maxWidth: 960, margin: "0 auto" }}>
           <div>
             <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", fontStyle: "italic", letterSpacing: -1, textTransform: "uppercase" }}>
-              capstone<span style={{ color: "#e8471a" }}>.</span>
+              btms<span style={{ color: "#e8471a" }}>.</span>
             </div>
           </div>
           <div>
@@ -279,10 +332,18 @@ const ForgotPasswordPage = () => {
           </div>
           <div>
             <h4 style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 12 }}>Pháp lý</h4>
+            {/* Chưa có trang đích cho ba mục này (không route nào trong ROUTES).
+                Dùng <button> chứ không phải <a href="#">: link rỗng nhảy lên đầu
+                trang khi bấm, và trình đọc màn hình xướng nó như link dùng được.
+                Có trang rồi thì gắn onClick hoặc đổi sang <Link>. */}
             {["Điều khoản & Điều kiện", "Chính sách bảo mật", "Chính sách Cookie"].map((item) => (
-              <a key={item} href="#" style={{ fontSize: 12.5, color: "#8a99b5", textDecoration: "none", display: "block", marginBottom: 6 }}>
+              <button
+                key={item}
+                type="button"
+                style={{ fontSize: 12.5, color: "#8a99b5", textDecoration: "none", display: "block", marginBottom: 6, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+              >
                 {item}
-              </a>
+              </button>
             ))}
           </div>
           <div>
@@ -299,7 +360,7 @@ const ForgotPasswordPage = () => {
         <div style={{ borderTop: "1px solid #1e2d4a", marginTop: 28, padding: "14px 0", textAlign: "center" }}>
           <p style={{ fontSize: 11.5, color: "#6b7280" }}>
             Nền tảng cập nhật tỉ số trực tiếp{" "}
-            <strong style={{ fontStyle: "italic", color: "#8a99b5", textTransform: "uppercase" }}>capstone</strong>.<br />
+            <strong style={{ fontStyle: "italic", color: "#8a99b5", textTransform: "uppercase" }}>btms</strong>.<br />
             Bản quyền © Đã đăng ký bảo hộ cho Matchroom Multi Sport Ltd
           </p>
         </div>

@@ -90,7 +90,7 @@ const RegistrationFormTemplateListPage = () => {
   return (
     <div className="space-y-6">
       <AdminCard padding={false}>
-        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="w-full sm:w-44">
             <label className="admin-label">Trạng thái</label>
             <select
@@ -262,7 +262,7 @@ const RegistrationFormTemplateListPage = () => {
           </>
         }
       >
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-white/70">
           Owner sẽ không chọn được template <strong>{confirmDeactivate?.name}</strong> khi tạo giải.
         </p>
       </AdminModal>

@@ -23,6 +23,18 @@ const PARTICIPANT_LABELS = {
   TEAM: "Đội",
 };
 
+const PARTICIPANT_TYPE_OPTIONS = [
+  { value: "", label: "Tất cả hình thức" },
+  { value: "SINGLE", label: "Đơn" },
+  { value: "DOUBLE", label: "Đôi" },
+];
+
+const IS_REGISTER_OPTIONS = [
+  { value: "", label: "Tất cả đăng ký" },
+  { value: "true", label: "Online" },
+  { value: "false", label: "Không" },
+];
+
 const fmtDate = (iso) => {
   if (!iso) return null;
   try {
@@ -62,7 +74,7 @@ const RowMenu = ({ row, basePath, navigate }) => {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-white/70 bg-white dark:bg-[#161a22] border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 hover:border-slate-300 dark:hover:border-white/15 transition-colors shadow-sm"
       >
         Thao tác
         <ChevronDown
@@ -72,18 +84,18 @@ const RowMenu = ({ row, basePath, navigate }) => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1.5 z-50 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1 overflow-hidden">
+        <div className="absolute right-0 top-full mt-1.5 z-50 w-48 bg-white dark:bg-[#161a22] rounded-xl shadow-lg border border-slate-100 dark:border-white/10 py-1 overflow-hidden">
           {/* Chi tiết */}
           <button
             type="button"
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors"
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-white/75 hover:bg-indigo-50 dark:hover:bg-indigo-500/12 hover:text-indigo-700 dark:hover:text-indigo-300 text-left transition-colors"
             onClick={() => go(`${basePath}/${row.id}`)}
           >
             <Eye size={15} className="shrink-0 text-indigo-400" />
             Chi tiết
           </button>
 
-              <div className="my-1 border-t border-slate-100" />
+              <div className="my-1 border-t border-slate-100 dark:border-white/10" />
 
           {isDraft && (
             <button
@@ -99,10 +111,10 @@ const RowMenu = ({ row, basePath, navigate }) => {
           {row.isRegister && (
             <button
               type="button"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 text-left transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-white/75 hover:bg-slate-50 dark:hover:bg-white/5 text-left transition-colors"
               onClick={() => go(`${basePath}/${row.id}/registrations`)}
             >
-              <FileText size={15} className="shrink-0 text-slate-400" />
+              <FileText size={15} className="shrink-0 text-slate-400 dark:text-white/40" />
               Đơn đăng ký
             </button>
           )}
@@ -110,10 +122,10 @@ const RowMenu = ({ row, basePath, navigate }) => {
           {!isDraft && (
             <button
               type="button"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 text-left transition-colors"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 dark:text-white/75 hover:bg-slate-50 dark:hover:bg-white/5 text-left transition-colors"
               onClick={() => go(`${basePath}/${row.id}/participants`)}
             >
-              <Users size={15} className="shrink-0 text-slate-400" />
+              <Users size={15} className="shrink-0 text-slate-400 dark:text-white/40" />
               Người tham gia
             </button>
           )}
@@ -124,7 +136,7 @@ const RowMenu = ({ row, basePath, navigate }) => {
 };
 
 /* ── Main page ───────────────────────────────────────── */
-const TournamentListPage = ({ api, basePath }) => {
+const TournamentListPage = ({ api, branchApi, basePath }) => {
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -135,6 +147,28 @@ const TournamentListPage = ({ api, basePath }) => {
   const [statusFilter, setStatusFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [searchApplied, setSearchApplied] = useState("");
+  const [gameTypeFilter, setGameTypeFilter] = useState("");
+  const [participantTypeFilter, setParticipantTypeFilter] = useState("");
+  const [isRegisterFilter, setIsRegisterFilter] = useState("");
+  const [branchIdFilter, setBranchIdFilter] = useState("");
+  const [gameTypes, setGameTypes] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [visibilitySavingId, setVisibilitySavingId] = useState(null);
+
+  useEffect(() => {
+    api
+      .listGameTypes()
+      .then((r) => setGameTypes(r.items || []))
+      .catch(() => {});
+  }, [api]);
+
+  useEffect(() => {
+    if (!branchApi) return;
+    branchApi
+      .listBranches(buildListParams({ page: 0, size: 100, status: "ACTIVE" }))
+      .then((r) => setBranches(r.content))
+      .catch(() => {});
+  }, [branchApi]);
 
   const loadTournaments = useCallback(async () => {
     setLoading(true);
@@ -144,6 +178,10 @@ const TournamentListPage = ({ api, basePath }) => {
         size: pageSize,
         ...(statusFilter ? { status: statusFilter } : {}),
         ...(searchApplied ? { search: searchApplied } : {}),
+        ...(gameTypeFilter ? { gameType: gameTypeFilter } : {}),
+        ...(participantTypeFilter ? { participantType: participantTypeFilter } : {}),
+        ...(isRegisterFilter ? { isRegister: isRegisterFilter } : {}),
+        ...(branchIdFilter ? { branchId: branchIdFilter } : {}),
       });
       const result = await api.listTournaments(params);
       setTournaments(result.content);
@@ -155,7 +193,17 @@ const TournamentListPage = ({ api, basePath }) => {
     } finally {
       setLoading(false);
     }
-  }, [api, page, pageSize, statusFilter, searchApplied]);
+  }, [
+    api,
+    page,
+    pageSize,
+    statusFilter,
+    searchApplied,
+    gameTypeFilter,
+    participantTypeFilter,
+    isRegisterFilter,
+    branchIdFilter,
+  ]);
 
   useEffect(() => {
     loadTournaments();
@@ -167,11 +215,38 @@ const TournamentListPage = ({ api, basePath }) => {
     setPage(0);
   };
 
+  const handleToggleVisibility = async (row) => {
+    const next = !row.isShowTournament;
+    setVisibilitySavingId(row.id);
+    try {
+      await api.patchVisibility(row.id, { isShowTournament: next });
+      setTournaments((prev) =>
+        prev.map((t) => (t.id === row.id ? { ...t, isShowTournament: next } : t))
+      );
+      toast.success(next ? "Đã hiển thị giải đấu công khai" : "Đã ẩn giải đấu khỏi trang công khai");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setVisibilitySavingId(null);
+    }
+  };
+
+  const resetFilters = () => {
+    setPage(0);
+    setStatusFilter("");
+    setSearchInput("");
+    setSearchApplied("");
+    setGameTypeFilter("");
+    setParticipantTypeFilter("");
+    setIsRegisterFilter("");
+    setBranchIdFilter("");
+  };
+
   return (
     <div className="space-y-6">
       <AdminCard padding={false}>
         {/* Toolbar */}
-        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="flex flex-wrap gap-4 flex-1 min-w-0">
             <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[200px] max-w-md">
               <label className="admin-label">Tìm theo tên</label>
@@ -199,6 +274,63 @@ const TournamentListPage = ({ api, basePath }) => {
                 ))}
               </select>
             </div>
+            <div className="w-full sm:w-44 shrink-0">
+              <label className="admin-label">Loại bi</label>
+              <select
+                className="admin-select w-full"
+                value={gameTypeFilter}
+                onChange={(e) => { setGameTypeFilter(e.target.value); setPage(0); }}
+              >
+                <option value="">Tất cả loại bi</option>
+                {gameTypes.map((g) => (
+                  <option key={g.code} value={g.code}>{g.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="w-full sm:w-44 shrink-0">
+              <label className="admin-label">Hình thức</label>
+              <select
+                className="admin-select w-full"
+                value={participantTypeFilter}
+                onChange={(e) => { setParticipantTypeFilter(e.target.value); setPage(0); }}
+              >
+                {PARTICIPANT_TYPE_OPTIONS.map((o) => (
+                  <option key={o.value || "all"} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="w-full sm:w-40 shrink-0">
+              <label className="admin-label">Đăng ký</label>
+              <select
+                className="admin-select w-full"
+                value={isRegisterFilter}
+                onChange={(e) => { setIsRegisterFilter(e.target.value); setPage(0); }}
+              >
+                {IS_REGISTER_OPTIONS.map((o) => (
+                  <option key={o.value || "all"} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            {branchApi && (
+              <div className="w-full sm:w-52 shrink-0">
+                <label className="admin-label">Chi nhánh</label>
+                <select
+                  className="admin-select w-full"
+                  value={branchIdFilter}
+                  onChange={(e) => { setBranchIdFilter(e.target.value); setPage(0); }}
+                >
+                  <option value="">Tất cả chi nhánh</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="shrink-0 flex items-end">
+              <AdminButton variant="secondary" onClick={resetFilters}>
+                Xóa lọc
+              </AdminButton>
+            </div>
           </div>
           <AdminButton onClick={() => navigate(`${basePath}/new`)} className="shrink-0">
             <Plus size={18} />
@@ -220,13 +352,14 @@ const TournamentListPage = ({ api, basePath }) => {
           ) : (
             <table className="admin-table">
               <colgroup>
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "13%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "7%" }} />
+                <col style={{ width: "18%" }} />
                 <col style={{ width: "12%" }} />
-                <col style={{ width: "8%" }} />
+                <col style={{ width: "12%" }} />
                 <col style={{ width: "7%" }} />
+                <col style={{ width: "11%" }} />
+                <col style={{ width: "7%" }} />
+                <col style={{ width: "6%" }} />
+                <col style={{ width: "8%" }} />
                 <col style={{ width: "12%" }} />
                 <col style={{ width: "7%" }} />
               </colgroup>
@@ -239,6 +372,7 @@ const TournamentListPage = ({ api, basePath }) => {
                   <th className="align-center">Trạng thái</th>
                   <th className="align-center">Cấu hình</th>
                   <th className="align-center">Đăng ký</th>
+                  <th className="align-center">Công khai</th>
                   <th>Thời gian</th>
                   <th className="align-right">Thao tác</th>
                 </tr>
@@ -247,26 +381,31 @@ const TournamentListPage = ({ api, basePath }) => {
                 {tournaments.map((row) => (
                   <tr key={row.id}>
                     <td>
-                      <span className="admin-table-name" title={row.name}>
+                      <button
+                        type="button"
+                        className="admin-table-name text-left hover:text-indigo-700 hover:underline bg-transparent border-0 p-0 cursor-pointer w-full"
+                        title={row.name}
+                        onClick={() => navigate(`${basePath}/${row.id}`)}
+                      >
                         {row.name}
-                      </span>
-                      <span className="block text-xs text-slate-400">#{row.id}</span>
+                      </button>
+                      <span className="block text-xs text-slate-400 dark:text-white/40">#{row.id}</span>
                     </td>
                     <td>
-                      <span className="text-sm text-slate-700">{row.gameType || "—"}</span>
+                      <span className="text-sm text-slate-700 dark:text-white/75">{row.gameType || "—"}</span>
                       {(row.formatName || row.format) && (
-                        <span className="block text-xs text-slate-400">
+                        <span className="block text-xs text-slate-400 dark:text-white/40">
                           {row.formatName || row.format}
                         </span>
                       )}
                     </td>
                     <td>
-                      <span className="text-sm text-slate-700 truncate block" title={row.venueName}>
+                      <span className="text-sm text-slate-700 dark:text-white/75 truncate block" title={row.venueName}>
                         {row.venueName || "—"}
                       </span>
                     </td>
                     <td className="align-center">
-                      <span className="text-sm text-slate-600">
+                      <span className="text-sm text-slate-600 dark:text-white/70">
                         {PARTICIPANT_LABELS[row.participantType] || row.participantType || "—"}
                       </span>
                     </td>
@@ -274,7 +413,7 @@ const TournamentListPage = ({ api, basePath }) => {
                       <span
                         className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
                           TOURNAMENT_STATUS_STYLES[row.status] ||
-                          "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
+                          "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 ring-1 ring-slate-200 dark:ring-white/15"
                         }`}
                       >
                         {TOURNAMENT_STATUS_LABELS[row.status] || row.status}
@@ -296,25 +435,45 @@ const TournamentListPage = ({ api, basePath }) => {
                         className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ring-1 ${
                           row.isRegister
                             ? "bg-indigo-50 text-indigo-700 ring-indigo-200"
-                            : "bg-slate-100 text-slate-500 ring-slate-200"
+                            : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/60 ring-slate-200 dark:ring-white/15"
                         }`}
                       >
                         {row.isRegister ? "Online" : "Không"}
                       </span>
                     </td>
+                    <td className="align-center">
+                      <span className="admin-table-toggle-wrap">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={!!row.isShowTournament}
+                          className="admin-toggle"
+                          data-on={!!row.isShowTournament}
+                          disabled={visibilitySavingId === row.id}
+                          onClick={() => handleToggleVisibility(row)}
+                          title={
+                            row.isShowTournament
+                              ? "Nhấn để ẩn khỏi trang công khai"
+                              : "Nhấn để hiển thị công khai"
+                          }
+                        >
+                          <span className="admin-toggle-knob" />
+                        </button>
+                      </span>
+                    </td>
                     <td>
                       {row.registrationDeadline && (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-white/60">
                           Hạn ĐK: {fmtDate(row.registrationDeadline)}
                         </p>
                       )}
                       {row.startAt && (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-white/60">
                           Bắt đầu: {fmtDate(row.startAt)}
                         </p>
                       )}
                       {!row.registrationDeadline && !row.startAt && (
-                        <span className="text-xs text-slate-400">—</span>
+                        <span className="text-xs text-slate-400 dark:text-white/40">—</span>
                       )}
                     </td>
                     <td className="align-right">

@@ -24,12 +24,17 @@ export function useReveal({
   rootMargin = "0px 0px -10% 0px",
 } = {}) {
   const observerRef = useRef(null);
+  const timeoutRef = useRef(null);
 
   const setRef = useCallback(
     (node) => {
       if (observerRef.current) {
         observerRef.current.disconnect();
         observerRef.current = null;
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
       if (!node) return;
 
@@ -40,12 +45,20 @@ export function useReveal({
         return;
       }
 
+      const reveal = () => {
+        node.classList.add("is-in");
+        if (observerRef.current) observerRef.current.unobserve(node);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+      };
+
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (!entry.isIntersecting) return;
-            entry.target.classList.add("is-in");
-            observer.unobserve(entry.target);
+            reveal();
           });
         },
         { threshold, rootMargin }
@@ -53,6 +66,15 @@ export function useReveal({
 
       observer.observe(node);
       observerRef.current = observer;
+
+      // Lưới an toàn: layout/resize dồn dập ngay lúc trang vừa mount (VD đổi
+      // kích thước viewport rồi đọc DOM gần như ngay sau đó) có thể khiến trình
+      // duyệt chưa kịp tính toán xong lần intersect đầu tiên trước khi nội dung
+      // cần hiển thị — nội dung kẹt ở opacity:0 vô thời hạn dù đã nằm sẵn trong
+      // viewport. Không có cách nào phân biệt "sắp cuộn tới" với "kẹt do timing"
+      // từ phía hook, nên chấp nhận trễ tối đa 400ms rồi hiện luôn, thay vì để
+      // nội dung im lặng biến mất khỏi màn hình vô thời hạn.
+      timeoutRef.current = setTimeout(reveal, 400);
     },
     [threshold, rootMargin]
   );
@@ -60,6 +82,7 @@ export function useReveal({
   useEffect(
     () => () => {
       if (observerRef.current) observerRef.current.disconnect();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     },
     []
   );

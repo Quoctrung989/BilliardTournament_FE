@@ -4,8 +4,8 @@ import { toast } from "react-toastify";
 import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
   ArrowLeft, ArrowLeftRight, Eye, Lock, Search, GripVertical,
-  ChevronRight, Users, Swords, Zap, BarChart2, Scissors,
-  Loader2, X, MapPin, CheckSquare, UserCheck,
+  ChevronRight, Users, Swords, Zap, BarChart2,
+  Loader2, X, MapPin, CheckSquare, List, GitBranch, UserCheck, Sparkles, Trash2,
 } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
 import AdminCard from "../../../components/admin/ui/AdminCard";
@@ -13,7 +13,11 @@ import AdminModal from "../../../components/admin/ui/AdminModal";
 import SocketConnectionBadge from "../../../components/shared/SocketConnectionBadge";
 import SocketReconnectBanner from "../../../components/shared/SocketReconnectBanner";
 import { getApiErrorMessage } from "../../../utils/apiError";
+import { ownerTournamentApi, managerTournamentApi } from "../../../api/tournamentManagementApi";
 import { useTournamentSocket } from "../../../hooks/useTournamentSocket";
+import BracketDiagram, { buildFeedersMap } from "./BracketDiagram";
+import DrawCeremonyOverlay from "./draw-ceremony/DrawCeremonyOverlay";
+import { ceremonyAvailability, NON_RANDOM_SEEDING_LABEL } from "./draw-ceremony/buildDrawScript";
 
 /* ══════════════════════════════════════════════════════════
    Constants & helpers
@@ -29,14 +33,14 @@ const ROUND_STYLE = {
   final:   { label: "🏆 Chung kết",  bg: "bg-amber-50",   text: "text-amber-700",  border: "border-amber-200" },
   semi:    { label: "Bán kết",        bg: "bg-violet-50",  text: "text-violet-700", border: "border-violet-200" },
   quarter: { label: "Tứ kết",         bg: "bg-blue-50",    text: "text-blue-700",   border: "border-blue-200" },
-  round:   { label: "Vòng",           bg: "bg-slate-50",   text: "text-slate-600",  border: "border-slate-200" },
+  round:   { label: "Vòng",           bg: "bg-slate-50 dark:bg-white/5",   text: "text-slate-600 dark:text-white/70",  border: "border-slate-200 dark:border-white/10" },
 };
 
 const STATUS_CFG = {
-  PENDING:     { label: "Chờ",           dot: "bg-slate-400",    pill: "bg-slate-100 text-slate-600" },
+  PENDING:     { label: "Chờ",           dot: "bg-slate-400",    pill: "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70" },
   IN_PROGRESS: { label: "Đang diễn ra",  dot: "bg-blue-500 animate-pulse", pill: "bg-blue-100 text-blue-800" },
   COMPLETED:   { label: "Hoàn thành",    dot: "bg-emerald-500",  pill: "bg-emerald-100 text-emerald-800" },
-  WALKOVER:    { label: "Walkover",       dot: "bg-amber-500",    pill: "bg-amber-100 text-amber-800" },
+  WALKOVER:    { label: "Xử thắng",       dot: "bg-amber-500",    pill: "bg-amber-100 text-amber-800" },
   BYE:         { label: "BYE",           dot: "bg-slate-300",    pill: "bg-slate-100 text-slate-400" },
 };
 
@@ -64,6 +68,15 @@ const MATCH_FILTERS = [
   { key: "NO_TABLE", label: "Chưa gán bàn" },
   { key: "NO_SCHEDULE", label: "Chưa xếp giờ" },
 ];
+
+/** Nhãn tải của trọng tài, hiện ngay trong <option> để chọn được mà không cần bấm thử. */
+function refereeLoadLabel({ live, total, overlapping }) {
+  if (total === 0) return "đang rảnh";
+  const parts = [`${total} trận`];
+  if (live > 0) parts.push(`${live} đang đấu`);
+  if (overlapping > 0) parts.push(`${overlapping} trùng giờ`);
+  return parts.join(" · ");
+}
 
 /** Trận có thể gán bàn/giờ — khoá lại khi đã resolved (khớp rule ở BE). */
 function canAssignTable(match) {
@@ -157,6 +170,26 @@ function swapPlayersInState(stages, mId1, sl1, mId2, sl2) {
   }));
 }
 
+/* Nút mở lễ bốc thăm công khai — cố tình KHÔNG dùng AdminButton: đây là hành
+   động trình diễn trước khán giả, cần nổi hẳn khỏi dàn nút quản trị xung quanh. */
+const CeremonyButton = ({ drawing, disabled, onClick, redo }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={drawing || disabled}
+    title="Trình chiếu bốc thăm cho cơ thủ theo dõi"
+    className={[
+      "inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-bold text-white transition-all",
+      "bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-amber-200 dark:shadow-none",
+      "hover:brightness-110 hover:shadow-lg",
+      (drawing || disabled) ? "opacity-50 cursor-not-allowed" : "",
+    ].join(" ")}
+  >
+    <Sparkles size={15} />
+    {drawing ? "Đang bốc thăm..." : redo ? "Bốc thăm công khai lại" : "Bốc thăm công khai"}
+  </button>
+);
+
 /* ══════════════════════════════════════════════════════════
    Main Component
 ══════════════════════════════════════════════════════════ */
@@ -174,8 +207,12 @@ const DrawPage = ({ api, basePath }) => {
   /* ── Actions loading ── */
   const [drawing,      setDrawing]      = useState(false);
   const [confirming,   setConfirming]   = useState(false);
+  const [startingTournament, setStartingTournament] = useState(false);
   const [swapping,     setSwapping]     = useState(false);
   const [saving,       setSaving]       = useState(false);
+
+  /* ── View mode: danh sách (mặc định) hoặc sơ đồ cây bracket ── */
+  const [viewMode,     setViewMode]     = useState("list"); // "list" | "diagram"
 
   /* ── Edit / swap mode ── */
   const [editMode,     setEditMode]     = useState(false);
@@ -203,6 +240,11 @@ const DrawPage = ({ api, basePath }) => {
   const [scoreModal,   setScoreModal]   = useState(null);
   const [scoreForm,    setScoreForm]    = useState({ p1: "", p2: "" });
   const [completeModal,setCompleteModal]= useState(null);
+  /* Xử thắng: bước 2 của modal kết thúc trận — chọn cơ thủ rồi mới nhập lý do.
+     Lý do KHÔNG được lưu (Match entity không có field nào chứa), chỉ hiển thị lại
+     cho người ghi nhận xác nhận mình bấm đúng người. */
+  const [walkoverTarget, setWalkoverTarget] = useState(null);
+  const [walkoverReason, setWalkoverReason] = useState("");
   const [eventsModal,  setEventsModal]  = useState(null);
   const [events,       setEvents]       = useState([]);
 
@@ -225,21 +267,23 @@ const DrawPage = ({ api, basePath }) => {
   const [matchQuery,   setMatchQuery]   = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  /* ── CUT_TO_SE / GROUP_PLAYOFF actions ── */
+  /* ── CUT_TO_SE actions ── */
   const [populating,     setPopulating]     = useState(false);
-  const [generatingPO,   setGeneratingPO]   = useState(false);
-  const [standings,      setStandings]      = useState([]);
-  const [elimModal,      setElimModal]      = useState(false);
-  const [keepCount,      setKeepCount]      = useState("");
-  const [eliminating,    setEliminating]    = useState(false);
   const [advancing,      setAdvancing]      = useState(false);
   const [progStandings,  setProgStandings]  = useState(null); // { stageName, rows } | null
   const [loadingProgStd, setLoadingProgStd] = useState(false);
   const [activeStageId,  setActiveStageId]  = useState(null); // tab giai đoạn đang xem
 
+  /* ── Lễ bốc thăm công khai ── */
+  // Giữ lại DrawResultResponse của lần bốc vừa rồi làm kịch bản trình chiếu.
+  const [ceremonyResult, setCeremonyResult] = useState(null);
+  const [cancellingDraw, setCancellingDraw] = useState(false);
+
   const isPreview          = tournament?.status === "DRAW_PREVIEW";
+  // Bracket đã chốt nhưng giải chưa chạy — đây là lúc cần nút "Bắt đầu giải đấu"
+  // ngay tại đây, thay vì bắt Owner quay về trang chi tiết giải.
+  const isDrawDone         = tournament?.status === "DRAW_DONE";
   const isFinalBracketReady= tournament?.status === "FINAL_BRACKET_READY";
-  const isGroupPlayoff     = tournament?.format === "GROUP_PLAYOFF";
   const isProgressive      = tournament?.format === "PROGRESSIVE_ROUND_ROBIN";
   const isDoubleElim       = tournament?.format === "DOUBLE_ELIMINATION";
   const hasFinalBracket    = stages.some(s => s.stageType === "FINAL_BRACKET");
@@ -376,6 +420,13 @@ const DrawPage = ({ api, basePath }) => {
     return map;
   }, [stages]);
 
+  // matchId (đích) -> { player1: matchCode|null, player2: matchCode|null } của 2 trận nguồn,
+  // dùng để hiện "Thắng RxMy" thay vì "TBD" khi chưa xác định người chơi.
+  const listFeedersMap = useMemo(
+    () => buildFeedersMap(stages.flatMap(s => s.matches ?? [])),
+    [stages]
+  );
+
   /* ══ Stats ══════════════════════════════════════════════ */
   const totalMatches = stages.reduce((s, st) => s + (st.matches?.length ?? 0), 0);
   const doneMatches  = stages.reduce((s, st) =>
@@ -500,6 +551,83 @@ const DrawPage = ({ api, basePath }) => {
     );
   };
 
+  /* ══ Bốc thăm công khai ═════════════════════════════════
+     Vẫn gọi đúng API sinh bracket như nút thường — chỉ khác ở chỗ GIỮ LẠI
+     response để trình chiếu thay vì bỏ đi rồi load() ngay. Logic bốc thăm
+     nằm trọn ở BE, FE không xáo trộn lại gì.                              */
+  const seedingMethod = tournament?.configSummary?.seedingMethod;
+  const ceremony = ceremonyAvailability(tournament?.format, seedingMethod);
+  const ceremonySupported = ceremony.available;
+  /* Xếp theo hạng/hạt giống thì cặp đấu tính trước được → không có lễ bốc thăm.
+     Nói rõ lý do, nếu không BQT sẽ tưởng nút bị lỗi hoặc thiếu quyền. */
+  const ceremonyBlockedBySeeding = ceremony.blockedBy === "seeding";
+  const seedingLabel = NON_RANDOM_SEEDING_LABEL[seedingMethod];
+
+  const handlePublicDraw = () => {
+    const isRedo = isPreview;
+    showConfirm(
+      "Bốc thăm công khai",
+      isRedo
+        ? "Kết quả bốc thăm hiện tại sẽ bị xóa và bốc lại ngẫu nhiên ngay trên màn chiếu. Tiếp tục?"
+        : "Màn hình sẽ chuyển sang chế độ trình chiếu và bốc từng cơ thủ vào cây thi đấu. Tiếp tục?",
+      async () => {
+        setDrawing(true); setEditMode(false); setSwapFirst(null);
+        try {
+          const result = await api.generateDraw(tournamentId);
+          setCeremonyResult(result);
+        } catch (err) { toast.error(getApiErrorMessage(err)); }
+        finally { setDrawing(false); }
+      },
+      { okLabel: "Bắt đầu bốc thăm", okVariant: isRedo ? "danger" : "primary" }
+    );
+  };
+
+  /* Đóng màn chiếu → quay về đúng luồng cũ: nạp lại stages + tournament. */
+  const handleCeremonyClose = useCallback(() => {
+    setCeremonyResult(null);
+    setParticipants([]);
+    toast.success("Bốc thăm thành công!");
+    load();
+  }, [load]);
+
+  /* Dừng giữa buổi và bỏ hết. Bracket đã nằm trong DB từ lúc bấm bốc, nên "thoát" thôi
+     không đủ — phải gọi BE xoá, nếu không mọi cặp đấu vẫn còn dù chưa công bố hết.
+     Lỗi thì GIỮ overlay lại: đóng luôn sẽ để lại bracket mà người dùng tưởng đã xoá. */
+  const handleCeremonyCancel = useCallback(async () => {
+    setCancellingDraw(true);
+    try {
+      await api.cancelDraw(tournamentId);
+      setCeremonyResult(null);
+      setParticipants([]);
+      toast.info("Đã huỷ bốc thăm — bracket vừa sinh đã được xóa.");
+      load();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setCancellingDraw(false);
+    }
+  }, [api, tournamentId, load]);
+
+  /* Huỷ bốc thăm từ chính trang quản lý (ngoài màn chiếu). */
+  const handleCancelDraw = () => {
+    showConfirm(
+      "Hủy bốc thăm",
+      "Toàn bộ cặp đấu vừa sinh sẽ bị xóa và giải trở về trạng thái Đóng đăng ký. Lần bốc thăm sau sẽ cho kết quả ngẫu nhiên khác. Tiếp tục?",
+      async () => {
+        setCancellingDraw(true);
+        try {
+          await api.cancelDraw(tournamentId);
+          setParticipants([]);
+          setEditMode(false); setSwapFirst(null);
+          toast.info("Đã hủy bốc thăm.");
+          load();
+        } catch (err) { toast.error(getApiErrorMessage(err)); }
+        finally { setCancellingDraw(false); }
+      },
+      { okLabel: "Hủy bốc thăm", okVariant: "danger" }
+    );
+  };
+
   const handleConfirmDraw = () => {
     showConfirm(
       "Xác nhận bracket",
@@ -515,6 +643,28 @@ const DrawPage = ({ api, basePath }) => {
         finally { setConfirming(false); }
       },
       { okLabel: "Xác nhận & Khóa bracket", okVariant: "success" }
+    );
+  };
+
+  /* ══ Bắt đầu giải đấu ═════════════════════════════════ */
+  // DrawPage nhận matchApi qua prop, không có patchStatus — lấy thêm tournamentApi
+  // theo basePath, cùng cách ParticipantListPage đang làm.
+  const tournamentApi = basePath.startsWith("/owner") ? ownerTournamentApi : managerTournamentApi;
+
+  const handleStartTournament = () => {
+    showConfirm(
+      "Bắt đầu giải đấu",
+      "Giải sẽ chuyển sang trạng thái Đang thi đấu. Các trận đã có thể nhập tỉ số.",
+      async () => {
+        setStartingTournament(true);
+        try {
+          await tournamentApi.patchStatus(tournamentId, { status: "IN_PROGRESS" });
+          toast.success("Giải đấu đã bắt đầu!");
+          load();
+        } catch (err) { toast.error(getApiErrorMessage(err)); }
+        finally { setStartingTournament(false); }
+      },
+      { okLabel: "Bắt đầu", okVariant: "success" }
     );
   };
 
@@ -535,44 +685,6 @@ const DrawPage = ({ api, basePath }) => {
         finally { setPopulating(false); }
       },
       { okLabel: "Điền bracket", okVariant: "primary" }
-    );
-  };
-
-  /* ══ GROUP_PLAYOFF: standings + eliminate + generate playoff ═ */
-  const loadStandings = useCallback(async () => {
-    try {
-      const data = await api.getStandings(tournamentId);
-      setStandings(Array.isArray(data) ? data : []);
-    } catch { setStandings([]); }
-  }, [api, tournamentId]);
-
-  const handleEliminate = async () => {
-    const k = parseInt(keepCount);
-    if (!k || k < 2) { toast.warn("Nhập số người giữ lại hợp lệ (≥ 2)"); return; }
-    setEliminating(true);
-    try {
-      await api.eliminateBottom(tournamentId, { keepCount: k });
-      toast.success(`Đã loại bottom — giữ top ${k}`);
-      setElimModal(false); setKeepCount("");
-      load(); loadStandings();
-    } catch (err) { toast.error(getApiErrorMessage(err)); }
-    finally { setEliminating(false); }
-  };
-
-  const handleGeneratePlayoff = () => {
-    showConfirm(
-      "Tạo bracket playoff",
-      "Lấy kết quả xếp hạng vòng tròn để tạo bracket playoff. Tất cả trận group phải hoàn thành.",
-      async () => {
-        setGeneratingPO(true);
-        try {
-          await api.generatePlayoff(tournamentId);
-          toast.success("Đã tạo bracket playoff!");
-          load();
-        } catch (err) { toast.error(getApiErrorMessage(err)); }
-        finally { setGeneratingPO(false); }
-      },
-      { okLabel: "Tạo playoff", okVariant: "primary" }
     );
   };
 
@@ -638,12 +750,18 @@ const DrawPage = ({ api, basePath }) => {
     try {
       const updated = await api.completeMatch(completeModal.id, { winnerParticipantId: winnerId });
       applyMatchToStages(updated);
-      toast.success("Trận kết thúc — người thắng đã được chuyển lên"); setCompleteModal(null);
+      toast.success("Trận kết thúc — người thắng đã được chuyển lên"); closeCompleteModal();
       // Việc chuyển người thắng lên trận kế tiếp được đồng bộ qua BRACKET_SYNC (realtime);
       // nếu socket đang mất kết nối thì tải nhẹ để không bị lệch dữ liệu.
       if (connectionState !== "connected") silentResync();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setSaving(false); }
+  };
+
+  const closeCompleteModal = () => {
+    setCompleteModal(null);
+    setWalkoverTarget(null);
+    setWalkoverReason("");
   };
 
   const handleWalkover = async (winnerId) => {
@@ -652,7 +770,10 @@ const DrawPage = ({ api, basePath }) => {
     try {
       const updated = await api.walkover(completeModal.id, { winnerParticipantId: winnerId });
       applyMatchToStages(updated);
-      toast.success("Walkover đã ghi nhận"); setCompleteModal(null);
+      const who = walkoverTarget?.displayName ?? "cơ thủ";
+      const why = walkoverReason.trim();
+      toast.success(why ? `Xử thắng cho ${who} — ${why}` : `Đã xử thắng cho ${who}`);
+      closeCompleteModal();
       if (connectionState !== "connected") silentResync();
     } catch (err) { toast.error(getApiErrorMessage(err)); }
     finally { setSaving(false); }
@@ -679,9 +800,24 @@ const DrawPage = ({ api, basePath }) => {
 
   const openAssignBulk = useCallback(() => {
     if (selectedIds.size === 0) return;
+    const picked = stages.flatMap(s => s.matches || []).filter(m => selectedIds.has(m.id));
+
+    // Điền sẵn khi MỌI trận được chọn cùng một giá trị — thường gặp nhất là chọn đúng
+    // một trận đã có bàn/giờ. Nếu các trận đang khác nhau thì để trống, vì không có
+    // giá trị nào đại diện đúng cho cả nhóm và hiển thị bừa sẽ khiến người dùng vô tình
+    // ghi đè giờ của trận này lên trận kia khi bấm Lưu.
+    const distinct = (vals) => [...new Set(vals)];
+    const tables = distinct(picked.map(m => m.tableNo ?? null));
+    const times  = distinct(picked.map(m => m.scheduledAt ?? null));
+
     setAssignModal({ matchIds: Array.from(selectedIds) });
-    setAssignForm({ tableNo: "", scheduledAt: "", clearTable: false, clearScheduledAt: false });
-  }, [selectedIds]);
+    setAssignForm({
+      tableNo: tables.length === 1 && tables[0] != null ? String(tables[0]) : "",
+      scheduledAt: times.length === 1 && times[0] ? toDatetimeLocalValue(times[0]) : "",
+      clearTable: false,
+      clearScheduledAt: false,
+    });
+  }, [selectedIds, stages]);
 
   const allMatches = useCallback(() => stages.flatMap(s => s.matches || []), [stages]);
   const findMatchById = useCallback((id) => allMatches().find(m => m.id === id) || null, [allMatches]);
@@ -724,27 +860,32 @@ const DrawPage = ({ api, basePath }) => {
   }, [allMatches, tournament]);
 
   /**
-   * Trọng tài `staffId` có đang BẬN với trận khác (ngoài `targetMatch`) không?
-   * Bận nếu: đang IN_PROGRESS ở trận khác, HOẶC trùng khung giờ với target (nếu target có giờ).
-   * Chỉ xét trong giải hiện tại (best-effort) — BE chốt chặn toàn cục.
+   * Tải hiện tại của trọng tài `staffId` — bao nhiêu trận chưa kết thúc đang gán cho họ.
+   *
+   * Một trọng tài ĐƯỢC phép phụ trách nhiều trận cùng lúc (họ đứng giữa vài bàn kề nhau
+   * và ghi tỉ số qua lại), nên hàm này KHÔNG còn để chặn như trước — chỉ để hiện số liệu
+   * cho người phân công tự cân. `overlapping` vẫn tính riêng vì trùng giờ là thứ đáng
+   * cảnh báo, dù không cấm.
+   *
+   * Chỉ xét trong giải hiện tại; trọng tài có thể còn trận ở giải khác mà FE không thấy.
    */
-  const refereeBusyInfo = useCallback((staffId, targetMatch) => {
-    if (!staffId || !targetMatch) return null;
+  const refereeLoadInfo = useCallback((staffId, targetMatch) => {
     const gameType = tournament?.gameType;
-    const tStart = targetMatch.scheduledAt ? new Date(targetMatch.scheduledAt).getTime() : null;
-    const tEnd = tStart != null ? tStart + estMatchMinutes(targetMatch.raceTo, gameType) * 60000 : null;
+    const tStart = targetMatch?.scheduledAt ? new Date(targetMatch.scheduledAt).getTime() : null;
+    const tEnd = tStart != null ? tStart + estMatchMinutes(targetMatch?.raceTo, gameType) * 60000 : null;
+    let live = 0, upcoming = 0, overlapping = 0;
     for (const m of allMatches()) {
-      if (m.id === targetMatch.id) continue;
+      if (targetMatch && m.id === targetMatch.id) continue;
       if (["BYE", "COMPLETED", "WALKOVER"].includes(m.status)) continue;
       if (String(m.assignedStaff?.id ?? "") !== String(staffId)) continue;
-      if (m.status === "IN_PROGRESS") return { match: m, reason: "ongoing" };
+      if (m.status === "IN_PROGRESS") live += 1; else upcoming += 1;
       if (tStart != null && tEnd != null && m.scheduledAt) {
         const oStart = new Date(m.scheduledAt).getTime();
         const oEnd = matchEndMs(m, gameType);
-        if (oEnd != null && tStart < oEnd && oStart < tEnd) return { match: m, reason: "overlap" };
+        if (oEnd != null && tStart < oEnd && oStart < tEnd) overlapping += 1;
       }
     }
-    return null;
+    return { live, upcoming, overlapping, total: live + upcoming };
   }, [allMatches, tournament]);
 
   const doSaveAssign = useCallback(async (opts = {}) => {
@@ -798,7 +939,6 @@ const DrawPage = ({ api, basePath }) => {
 
   const handleSaveAssign = useCallback(() => {
     if (!assignModal) return;
-    const tableNo = assignForm.clearTable || !assignForm.tableNo ? null : assignForm.tableNo;
     const scheduledAtIso = assignForm.clearScheduledAt ? null : fromDatetimeLocalValue(assignForm.scheduledAt);
 
     // Không cho xếp trước giờ bắt đầu giải (áp dụng cả gán đơn lẫn bulk)
@@ -808,11 +948,12 @@ const DrawPage = ({ api, basePath }) => {
       return;
     }
 
-    // Chỉ validate cho gán 1 trận có set giờ (bulk bỏ qua để tránh tự trùng với nhau)
     const single = assignModal.matchIds.length === 1;
+    const target = findMatchById(assignModal.matchIds[0]);
+
+    // 1) Phụ thuộc — CHẶN cứng, không cho lưu. Chỉ áp dụng khi gán 1 trận, vì mỗi trận
+    //    có tập trận nguồn riêng.
     if (single && scheduledAtIso) {
-      const target = findMatchById(assignModal.matchIds[0]);
-      // 1) Phụ thuộc — CHẶN cứng, không cho lưu
       const violation = target ? findFeederViolation(target.id, scheduledAtIso) : null;
       if (violation) {
         toast.error(
@@ -820,12 +961,24 @@ const DrawPage = ({ api, basePath }) => {
         );
         return;
       }
-      // 2) Trùng bàn & giờ — cảnh báo, cho phép vẫn lưu
-      const conflict = findTableConflict(assignModal.matchIds, tableNo, scheduledAtIso, target);
+    }
+
+    // 2) Trùng bàn & giờ — cảnh báo, cho phép vẫn lưu.
+    //
+    //    Ô "Số bàn" để trống nghĩa là GIỮ NGUYÊN bàn hiện tại (BE coi tableNo=null kèm
+    //    clearTable=false là không đổi). Trước đây chỗ này soát theo đúng ô đang trống nên
+    //    thoát sớm và không cảnh báo gì — đổi mỗi giờ thi đấu là lọt lưới hoàn toàn.
+    //    Giờ lấy bàn thật của trận làm mốc soát.
+    const effectiveTableNo = assignForm.clearTable
+      ? null
+      : (assignForm.tableNo || (single ? target?.tableNo : null) || null);
+
+    if (scheduledAtIso && effectiveTableNo) {
+      const conflict = findTableConflict(assignModal.matchIds, effectiveTableNo, scheduledAtIso, target);
       if (conflict) {
         showConfirm(
           "Trùng bàn & giờ?",
-          `Bàn ${tableNo} đã có trận ${conflict.matchCode} lúc ${formatScheduledAt(conflict.scheduledAt)} trong khung giờ này — vẫn lưu?`,
+          `Bàn ${effectiveTableNo} đã có trận ${conflict.matchCode} lúc ${formatScheduledAt(conflict.scheduledAt)} trong khung giờ này — vẫn lưu?`,
           () => doSaveAssign({ ignoreTableConflict: true }),
           { okLabel: "Vẫn lưu", okVariant: "primary" }
         );
@@ -876,7 +1029,7 @@ const DrawPage = ({ api, basePath }) => {
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-24 gap-3">
       <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-      <p className="text-sm text-slate-400">Đang tải bracket...</p>
+      <p className="text-sm text-slate-400 dark:text-white/40">Đang tải bracket...</p>
     </div>
   );
 
@@ -892,19 +1045,47 @@ const DrawPage = ({ api, basePath }) => {
           {!noDrawYet && (
             <SocketConnectionBadge connectionState={connectionState} compact />
           )}
+          {!noDrawYet && (
+            <div className="inline-flex items-center rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] p-0.5 text-sm">
+              <button
+                onClick={() => setViewMode("list")}
+                className={[
+                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-semibold transition-colors",
+                  viewMode === "list" ? "bg-indigo-600 text-white" : "text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white/75",
+                ].join(" ")}>
+                <List size={14} /> Danh sách
+              </button>
+              <button
+                onClick={() => setViewMode("diagram")}
+                className={[
+                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-semibold transition-colors",
+                  viewMode === "diagram" ? "bg-indigo-600 text-white" : "text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white/75",
+                ].join(" ")}>
+                <GitBranch size={14} /> Sơ đồ
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           {noDrawYet && (
-            <AdminButton variant="primary" disabled={drawing} onClick={handleDraw}
-                         className="flex items-center gap-2">
-              <Shuffle size={15} />
-              {drawing ? "Đang bốc thăm..." : "Sinh bracket (Bốc thăm)"}
-            </AdminButton>
+            <>
+              {ceremonySupported && (
+                <CeremonyButton drawing={drawing} onClick={handlePublicDraw} />
+              )}
+              <AdminButton variant={ceremonySupported ? "secondary" : "primary"} disabled={drawing} onClick={handleDraw}
+                           className="flex items-center gap-2">
+                <Shuffle size={15} />
+                {drawing ? "Đang bốc thăm..." : "Sinh bracket (Bốc thăm)"}
+              </AdminButton>
+            </>
           )}
 
           {!noDrawYet && isPreview && (
             <>
+              {ceremonySupported && (
+                <CeremonyButton drawing={drawing} disabled={confirming||swapping} onClick={handlePublicDraw} redo />
+              )}
               <AdminButton variant="secondary" disabled={drawing||confirming||swapping} onClick={handleDraw}
                            className="flex items-center gap-2">
                 <Shuffle size={14} />
@@ -917,7 +1098,7 @@ const DrawPage = ({ api, basePath }) => {
                   "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all border",
                   editMode
                     ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
-                    : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                    : "bg-white dark:bg-[#161a22] text-slate-700 dark:text-white/75 border-slate-200 dark:border-white/10 hover:border-indigo-300 hover:text-indigo-700",
                 ].join(" ")}>
                 <ArrowLeftRight size={14} />
                 {editMode ? "Đang chỉnh sửa…" : "Chỉnh sửa cặp đấu"}
@@ -928,16 +1109,24 @@ const DrawPage = ({ api, basePath }) => {
                 <Lock size={14} />
                 {confirming ? "Đang xác nhận..." : "Xác nhận bracket"}
               </AdminButton>
+
+              {/* Cùng một hành động với "Huỷ bốc thăm" trong màn chiếu — người dẫn có thể
+                  chọn "Giữ kết quả & đóng" rồi mới quyết định bỏ, nên phải có cả ở đây. */}
+              <AdminButton variant="danger" disabled={cancellingDraw||confirming||drawing||swapping}
+                           onClick={handleCancelDraw} className="flex items-center gap-2">
+                <Trash2 size={14} />
+                {cancellingDraw ? "Đang hủy..." : "Hủy bốc thăm"}
+              </AdminButton>
             </>
           )}
 
           {!noDrawYet && !isPreview && (
             <div className="flex items-center gap-3 flex-wrap">
               {/* Progress bar */}
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <span className="font-semibold text-slate-800">{doneMatches}</span>
-                <span className="text-slate-400">/{totalMatches} trận</span>
-                <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-white/60">
+                <span className="font-semibold text-slate-800 dark:text-white/85">{doneMatches}</span>
+                <span className="text-slate-400 dark:text-white/40">/{totalMatches} trận</span>
+                <div className="w-24 h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                   <div className="h-full bg-emerald-500 rounded-full transition-all"
                        style={{ width: `${progress}%` }} />
                 </div>
@@ -950,11 +1139,21 @@ const DrawPage = ({ api, basePath }) => {
                   "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all border",
                   bulkMode
                     ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
-                    : "bg-white text-slate-700 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                    : "bg-white dark:bg-[#161a22] text-slate-700 dark:text-white/75 border-slate-200 dark:border-white/10 hover:border-indigo-300 hover:text-indigo-700",
                 ].join(" ")}>
                 <CheckSquare size={14} />
                 {bulkMode ? "Đang chọn nhiều…" : "Chọn nhiều — gán bàn/giờ"}
               </button>
+
+              {/* Bracket đã chốt, giải chưa chạy — bắt đầu ngay tại đây, khỏi quay về trang chi tiết */}
+              {isDrawDone && (
+                <AdminButton variant="success" disabled={startingTournament}
+                             onClick={handleStartTournament}
+                             className="flex items-center gap-2">
+                  <Play size={14} />
+                  {startingTournament ? "Đang bắt đầu..." : "Bắt đầu giải đấu"}
+                </AdminButton>
+              )}
 
               {/* CUT_TO_SE: populate final bracket button */}
               {isDoubleElim && hasFinalBracket && !isFinalBracketReady && (
@@ -966,21 +1165,6 @@ const DrawPage = ({ api, basePath }) => {
                 </AdminButton>
               )}
 
-              {/* GROUP_PLAYOFF: standings + eliminate + generate playoff */}
-              {isGroupPlayoff && (
-                <>
-                  <AdminButton variant="secondary" onClick={() => { loadStandings(); setElimModal(true); }}
-                               className="flex items-center gap-2">
-                    <BarChart2 size={14} /> Xếp hạng & Loại bottom
-                  </AdminButton>
-                  <AdminButton variant="secondary" disabled={generatingPO}
-                               onClick={handleGeneratePlayoff}
-                               className="flex items-center gap-2">
-                    <Trophy size={14} />
-                    {generatingPO ? "Đang tạo..." : "Tạo bracket Playoff"}
-                  </AdminButton>
-                </>
-              )}
 
               {/* PROGRESSIVE_ROUND_ROBIN: standings từng GĐ + chuyển giai đoạn */}
               {isProgressive && currentProgressiveStage && (
@@ -1032,7 +1216,7 @@ const DrawPage = ({ api, basePath }) => {
           "rounded-xl border px-4 py-3 transition-all",
           swapFirst
             ? "bg-indigo-50 border-indigo-300"
-            : "bg-slate-50 border-slate-200",
+            : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10",
         ].join(" ")}>
           <div className="flex items-center gap-2 text-sm">
             {swapFirst ? (
@@ -1052,10 +1236,10 @@ const DrawPage = ({ api, basePath }) => {
               </>
             ) : (
               <>
-                <ArrowLeftRight size={14} className="text-slate-500 shrink-0" />
-                <span className="text-slate-600">
+                <ArrowLeftRight size={14} className="text-slate-500 dark:text-white/60 shrink-0" />
+                <span className="text-slate-600 dark:text-white/70">
                   Chế độ chỉnh sửa đang bật — <strong>kéo thả</strong> hoặc <strong>click</strong> vào người chơi ở Vòng 1 để đổi chỗ.
-                  Nhấn <kbd className="px-1 py-0.5 bg-white border border-slate-200 rounded text-xs font-mono">🔍</kbd> để tìm kiếm.
+                  Nhấn <kbd className="px-1 py-0.5 bg-white dark:bg-[#161a22] border border-slate-200 dark:border-white/10 rounded text-xs font-mono">🔍</kbd> để tìm kiếm.
                 </span>
               </>
             )}
@@ -1089,7 +1273,7 @@ const DrawPage = ({ api, basePath }) => {
       {!noDrawYet && !isPreview && (
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[200px] max-w-xs">
-            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40" />
             <input
               type="text"
               className="admin-input w-full pl-8 pr-8 text-sm"
@@ -1100,7 +1284,7 @@ const DrawPage = ({ api, basePath }) => {
             {matchQuery && (
               <button
                 onClick={() => setMatchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 dark:text-white/30 hover:text-slate-500 dark:hover:text-white/60"
                 aria-label="Xoá tìm kiếm"
               >
                 <X size={13} />
@@ -1116,7 +1300,7 @@ const DrawPage = ({ api, basePath }) => {
                   "px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors",
                   statusFilter === f.key
                     ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                    : "bg-white dark:bg-[#161a22] text-slate-600 dark:text-white/70 border-slate-200 dark:border-white/10 hover:border-indigo-300 hover:text-indigo-700",
                 ].join(" ")}
               >
                 {f.label}
@@ -1130,22 +1314,59 @@ const DrawPage = ({ api, basePath }) => {
       {noDrawYet ? (
         <AdminCard>
           <div className="py-20 text-center space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto">
-              <Swords size={28} className="text-slate-400" />
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/10 flex items-center justify-center mx-auto">
+              <Swords size={28} className="text-slate-400 dark:text-white/40" />
             </div>
             <div>
-              <p className="font-semibold text-slate-700">Chưa có bracket</p>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="font-semibold text-slate-700 dark:text-white/75">Chưa có bracket</p>
+              <p className="text-sm text-slate-400 dark:text-white/40 mt-1">
                 Đảm bảo giải đang ở trạng thái <span className="font-medium">Đóng đăng ký</span> và có ít nhất 2 người tham gia.
               </p>
             </div>
-            <AdminButton variant="primary" disabled={drawing} onClick={handleDraw}
-                         className="inline-flex items-center gap-2 mx-auto">
-              <Shuffle size={15} />
-              {drawing ? "Đang bốc thăm..." : "Sinh bracket ngay"}
-            </AdminButton>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              {ceremonySupported && (
+                <CeremonyButton drawing={drawing} onClick={handlePublicDraw} />
+              )}
+              <AdminButton variant={ceremonySupported ? "secondary" : "primary"} disabled={drawing} onClick={handleDraw}
+                           className="inline-flex items-center gap-2">
+                <Shuffle size={15} />
+                {drawing ? "Đang bốc thăm..." : "Sinh bracket ngay"}
+              </AdminButton>
+            </div>
+            {ceremonySupported && (
+              <p className="text-xs text-slate-400 dark:text-white/40">
+                Bốc thăm công khai: cùng một kết quả, nhưng trình chiếu từng cơ thủ vào cây thi đấu để khán giả theo dõi.
+              </p>
+            )}
+            {ceremonyBlockedBySeeding && (
+              <p className="text-xs text-slate-400 dark:text-white/40 max-w-lg mx-auto">
+                Giải này xếp cặp <span className="font-medium">{seedingLabel ?? "theo cấu hình sẵn"}</span>, không
+                phải bốc thăm ngẫu nhiên — nên không có phần bốc thăm công khai. Vị trí các cơ thủ do cấu hình quyết
+                định, ban tổ chức chỉnh lại cặp đấu sau khi sinh bracket.
+              </p>
+            )}
           </div>
         </AdminCard>
+      ) : viewMode === "diagram" ? (
+        <BracketDiagram
+          stages={stages}
+          startingId={startingId}
+          flashIds={flashIds}
+          onStart={handleStart}
+          onScore={(m) => { setScoreModal(m); setScoreForm({ p1: String(m.player1Score??0), p2: String(m.player2Score??0) }); }}
+          onComplete={setCompleteModal}
+          ListStageSection={StageSection}
+          listProps={{
+            editMode, swapFirst, dragSrc, dropTarget, swapping, isPreview,
+            matchQuery, statusFilter, startingId, bulkMode, selectedIds,
+            onSlotClick: handleSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
+            onOpenSearch: openSearch, onStart: handleStart,
+            onScore: (m) => { setScoreModal(m); setScoreForm({ p1: String(m.player1Score??0), p2: String(m.player2Score??0) }); },
+            onComplete: setCompleteModal, onEvents: loadEvents,
+            onToggleSelect: toggleSelect, onOpenAssign: openAssignSingle, flashIds,
+            feedersMap: listFeedersMap,
+          }}
+        />
       ) : (
         <>
           {/* Thanh tab giai đoạn — mỗi giai đoạn là 1 trang, click để chuyển */}
@@ -1165,7 +1386,7 @@ const DrawPage = ({ api, basePath }) => {
                       "shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all",
                       active
                         ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
-                        : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-700",
+                        : "bg-white dark:bg-[#161a22] text-slate-600 dark:text-white/70 border-slate-200 dark:border-white/10 hover:border-indigo-300 hover:text-indigo-700",
                     ].join(" ")}
                   >
                     <span className="truncate max-w-[180px]">{stage.name}</span>
@@ -1173,7 +1394,7 @@ const DrawPage = ({ api, basePath }) => {
                       "text-[11px] font-medium px-1.5 py-0.5 rounded-md",
                       active ? "bg-white/15 text-white"
                         : isDone ? "bg-emerald-100 text-emerald-700"
-                        : "bg-slate-100 text-slate-500",
+                        : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/60",
                     ].join(" ")}>
                       {done}/{total}
                     </span>
@@ -1187,6 +1408,7 @@ const DrawPage = ({ api, basePath }) => {
           <StageSection
             key={stage.id}
             stage={stage}
+            feedersMap={listFeedersMap}
             editMode={editMode}
             swapFirst={swapFirst}
             dragSrc={dragSrc}
@@ -1236,74 +1458,7 @@ const DrawPage = ({ api, basePath }) => {
           </>
         }
       >
-        <p className="text-sm text-slate-600">{confirmModal?.body}</p>
-      </AdminModal>
-
-      {/* ── Standings + Eliminate Bottom (GROUP_PLAYOFF) ── */}
-      <AdminModal
-        open={elimModal}
-        onClose={() => setElimModal(false)}
-        title="Xếp hạng & Loại bottom (Progressive Elimination)"
-        size="lg"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setElimModal(false)}>Đóng</AdminButton>
-            <AdminButton variant="danger" disabled={eliminating || !keepCount}
-                         onClick={handleEliminate}
-                         className="flex items-center gap-2">
-              <Scissors size={13} />
-              {eliminating ? "Đang loại..." : `Loại bottom — giữ top ${keepCount || "?"}`}
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {/* Standings table */}
-          <div className="max-h-64 overflow-y-auto border border-slate-100 rounded-xl">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
-                <tr>
-                  <th className="px-3 py-2 text-left">#</th>
-                  <th className="px-3 py-2 text-left">Cơ thủ</th>
-                  <th className="px-3 py-2 text-center">Thắng</th>
-                  <th className="px-3 py-2 text-center">Hiệu số</th>
-                  <th className="px-3 py-2 text-center">Frame</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {standings.length === 0 ? (
-                  <tr><td colSpan={5} className="px-3 py-6 text-center text-slate-400 text-xs">Chưa có kết quả</td></tr>
-                ) : standings.map(s => (
-                  <tr key={s.participantId}
-                      className={s.rank <= parseInt(keepCount || "0") ? "bg-emerald-50" : ""}>
-                    <td className="px-3 py-2 font-mono text-slate-500">{s.rank}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800">{s.displayName}</td>
-                    <td className="px-3 py-2 text-center text-slate-700">{s.wins}</td>
-                    <td className={`px-3 py-2 text-center font-medium ${s.frameDiff >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-                      {s.frameDiff >= 0 ? "+" : ""}{s.frameDiff}
-                    </td>
-                    <td className="px-3 py-2 text-center text-slate-500">{s.framesWon}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {/* Keep count input */}
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-slate-700 shrink-0">Giữ lại top:</label>
-            <input
-              type="number" min={2} max={standings.length}
-              className="admin-input w-24"
-              placeholder="e.g. 8"
-              value={keepCount}
-              onChange={e => setKeepCount(e.target.value)}
-            />
-            <p className="text-xs text-slate-400">
-              Loại {Math.max(0, standings.length - parseInt(keepCount || "0"))} người xếp cuối.
-              Match còn lại của họ → Walkover tự động.
-            </p>
-          </div>
-        </div>
+        <p className="text-sm text-slate-600 dark:text-white/70">{confirmModal?.body}</p>
       </AdminModal>
 
       {/* PROGRESSIVE: standings từng giai đoạn (read-only) */}
@@ -1314,9 +1469,9 @@ const DrawPage = ({ api, basePath }) => {
         size="lg"
         footer={<AdminButton variant="secondary" onClick={() => setProgStandings(null)}>Đóng</AdminButton>}
       >
-        <div className="max-h-72 overflow-y-auto border border-slate-100 rounded-xl">
+        <div className="max-h-72 overflow-y-auto border border-slate-100 dark:border-white/10 rounded-xl">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
+            <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase">
               <tr>
                 <th className="px-3 py-2 text-left">#</th>
                 <th className="px-3 py-2 text-left">Cơ thủ</th>
@@ -1328,18 +1483,18 @@ const DrawPage = ({ api, basePath }) => {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {loadingProgStd ? (
-                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 text-xs">Đang tải...</td></tr>
+                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 dark:text-white/40 text-xs">Đang tải...</td></tr>
               ) : (progStandings?.rows || []).length === 0 ? (
-                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 text-xs">Chưa có kết quả</td></tr>
+                <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400 dark:text-white/40 text-xs">Chưa có kết quả</td></tr>
               ) : progStandings.rows.map(s => (
                 <tr key={s.participantId} className={s.advancesToPlayoff ? "bg-emerald-50" : (s.advancesToPlayoff === false ? "bg-red-50/40" : "")}>
-                  <td className="px-3 py-2 font-mono text-slate-500">{s.rank}</td>
-                  <td className="px-3 py-2 font-medium text-slate-800">{s.displayName}</td>
-                  <td className="px-3 py-2 text-center text-slate-700">{s.wins}</td>
+                  <td className="px-3 py-2 font-mono text-slate-500 dark:text-white/60">{s.rank}</td>
+                  <td className="px-3 py-2 font-medium text-slate-800 dark:text-white/85">{s.displayName}</td>
+                  <td className="px-3 py-2 text-center text-slate-700 dark:text-white/75">{s.wins}</td>
                   <td className={`px-3 py-2 text-center font-medium ${s.frameDiff >= 0 ? "text-emerald-600" : "text-red-500"}`}>
                     {s.frameDiff >= 0 ? "+" : ""}{s.frameDiff}
                   </td>
-                  <td className="px-3 py-2 text-center text-slate-500">{s.framesWon}</td>
+                  <td className="px-3 py-2 text-center text-slate-500 dark:text-white/60">{s.framesWon}</td>
                   <td className="px-3 py-2 text-center">
                     {s.advancesToPlayoff === true ? (
                       <span className="text-emerald-600 text-xs font-semibold">Đi tiếp</span>
@@ -1352,7 +1507,7 @@ const DrawPage = ({ api, basePath }) => {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-xs text-slate-400">
+        <p className="mt-3 text-xs text-slate-400 dark:text-white/40">
           Tiêu chí: Điểm (thắng) → Hiệu số rack → Rack thắng → Đối đầu trực tiếp. Hàng xanh = nhóm đi tiếp.
         </p>
       </AdminModal>
@@ -1376,17 +1531,17 @@ const DrawPage = ({ api, basePath }) => {
           </>
         }
       >
-        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+        <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-lg">
           <PlayerAvatar name={swapConfirm?.first.playerName} size="md" />
           <div className="text-sm">
-            <p className="font-semibold text-slate-800">{swapConfirm?.first.playerName}</p>
-            <p className="text-xs text-slate-400 font-mono">{swapConfirm?.first.matchCode} · {swapConfirm?.first.slot === "player1" ? "P1" : "P2"}</p>
+            <p className="font-semibold text-slate-800 dark:text-white/85">{swapConfirm?.first.playerName}</p>
+            <p className="text-xs text-slate-400 dark:text-white/40 font-mono">{swapConfirm?.first.matchCode} · {swapConfirm?.first.slot === "player1" ? "P1" : "P2"}</p>
           </div>
           <ArrowLeftRight size={16} className="text-indigo-400 mx-auto" />
           <PlayerAvatar name={swapConfirm?.second.playerName} size="md" />
           <div className="text-sm">
-            <p className="font-semibold text-slate-800">{swapConfirm?.second.playerName}</p>
-            <p className="text-xs text-slate-400 font-mono">{swapConfirm?.second.matchCode} · {swapConfirm?.second.slot === "player1" ? "P1" : "P2"}</p>
+            <p className="font-semibold text-slate-800 dark:text-white/85">{swapConfirm?.second.playerName}</p>
+            <p className="text-xs text-slate-400 dark:text-white/40 font-mono">{swapConfirm?.second.matchCode} · {swapConfirm?.second.slot === "player1" ? "P1" : "P2"}</p>
           </div>
         </div>
       </AdminModal>
@@ -1412,7 +1567,7 @@ const DrawPage = ({ api, basePath }) => {
 
           {/* Search box */}
           <div className="relative">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40" />
             <input
               type="text"
               className="admin-input pl-9"
@@ -1424,11 +1579,11 @@ const DrawPage = ({ api, basePath }) => {
           </div>
 
           {/* Participant list */}
-          <div className="max-h-72 overflow-y-auto divide-y divide-slate-50 border border-slate-100 rounded-xl">
+          <div className="max-h-72 overflow-y-auto divide-y divide-slate-50 border border-slate-100 dark:border-white/10 rounded-xl">
             {loadingPtcp ? (
-              <div className="py-6 text-center text-sm text-slate-400">Đang tải...</div>
+              <div className="py-6 text-center text-sm text-slate-400 dark:text-white/40">Đang tải...</div>
             ) : filteredPtcp.length === 0 ? (
-              <div className="py-6 text-center text-sm text-slate-400">Không tìm thấy</div>
+              <div className="py-6 text-center text-sm text-slate-400 dark:text-white/40">Không tìm thấy</div>
             ) : filteredPtcp.map(p => {
               const pos = r1PlayerMap.get(p.id);
               const isCurrent = pos && pos.matchId === searchModal?.matchId && pos.slot === searchModal?.slot;
@@ -1441,14 +1596,14 @@ const DrawPage = ({ api, basePath }) => {
                     "w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors",
                     isCurrent
                       ? "bg-indigo-50 cursor-default"
-                      : "hover:bg-slate-50 active:bg-slate-100 cursor-pointer",
+                      : "hover:bg-slate-50 dark:hover:bg-white/5 active:bg-slate-100 dark:active:bg-white/10 cursor-pointer",
                   ].join(" ")}
                 >
                   <PlayerAvatar name={p.displayName} id={p.id} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-800 truncate">{p.displayName}</p>
+                    <p className="font-medium text-slate-800 dark:text-white/85 truncate">{p.displayName}</p>
                     {pos && (
-                      <p className="text-xs text-slate-400 font-mono">
+                      <p className="text-xs text-slate-400 dark:text-white/40 font-mono">
                         {pos.matchCode} · {pos.slot === "player1" ? "P1" : "P2"}
                       </p>
                     )}
@@ -1465,7 +1620,7 @@ const DrawPage = ({ api, basePath }) => {
               );
             })}
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 dark:text-white/40">
             <Users size={11} className="inline mr-1" />
             {filteredPtcp.length} người chơi · Click để đổi chỗ với người chơi đã chọn
           </p>
@@ -1499,35 +1654,96 @@ const DrawPage = ({ api, basePath }) => {
             </div>
           ))}
         </div>
-        <p className="text-xs text-slate-400 mt-3">Race to: {scoreModal?.raceTo}</p>
+        <p className="text-xs text-slate-400 dark:text-white/40 mt-3">Đánh tới: {scoreModal?.raceTo} ván</p>
       </AdminModal>
 
       {/* Complete / Walkover */}
       <AdminModal
         open={!!completeModal}
-        onClose={() => setCompleteModal(null)}
-        title={`Kết thúc trận — ${completeModal?.matchCode}`}
-        footer={<AdminButton variant="secondary" onClick={() => setCompleteModal(null)}>Đóng</AdminButton>}
+        onClose={closeCompleteModal}
+        title={walkoverTarget
+          ? `Xử thắng — ${completeModal?.matchCode}`
+          : `Kết thúc trận — ${completeModal?.matchCode}`}
+        footer={walkoverTarget ? (
+          <>
+            <AdminButton variant="secondary" disabled={saving}
+                         onClick={() => { setWalkoverTarget(null); setWalkoverReason(""); }}>
+              Quay lại
+            </AdminButton>
+            <AdminButton variant="primary" disabled={saving}
+                         onClick={() => handleWalkover(walkoverTarget.id)}>
+              {saving ? "Đang ghi nhận..." : "Xác nhận xử thắng"}
+            </AdminButton>
+          </>
+        ) : (
+          <AdminButton variant="secondary" onClick={closeCompleteModal}>Đóng</AdminButton>
+        )}
       >
-        <p className="text-sm text-slate-500 mb-4">Chọn người thắng trận này:</p>
-        <div className="space-y-2">
-          {[completeModal?.player1, completeModal?.player2].filter(Boolean).map(p => (
-            <div key={p.id}
-                 className="flex items-center gap-3 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
-              <PlayerAvatar name={p.displayName} id={p.id} size="sm" />
-              <span className="flex-1 font-medium text-slate-800">{p.displayName}</span>
-              <div className="flex gap-2">
-                <AdminButton variant="primary" disabled={saving} onClick={() => handleComplete(p.id)}
-                             className="flex items-center gap-1">
-                  <CheckCircle size={13} /> Thắng
-                </AdminButton>
-                <AdminButton variant="secondary" disabled={saving} onClick={() => handleWalkover(p.id)}>
-                  Walkover
-                </AdminButton>
+        {walkoverTarget ? (
+          <>
+            <div className="flex items-center gap-3 bg-amber-50 px-4 py-3 rounded-xl border border-amber-200 mb-4">
+              <PlayerAvatar name={walkoverTarget.displayName} id={walkoverTarget.id} size="sm" />
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-800 truncate">{walkoverTarget.displayName}</p>
+                <p className="text-xs text-amber-700">Được xử thắng, trận không thi đấu</p>
               </div>
             </div>
-          ))}
-        </div>
+            <label className="admin-label">Lý do xử thắng</label>
+            <div className="flex flex-wrap gap-2 mt-1.5 mb-2">
+              {["Đối thủ vắng mặt", "Đối thủ bỏ cuộc", "Đối thủ đến muộn quá giờ", "Đối thủ bị loại"]
+                .map(preset => (
+                  <button key={preset} type="button" onClick={() => setWalkoverReason(preset)}
+                          className={[
+                            "px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors",
+                            walkoverReason === preset
+                              ? "bg-indigo-600 text-white border-indigo-600"
+                              : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300",
+                          ].join(" ")}>
+                    {preset}
+                  </button>
+                ))}
+            </div>
+            <textarea
+              className="admin-input w-full min-h-[70px]"
+              placeholder="Nhập lý do hoặc chọn nhanh ở trên..."
+              value={walkoverReason}
+              onChange={e => setWalkoverReason(e.target.value)}
+            />
+            <p className="text-xs text-slate-400 mt-2">
+              Lý do chỉ hiển thị lại để bạn xác nhận thao tác, <span className="font-medium">hệ thống
+              chưa lưu lại</span>. Cần lưu vĩnh viễn thì ghi vào biên bản của Ban tổ chức.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-slate-500 mb-4">Chọn người thắng trận này:</p>
+            <div className="space-y-2">
+              {[completeModal?.player1, completeModal?.player2].filter(Boolean).map(p => (
+                <div key={p.id}
+                     className="flex items-center gap-3 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+                  <PlayerAvatar name={p.displayName} id={p.id} size="sm" />
+                  <span className="flex-1 font-medium text-slate-800">{p.displayName}</span>
+                  <div className="flex gap-2">
+                    <AdminButton variant="primary" disabled={saving} onClick={() => handleComplete(p.id)}
+                                 className="flex items-center gap-1">
+                      <CheckCircle size={13} /> Thắng
+                    </AdminButton>
+                    <AdminButton variant="secondary" disabled={saving}
+                                 onClick={() => { setWalkoverTarget(p); setWalkoverReason(""); }}
+                                 title="Đối thủ vắng mặt hoặc bỏ cuộc — xử thắng mà không thi đấu">
+                      Xử thắng
+                    </AdminButton>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100">
+              <span className="font-medium text-slate-500">Thắng</span> — hai bên đã thi đấu và có kết quả.{" "}
+              <span className="font-medium text-slate-500">Xử thắng</span> — đối thủ vắng mặt, bỏ cuộc hoặc
+              bị loại, trận không diễn ra.
+            </p>
+          </>
+        )}
       </AdminModal>
 
       {/* Score events */}
@@ -1538,22 +1754,22 @@ const DrawPage = ({ api, basePath }) => {
         footer={<AdminButton variant="secondary" onClick={() => { setEventsModal(null); setEvents([]); }}>Đóng</AdminButton>}
       >
         {events.length === 0 ? (
-          <p className="text-slate-400 text-sm text-center py-6">Chưa có cập nhật nào.</p>
+          <p className="text-slate-400 dark:text-white/40 text-sm text-center py-6">Chưa có cập nhật nào.</p>
         ) : (
           <div className="space-y-1.5 max-h-72 overflow-y-auto">
             {events.map(ev => (
               <div key={ev.id}
-                   className="flex items-center gap-3 text-sm bg-slate-50 px-3 py-2 rounded-lg">
+                   className="flex items-center gap-3 text-sm bg-slate-50 dark:bg-white/5 px-3 py-2 rounded-lg">
                 <span className={`px-2 py-0.5 rounded text-xs font-medium shrink-0 ${
                   ev.eventType === "MATCH_END" ? "bg-emerald-100 text-emerald-800"
                   : ev.eventType === "WALKOVER" ? "bg-amber-100 text-amber-800"
                   : "bg-blue-100 text-blue-800"}`}>
                   {ev.eventType}
                 </span>
-                <span className="font-mono font-bold text-slate-700">
+                <span className="font-mono font-bold text-slate-700 dark:text-white/75">
                   {ev.player1ScoreAfter} — {ev.player2ScoreAfter}
                 </span>
-                <span className="text-slate-400 text-xs ml-auto truncate">
+                <span className="text-slate-400 dark:text-white/40 text-xs ml-auto truncate">
                   {ev.createdByName} · {ev.createdAt
                     ? new Date(ev.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
                     : "—"}
@@ -1600,7 +1816,7 @@ const DrawPage = ({ api, basePath }) => {
               disabled={assignForm.clearTable}
               onChange={(e) => setAssignForm(f => ({ ...f, tableNo: e.target.value }))}
             />
-            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500">
+            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500 dark:text-white/60">
               <input
                 type="checkbox"
                 checked={assignForm.clearTable}
@@ -1621,11 +1837,11 @@ const DrawPage = ({ api, basePath }) => {
               onChange={(e) => setAssignForm(f => ({ ...f, scheduledAt: e.target.value }))}
             />
             {tournament?.startAt && (
-              <p className="mt-1 text-[11px] text-slate-400">
+              <p className="mt-1 text-[11px] text-slate-400 dark:text-white/40">
                 Không sớm hơn giờ bắt đầu giải: {formatScheduledAt(tournament.startAt)}
               </p>
             )}
-            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500">
+            <label className="mt-2 inline-flex items-center gap-2 text-xs text-slate-500 dark:text-white/60">
               <input
                 type="checkbox"
                 checked={assignForm.clearScheduledAt}
@@ -1636,7 +1852,7 @@ const DrawPage = ({ api, basePath }) => {
           </div>
 
           {assignModal?.matchIds.length > 1 && (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 dark:text-white/40">
               Chỉ những trường có thay đổi (không để trống, không tick &quot;Bỏ&quot;) mới được áp dụng cho tất cả các trận đã chọn.
             </p>
           )}
@@ -1667,16 +1883,17 @@ const DrawPage = ({ api, basePath }) => {
         {(() => {
           if (!refereeModal) return null;
           const target = refereeModal.match;
-          const currentId = target.assignedStaff?.id ?? null;
-          // Ẩn trọng tài đang bận (đang điều hành trận khác / trùng giờ) — trừ người đang gán cho chính trận này
-          const available = referees.filter(r => {
-            if (String(r.id) === String(currentId)) return true;
-            return !refereeBusyInfo(r.id, target);
-          });
-          const hiddenCount = referees.length - available.length;
+          /* KHÔNG lọc bỏ ai. Một trọng tài phụ trách được nhiều trận cùng lúc, nên việc
+             của màn này là cho thấy ai đang gánh nhiều để người phân công tự cân —
+             xếp người rảnh nhất lên đầu thay vì ẩn người đang bận. */
+          const options = referees
+            .map(r => ({ ...r, load: refereeLoadInfo(r.id, target) }))
+            .sort((a, b) => a.load.total - b.load.total
+              || String(a.displayName).localeCompare(String(b.displayName), "vi"));
+          const picked = options.find(r => String(r.id) === String(refereeStaffId));
           return (
             <div className="space-y-3">
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-white/60">
                 Trận <span className="font-mono font-semibold">{target.matchCode}</span>
                 {target.tableNo != null && <> · Bàn {target.tableNo}</>}
                 {target.scheduledAt && <> · {formatScheduledAt(target.scheduledAt)}</>}
@@ -1689,25 +1906,58 @@ const DrawPage = ({ api, basePath }) => {
                   onChange={(e) => setRefereeStaffId(e.target.value)}
                 >
                   <option value="">— Chọn trọng tài —</option>
-                  {available.map(r => (
-                    <option key={r.id} value={r.id}>{r.displayName}</option>
+                  {options.map(r => (
+                    <option key={r.id} value={r.id}>
+                      {r.displayName} — {refereeLoadLabel(r.load)}
+                    </option>
                   ))}
                 </select>
               </div>
+
+              {picked && picked.load.total > 0 && (
+                <div className={[
+                  "rounded-lg px-3 py-2 text-[11px] border",
+                  picked.load.overlapping > 0
+                    ? "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-400/10 dark:border-amber-400/30 dark:text-amber-300"
+                    : "bg-slate-50 border-slate-200 text-slate-600 dark:bg-white/5 dark:border-white/10 dark:text-white/60",
+                ].join(" ")}>
+                  <span className="font-semibold">{picked.displayName}</span> đang giữ {picked.load.total} trận
+                  chưa kết thúc
+                  {picked.load.live > 0 && <> ({picked.load.live} đang đấu)</>}
+                  {picked.load.overlapping > 0 && (
+                    <>, trong đó <span className="font-semibold">{picked.load.overlapping} trận trùng khung giờ</span> với
+                    trận này. Vẫn gán được — chỉ cần chắc là bàn đủ gần để một người bao được.</>
+                  )}
+                  {picked.load.overlapping === 0 && <>. Không trận nào trùng giờ với trận này.</>}
+                </div>
+              )}
               {referees.length === 0 ? (
                 <p className="text-[11px] text-amber-600">
                   Chi nhánh của giải chưa có nhân viên (staff) nào để làm trọng tài.
                 </p>
               ) : (
-                <p className="text-[11px] text-slate-400">
-                  Chỉ hiện trọng tài đang rảnh. {hiddenCount > 0 && <>({hiddenCount} người đang bận đã bị ẩn.)</>}
-                  {" "}Một trọng tài không thể phụ trách 2 trận cùng lúc.
+                <p className="text-[11px] text-slate-400 dark:text-white/40">
+                  Một trọng tài có thể phụ trách nhiều trận cùng lúc và ghi tỉ số cho tất cả
+                  các trận được gán. Danh sách xếp người đang giữ ít trận lên trước.
                 </p>
               )}
             </div>
           );
         })()}
       </AdminModal>
+
+      {/* ── Lễ bốc thăm công khai ──
+          Bracket đã nằm trên server ngay khi API trả về; overlay chỉ trình diễn
+          lại kết quả đó. Đóng overlay mới nạp lại trang như luồng cũ. */}
+      {ceremonyResult && (
+        <DrawCeremonyOverlay
+          drawResult={ceremonyResult}
+          tournament={tournament}
+          onClose={handleCeremonyClose}
+          onCancel={handleCeremonyCancel}
+          cancelling={cancellingDraw}
+        />
+      )}
     </div>
   );
 };
@@ -1722,11 +1972,12 @@ const STAGE_ICON = {
   GRAND_FINAL: <Trophy size={14} className="text-amber-500" />,
 };
 
-const StageSection = ({
+export const StageSection = ({
   stage, editMode, swapFirst, dragSrc, dropTarget, swapping, isPreview,
   matchQuery, statusFilter, startingId, bulkMode, selectedIds,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
   onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, onOpenReferee, flashIds,
+  feedersMap,
 }) => {
   const rounds = {};
   (stage.matches || []).forEach(m => {
@@ -1759,19 +2010,19 @@ const StageSection = ({
   return (
     <AdminCard padding={false}>
       {/* Stage header */}
-      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
+      <div className="px-5 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
+          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-white/60">
             {STAGE_ICON[stage.stageType] ?? <Swords size={14} />}
           </div>
           <div>
-            <p className="font-semibold text-slate-900 text-sm">{stage.name}</p>
-            <p className="text-xs text-slate-400">{stage.stageType}</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-sm">{stage.name}</p>
+            <p className="text-xs text-slate-400 dark:text-white/40">{stage.stageType}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/60">
           <span>{doneCount}/{totalCount}</span>
-          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="w-16 h-1.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
             <div className="h-full bg-indigo-400 rounded-full"
                  style={{ width: totalCount ? `${Math.round(doneCount/totalCount*100)}%` : "0%" }} />
           </div>
@@ -1793,7 +2044,7 @@ const StageSection = ({
                   "shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors",
                   active
                     ? `${rStyle.bg} ${rStyle.text} ${rStyle.border} ring-1 ring-inset ring-current/20`
-                    : "bg-white text-slate-400 border-slate-200 hover:border-slate-300 hover:text-slate-600",
+                    : "bg-white dark:bg-[#161a22] text-slate-400 dark:text-white/40 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/15 hover:text-slate-600 dark:hover:text-white/70",
                 ].join(" ")}
               >
                 {rStyle.label}
@@ -1806,9 +2057,9 @@ const StageSection = ({
 
       {/* Rounds */}
       {totalCount === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-8">Chưa có trận nào.</p>
+        <p className="text-sm text-slate-400 dark:text-white/40 text-center py-8">Chưa có trận nào.</p>
       ) : filteredRounds.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-8">
+        <p className="text-sm text-slate-400 dark:text-white/40 text-center py-8">
           Không có trận nào khớp bộ lọc.
         </p>
       ) : filteredRounds.map(([roundNo, matches]) => {
@@ -1856,6 +2107,7 @@ const StageSection = ({
                   onOpenAssign={onOpenAssign}
                   onOpenReferee={onOpenReferee}
                   flashIds={flashIds}
+                  feeders={feedersMap?.get(m.id)}
                 />
               ))}
             </div>
@@ -1874,6 +2126,7 @@ const MatchRow = ({
   bulkMode, isSelected,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
   onOpenSearch, onStart, onScore, onComplete, onEvents, onToggleSelect, onOpenAssign, onOpenReferee, flashIds,
+  feeders,
 }) => {
   const canEdit    = editMode && match.roundNo === 1 && !["LOSERS","GRAND_FINAL"].includes(stageType);
   const sCfg       = STATUS_CFG[match.status] || STATUS_CFG.PENDING;
@@ -1887,7 +2140,7 @@ const MatchRow = ({
 
   return (
     <div className={`rounded-xl my-1 transition-all ${isBye ? "opacity-60" : ""} ${
-      canEdit ? "hover:bg-slate-50/80" : ""
+      canEdit ? "hover:bg-slate-50/80 dark:hover:bg-white/5" : ""
     } ${isFlashing ? "ws-flash" : ""}`}>
       <div className="flex items-center gap-3 px-3 py-2.5">
 
@@ -1895,14 +2148,14 @@ const MatchRow = ({
         {bulkMode && assignable && (
           <input
             type="checkbox"
-            className="shrink-0 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            className="shrink-0 w-4 h-4 rounded border-slate-300 dark:border-white/15 text-indigo-600 focus:ring-indigo-500"
             checked={!!isSelected}
             onChange={() => onToggleSelect(match.id)}
           />
         )}
 
         {/* Match code */}
-        <span className="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md shrink-0 w-[4.5rem] text-center">
+        <span className="text-xs font-mono bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/60 px-2 py-0.5 rounded-md shrink-0 w-[4.5rem] text-center">
           {match.matchCode}
         </span>
 
@@ -1927,6 +2180,7 @@ const MatchRow = ({
                 isSelected={isSelected}
                 isDragSrc={isDragSrc}
                 isDropTarget={isDropTgt}
+                feeder={feeders?.[slot]}
                 onSlotClick={() => onSlotClick(match, slot, player, stageType)}
                 onDragStart={e => onDragStart(e, match.id, slot)}
                 onDragOver={e => onDragOver(e, match.id, slot)}
@@ -1941,21 +2195,21 @@ const MatchRow = ({
           {/* Score */}
           {["IN_PROGRESS","COMPLETED","WALKOVER"].includes(match.status) && (
             <div className="flex items-center gap-1.5 mt-1">
-              <span className="text-xs font-mono font-bold text-slate-700">
+              <span className="text-xs font-mono font-bold text-slate-700 dark:text-white/75">
                 {match.player1Score} — {match.player2Score}
               </span>
-              <span className="text-xs text-slate-400">/ {match.raceTo}</span>
+              <span className="text-xs text-slate-400 dark:text-white/40">/ {match.raceTo}</span>
             </div>
           )}
 
           {/* Bàn & giờ thi đấu */}
           {!isBye && (
             <div className="flex items-center gap-1.5 mt-1 text-[11px]">
-              <span className={tableLabel ? "text-slate-500 font-medium" : "text-slate-300"}>
+              <span className={tableLabel ? "text-slate-500 dark:text-white/60 font-medium" : "text-slate-300"}>
                 {tableLabel || "Chưa gán bàn"}
               </span>
               <span className="text-slate-300">·</span>
-              <span className={scheduledLabel ? "text-slate-500 font-medium" : "text-slate-300"}>
+              <span className={scheduledLabel ? "text-slate-500 dark:text-white/60 font-medium" : "text-slate-300"}>
                 {scheduledLabel || "Chưa xếp giờ"}
               </span>
               {isScheduleLocked && (
@@ -2011,11 +2265,11 @@ const MatchRow = ({
             )}
             {assignable && (
               <ActionBtn icon={<UserCheck size={13} />} title="Gán trọng tài"
-                         cls={match.assignedStaff ? "text-indigo-700 bg-indigo-50 hover:bg-indigo-100" : "text-slate-400 hover:bg-slate-100"}
+                         cls={match.assignedStaff ? "text-indigo-700 bg-indigo-50 hover:bg-indigo-100" : "text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10"}
                          onClick={() => onOpenReferee(match)} />
             )}
             <ActionBtn icon={<Trophy size={12} />} title="Lịch sử tỷ số"
-                       cls="text-slate-400 hover:bg-slate-100"
+                       cls="text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10"
                        onClick={() => onEvents(match.id, match.matchCode)} />
           </div>
         )}
@@ -2028,7 +2282,7 @@ const MatchRow = ({
    PlayerSlot
 ══════════════════════════════════════════════════════════ */
 const PlayerSlot = ({
-  player, isWinner, canEdit, isSelected, isDragSrc, isDropTarget,
+  player, isWinner, canEdit, isSelected, isDragSrc, isDropTarget, feeder,
   onSlotClick, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd, onSearch,
 }) => {
   return (
@@ -2039,13 +2293,13 @@ const PlayerSlot = ({
           ? "cursor-pointer group"
           : "",
         isDragSrc
-          ? "opacity-40 scale-95 bg-slate-100"
+          ? "opacity-40 scale-95 bg-slate-100 dark:bg-white/10"
           : isDropTarget
           ? "ring-2 ring-indigo-400 bg-indigo-50"
           : isSelected
           ? "ring-2 ring-blue-500 bg-blue-50"
           : canEdit
-          ? "hover:bg-slate-100"
+          ? "hover:bg-slate-100 dark:hover:bg-white/10"
           : "",
       ].join(" ")}
       draggable={canEdit}
@@ -2071,10 +2325,10 @@ const PlayerSlot = ({
         player
           ? isWinner
             ? "font-bold text-emerald-700"
-            : "text-slate-800"
+            : "text-slate-800 dark:text-white/85"
           : "text-slate-300 italic",
       ].join(" ")}>
-        {player?.displayName ?? "TBD"}
+        {player?.displayName ?? (feeder ? `${feeder.type === "win" ? "Thắng" : "Thua"} ${feeder.code}` : "TBD")}
         {isWinner && " ✓"}
       </span>
 
@@ -2084,7 +2338,7 @@ const PlayerSlot = ({
           onClick={e => { e.stopPropagation(); onSearch(); }}
           title="Tìm kiếm người chơi"
           className="shrink-0 w-5 h-5 rounded flex items-center justify-center text-slate-300
-                     group-hover:text-slate-500 hover:!text-indigo-600 hover:bg-indigo-50 transition-colors">
+                     group-hover:text-slate-500 dark:group-hover:text-white/60 hover:!text-indigo-600 dark:hover:!text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/12 transition-colors">
           <Search size={11} />
         </button>
       )}

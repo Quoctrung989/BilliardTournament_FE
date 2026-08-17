@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useReveal } from "../../../hooks/useReveal";
 import { listPublishedPosts } from "../../../api/newsApi";
-import { DEMO_POSTS, withDemo } from "../../../constants/demoData";
 
 /** BE không bảo đảm thumbnailUrl — ảnh hỏng trong card overflow-hidden để lại mảng trống rất xấu. */
 const FALLBACK = "/images/tournaments/vn-player-1.jpg";
@@ -22,7 +21,7 @@ const SectionHeader = () => (
     style={{ "--i": 1 }}
   >
     <h2 className="text-lg font-bold dark:text-gray-100">
-      Tin mới nhất từ CAPSTONE
+      Tin mới nhất từ BTMS
     </h2>
     <Link
       to="/news"
@@ -43,10 +42,10 @@ const News = () => {
     // 5 bài: 1 bài lớn bên trái + 4 bài nhỏ bên phải.
     listPublishedPosts({ page: 0, size: 5 })
       .then((paged) => {
-        if (!cancelled) setPosts(withDemo(paged.content, DEMO_POSTS, "Tin tức"));
+        if (!cancelled) setPosts(paged.content || []);
       })
       .catch(() => {
-        if (!cancelled) setPosts(withDemo(null, DEMO_POSTS, "Tin tức"));
+        if (!cancelled) setPosts([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -116,7 +115,9 @@ const News = () => {
                     {fmtDate(lead.publishedAt)}
                   </span>
                 </div>
-                <h1 className="hm-title text-[33px] font-black uppercase leading-[1.05] tracking-tight text-[#1d2430] dark:text-gray-100">
+                {/* Không dùng tracking-tight và leading dưới 1.1 — cắt ngọn dấu
+                    trên chữ hoa. Xem chú thích khối h1–h6 ở global.css. */}
+                <h1 className="hm-title text-[33px] font-black uppercase leading-[1.15] text-[#1d2430] dark:text-gray-100">
                   {lead.title}
                 </h1>
               </div>
@@ -153,7 +154,10 @@ const News = () => {
                       <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         {fmtDate(item.publishedAt)}
                       </p>
-                      <h2 className="hm-title text-[12px] font-extrabold uppercase leading-[1.3] text-[#1d2430] dark:text-gray-100 line-clamp-3">
+                      {/* `line-clamp` cắt bằng overflow:hidden nên dấu nặng ở
+                          dòng cuối ("ĐẸP", "LUẬT") dễ bị xén mất. `pb-[0.14em]`
+                          nới đáy hộp vừa đủ chứa dấu, không đổi số dòng. */}
+                      <h2 className="hm-title text-[12px] font-extrabold uppercase leading-[1.45] text-[#1d2430] dark:text-gray-100 line-clamp-3 pb-[0.14em]">
                         {item.title}
                       </h2>
                     </div>

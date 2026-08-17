@@ -65,11 +65,11 @@ const BranchForm = ({
         </div>
       </div>
 
-      <div className="pt-3 border-t border-slate-100">
+      <div className="pt-3 border-t border-slate-100 dark:border-white/10">
         <label className="admin-label">Hình ảnh chi nhánh</label>
         <div className="mt-2 flex flex-wrap gap-3">
           {images.map((img) => (
-            <div key={img.key} className="relative h-24 w-24 rounded-lg overflow-hidden border border-slate-200 group">
+            <div key={img.key} className="relative h-24 w-24 rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 group">
               <img src={img.url} alt="" className="h-full w-full object-cover" />
               <button
                 type="button"

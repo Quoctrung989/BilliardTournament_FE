@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, LayoutDashboard, LogOut, Moon, Search, Settings, Sun } from "lucide-react";
+import { ChevronDown, Home, LayoutDashboard, LogOut, Search, Settings, User } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
-import { useThemeStore } from "../../store/themeStore";
+import { useNotificationStore } from "../../store/notificationStore";
 import { ROLES } from "../../constants/auth";
 import { normalizeRole } from "../../utils/auth";
+import NotificationBell from "../shared/notifications/NotificationBell";
+import ThemeSwitch from "../shared/ThemeSwitch";
 
 const DASHBOARD_PATH_BY_ROLE = {
   [ROLES.ADMIN]: "/admin/dashboard",
@@ -26,14 +28,16 @@ const AdminHeader = ({
   hideBreadcrumb = false,
   hideSearch = false,
   hideTitles = false,
+  /* Bật cho section không có sidebar (Trọng tài): nút "Về trang chủ" vốn nằm ở
+     chân sidebar phải xuất hiện ở đây, nếu không người dùng không còn lối ra. */
+  showHomeButton = false,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
-  const { theme, toggleTheme } = useThemeStore();
-  const isDark = theme === "dark";
+  const resetNotifications = useNotificationStore((s) => s.reset);
 
   const breadcrumb =
     breadcrumbMap[location.pathname] ||
@@ -50,6 +54,9 @@ const AdminHeader = ({
   }, []);
 
   const handleLogout = () => {
+    // Xoá cả mốc đã đọc — người khác đăng nhập trên cùng máy mà giữ mốc của chủ trước thì
+    // thông báo cũ hơn mốc đó bị coi là đã đọc dù họ chưa từng thấy
+    resetNotifications();
     logout();
     navigate("/login");
   };
@@ -61,14 +68,14 @@ const AdminHeader = ({
 
   return (
     <header
-      className={`admin-header sticky top-0 z-30 bg-white/95 dark:bg-[#0b1424]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 ${
+      className={`admin-header sticky top-0 z-30 bg-white/95 dark:bg-[#0d1015]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 ${
         hasSubtitle ? "admin-header--tall" : ""
       }`}
     >
       <div className="admin-header-titles">
         {!hideBreadcrumb && (
           <p className="admin-header-eyebrow">
-            <span className="text-slate-400 font-medium">BTMS Admin</span>
+            <span className="text-slate-400 dark:text-white/40 font-medium">BTMS Admin</span>
             <span className="mx-1.5 text-slate-300" aria-hidden>
               /
             </span>
@@ -83,36 +90,34 @@ const AdminHeader = ({
         <div className="hidden lg:flex items-center flex-1 max-w-sm mx-2">
           <div className="relative w-full">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40 pointer-events-none"
               size={18}
             />
             <input
               type="search"
               placeholder="Tìm kiếm nhanh..."
-              className="admin-input pl-10 py-2 h-10 bg-slate-50 border-slate-200 dark:bg-[#0e1626] dark:border-[#243049]"
+              className="admin-input pl-10 py-2 h-10 bg-slate-50 border-slate-200 dark:bg-[#101319] dark:border-[#2b3039]"
             />
           </div>
         </div>
       )}
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full"
-          aria-label={isDark ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
-          title={isDark ? "Giao diện sáng" : "Giao diện tối"}
-        >
-          {isDark ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
+        {showHomeButton && (
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="admin-btn admin-btn-ghost h-10 gap-1.5 px-3"
+            title="Về trang chủ"
+          >
+            <Home size={16} />
+            <span className="hidden sm:inline">Về trang chủ</span>
+          </button>
+        )}
 
-        <button
-          type="button"
-          className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full hidden sm:flex"
-          aria-label="Thông báo"
-        >
-          <Bell size={20} />
-        </button>
+        <ThemeSwitch />
+
+        <NotificationBell className="admin-btn admin-btn-ghost w-10 h-10 p-0 rounded-full flex" />
 
         <div className="relative" ref={menuRef}>
           <button
@@ -129,11 +134,21 @@ const AdminHeader = ({
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight">{user?.role || "ADMIN"}</p>
             </div>
-            <ChevronDown size={16} className="text-slate-400 hidden sm:block flex-shrink-0" />
+            <ChevronDown size={16} className="text-slate-400 dark:text-white/40 hidden sm:block flex-shrink-0" />
           </button>
 
           {menuOpen && (
             <div className="absolute right-0 mt-2 w-56 admin-card py-1 shadow-xl border border-slate-200 dark:border-white/10 z-50">
+              <button
+                type="button"
+                className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
+                onClick={() => {
+                  navigate("/profile");
+                  setMenuOpen(false);
+                }}
+              >
+                <User size={16} /> Hồ sơ của tôi
+              </button>
               {canManage && dashboardPath && (
                 <button
                   type="button"

@@ -2,14 +2,27 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Trophy, Award, Star } from "lucide-react";
 import { getParticipantProfile, getPlayerProfileByUserId } from "../../api/publicTournamentApi";
+import { RANKING_NOTE_LABELS } from "../../constants/tournamentConfig";
+import { billiardRankShort } from "../../constants/profileConfig";
 
 const DEFAULT_AVATAR = "/player-default.webp";
+const noteLabel = (note) => (note ? RANKING_NOTE_LABELS[note] ?? note : note);
 
 const splitName = (full = "") => {
   const parts = full.trim().split(/\s+/).filter(Boolean);
   if (parts.length <= 1) return { first: "", last: parts[0] || "" };
   return { first: parts.slice(0, -1).join(" "), last: parts.at(-1) };
 };
+
+/**
+ * Giải đôi lưu tên cả cặp trong MỘT chuỗi `displayName`, ngăn nhau bằng "/"
+ * (ví dụ "Đinh Thành/Trinh Tuấn"). Không tách thì `splitName` cắt theo khoảng
+ * trắng và cho ra "ĐINH THÀNH/TRINH" + "TUẤN" — sai cả hai tên.
+ *
+ * Trả mảng 1 phần tử với giải đơn, 2 phần tử với giải đôi.
+ */
+const splitPair = (full = "") =>
+  full.split("/").map((s) => s.trim()).filter(Boolean);
 
 const fmtCurrency = (v) => {
   if (!v || Number(v) === 0) return null;
@@ -71,7 +84,7 @@ const AchievementCard = ({ entry }) => {
               fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase",
               letterSpacing: "0.1em", color: "#c9a227",
             }}>
-              {entry.note}
+              {noteLabel(entry.note)}
             </span>
           )}
           {entry.pointsEarned > 0 && (
@@ -121,8 +134,8 @@ const PlayerProfilePage = () => {
 
   if (loading) {
     return (
-      <div style={{ background: "#e2e2e2", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ color: "#64748b", fontSize: "0.9rem" }}>Đang tải...</p>
+      <div style={{ background: "var(--evt-page-bg)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "var(--evt-text-3)", fontSize: "0.9rem" }}>Đang tải...</p>
       </div>
     );
   }
@@ -130,12 +143,17 @@ const PlayerProfilePage = () => {
   if (!profile) return null;
 
   const primaryName = profile.accountName || profile.displayName;
+  const pair = splitPair(primaryName);
+  const isPair = pair.length > 1;
   const { first, last } = splitName(primaryName);
   const champCount = profile.achievements?.filter(a => a.finalRank === 1).length ?? 0;
   const totalEvents = profile.achievements?.length ?? 0;
 
   return (
-    <div style={{ background: "#e2e2e2", minHeight: "100vh" }}>
+    /* `evt-surface` nạp font và màu chữ chung của khu Event; nền và chữ đều đi
+       qua token nên trang tự lật theo chế độ sáng/tối. Hai khối #0d1f3c bên
+       dưới thì cố ý tối ở CẢ hai chế độ — giống khối vô địch ở bảng xếp hạng. */
+    <div className="evt-surface" style={{ background: "var(--evt-page-bg)", minHeight: "100vh" }}>
 
       {/* Back */}
       <div style={{ padding: "0.875rem 1.5rem" }}>
@@ -145,11 +163,11 @@ const PlayerProfilePage = () => {
           style={{
             display: "inline-flex", alignItems: "center", gap: "0.4rem",
             background: "none", border: "none", cursor: "pointer",
-            color: "#64748b", fontSize: "0.8rem", fontWeight: 600,
+            color: "var(--evt-text-3)", fontSize: "0.8rem", fontWeight: 600,
             padding: "0.25rem 0", transition: "color 0.15s",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = "#0d1b2e"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = "#64748b"; }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "var(--evt-text)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "var(--evt-text-3)"; }}
         >
           <ArrowLeft size={13} />
           Quay lại
@@ -202,37 +220,78 @@ const PlayerProfilePage = () => {
           }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
 
-              {/* Name */}
+              {/* Name.
+
+                  Chú ý `lineHeight`: bản trước để 0.95 cho dòng tên lớn, tức hộp
+                  dòng thấp hơn chính con chữ. Chữ hoa tiếng Việt có dấu ("TUẤN")
+                  liền tràn lên đè vào dòng trên. 1.08 là mức vừa đủ chỗ cho dấu
+                  mà vẫn giữ được cảm giác chữ khối. Xem .cursor/rules/btms-typography.mdc */}
               <div style={{ marginBottom: "1.5rem" }}>
-                {first && (
-                  <div style={{
-                    color: "rgba(148,178,218,0.75)",
-                    fontStyle: "italic",
-                    fontWeight: 500,
-                    fontSize: "clamp(1.1rem, 2vw, 1.75rem)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    lineHeight: 1.2,
-                    marginBottom: "0.1rem",
-                  }}>
-                    {first}
-                  </div>
+                {isPair ? (
+                  /* Giải đôi: hai cơ thủ, mỗi người một dòng. Ảnh đại diện vẫn là
+                     của chủ tài khoản — chấp nhận, nhưng tên thì phải tách. */
+                  <>
+                    <div style={{
+                      color: "rgba(148,178,218,0.75)",
+                      fontStyle: "italic",
+                      fontWeight: 600,
+                      fontSize: "0.7rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.12em",
+                      marginBottom: "0.5rem",
+                    }}>
+                      Cặp đôi
+                    </div>
+                    {pair.map((name, i) => (
+                      <div
+                        key={`${name}-${i}`}
+                        style={{
+                          color: "#fff",
+                          fontWeight: 900,
+                          fontStyle: "italic",
+                          fontSize: "clamp(1.4rem, 3vw, 2.5rem)",
+                          textTransform: "uppercase",
+                          letterSpacing: "-0.01em",
+                          lineHeight: 1.15,
+                        }}
+                      >
+                        {name}
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {first && (
+                      <div style={{
+                        color: "rgba(148,178,218,0.75)",
+                        fontStyle: "italic",
+                        fontWeight: 500,
+                        fontSize: "clamp(1.1rem, 2vw, 1.75rem)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        lineHeight: 1.25,
+                        marginBottom: "0.15rem",
+                      }}>
+                        {first}
+                      </div>
+                    )}
+                    <div style={{
+                      color: "#fff",
+                      fontWeight: 900,
+                      fontStyle: "italic",
+                      fontSize: "clamp(2rem, 4.5vw, 4rem)",
+                      textTransform: "uppercase",
+                      letterSpacing: "-0.02em",
+                      lineHeight: 1.08,
+                    }}>
+                      {last}
+                    </div>
+                  </>
                 )}
-                <div style={{
-                  color: "#fff",
-                  fontWeight: 900,
-                  fontStyle: "italic",
-                  fontSize: "clamp(2rem, 4.5vw, 4rem)",
-                  textTransform: "uppercase",
-                  letterSpacing: "-0.02em",
-                  lineHeight: 0.95,
-                }}>
-                  {last}
-                </div>
               </div>
 
               {/* Stats grid */}
-              {(totalEvents > 0 || profile.billiardRank || profile.seedNo) && (
+              {(totalEvents > 0 || profile.billiardRank) && (
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))",
@@ -278,7 +337,7 @@ const PlayerProfilePage = () => {
 
               {/* Badges */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                {profile.billiardRank && (
+                {profile.billiardRank && profile.billiardRank !== "UNKNOWN" && (
                   <span style={{
                     fontSize: "0.6rem", fontWeight: 700,
                     textTransform: "uppercase", letterSpacing: "0.1em",
@@ -286,18 +345,7 @@ const PlayerProfilePage = () => {
                     border: "1px solid rgba(201,162,39,0.4)",
                     padding: "0.2rem 0.65rem", borderRadius: "999px",
                   }}>
-                    {profile.billiardRank}
-                  </span>
-                )}
-                {profile.seedNo && (
-                  <span style={{
-                    fontSize: "0.6rem", fontWeight: 700,
-                    textTransform: "uppercase", letterSpacing: "0.1em",
-                    color: "rgba(255,255,255,0.45)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    padding: "0.2rem 0.65rem", borderRadius: "999px",
-                  }}>
-                    Hạt giống #{profile.seedNo}
+                    Hạng {billiardRankShort(profile.billiardRank)}
                   </span>
                 )}
               </div>
@@ -326,11 +374,11 @@ const PlayerProfilePage = () => {
             display: "flex", alignItems: "center", gap: "0.6rem",
             padding: "1.25rem 0 0.875rem",
           }}>
-            <Trophy size={14} style={{ color: "#0d1b2e" }} />
+            <Trophy size={14} style={{ color: "var(--evt-heading)" }} />
             <span style={{
               fontWeight: 800, fontStyle: "italic",
               fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.12em",
-              color: "#0d1b2e",
+              color: "var(--evt-heading)",
             }}>
               Thành tích giải đấu
             </span>

@@ -45,28 +45,28 @@ const fmtNum = (value) =>
   value == null ? "—" : Number(value).toLocaleString("vi-VN");
 
 const MetricCard = ({ icon: Icon, label, value, hint }) => (
-  <div className="rounded-xl border border-slate-200 bg-white px-4 py-4">
+  <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a22] px-4 py-4">
     <div className="flex items-start justify-between gap-2 mb-3">
-      <p className="text-sm text-slate-500">{label}</p>
+      <p className="text-sm text-slate-500 dark:text-white/60">{label}</p>
       {Icon && (
-        <span className="rounded-lg bg-slate-100 p-1.5 text-slate-500">
+        <span className="rounded-lg bg-slate-100 dark:bg-white/10 p-1.5 text-slate-500 dark:text-white/60">
           <Icon size={14} />
         </span>
       )}
     </div>
-    <p className="text-3xl font-semibold text-slate-900 tabular-nums tracking-tight">
+    <p className="text-3xl font-semibold text-slate-900 dark:text-white tabular-nums tracking-tight">
       {fmtNum(value)}
     </p>
-    {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
+    {hint && <p className="mt-1 text-xs text-slate-400 dark:text-white/40">{hint}</p>}
   </div>
 );
 
 const InfoRow = ({ label, value }) => (
-  <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3 py-2.5 border-b border-slate-100 last:border-0">
-    <dt className="text-xs font-medium uppercase tracking-wide text-slate-400 sm:w-36 shrink-0">
+  <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3 py-2.5 border-b border-slate-100 dark:border-white/10 last:border-0">
+    <dt className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-white/40 sm:w-36 shrink-0">
       {label}
     </dt>
-    <dd className="text-sm text-slate-800 break-words">{value || "—"}</dd>
+    <dd className="text-sm text-slate-800 dark:text-white/85 break-words">{value || "—"}</dd>
   </div>
 );
 
@@ -123,7 +123,7 @@ const FacebookPostDetailPage = ({ basePath }) => {
       <div className="py-20 text-center">
         <div className="admin-skeleton h-4 w-48 mx-auto mb-2" />
         <div className="admin-skeleton h-3 w-32 mx-auto" />
-        <p className="mt-4 text-sm text-slate-400">Đang tải chi tiết bài đăng...</p>
+        <p className="mt-4 text-sm text-slate-400 dark:text-white/40">Đang tải chi tiết bài đăng...</p>
       </div>
     );
   }
@@ -160,19 +160,19 @@ const FacebookPostDetailPage = ({ basePath }) => {
       <div className="admin-card p-5">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400 mb-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-white/40 mb-1">
               Bài đăng Facebook
             </p>
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
               #{post.id}
               {post.tournamentName ? ` · ${post.tournamentName}` : ""}
             </h2>
           </div>
-          <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+          <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white/75">
             {POST_TYPE_LABELS[post.postType] || post.postType || "—"}
           </span>
         </div>
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-500">
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-500 dark:text-white/60">
           <span className="inline-flex items-center gap-1.5">
             <Calendar size={14} />
             {fmtDateTime(stats?.createdTime || post.postedAt)}
@@ -195,27 +195,27 @@ const FacebookPostDetailPage = ({ basePath }) => {
         {/* Left: content */}
         <div className="lg:col-span-3 space-y-5">
           <AdminCard title="Nội dung bài đăng">
-            <div className="rounded-xl border border-slate-200 bg-slate-50/80 overflow-hidden">
+            <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/80 overflow-hidden">
               {(post.fullPicture || stats?.fullPicture) ? (
-                <div className="border-b border-slate-200 bg-slate-100">
+                <div className="border-b border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/10">
                   <img
                     src={post.fullPicture || stats.fullPicture}
                     alt="Ảnh bài đăng Facebook"
-                    className="w-full max-h-80 object-contain bg-slate-100"
+                    className="w-full max-h-80 object-contain bg-slate-100 dark:bg-white/10"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
                     }}
                   />
                 </div>
               ) : (
-                <div className="border-b border-slate-200 px-4 py-6 text-center text-sm text-slate-400">
+                <div className="border-b border-slate-200 dark:border-white/10 px-4 py-6 text-center text-sm text-slate-400 dark:text-white/40">
                   {(post.postType === "PHOTO" || post.postType === "MULTI_PHOTO")
                     ? "Chưa có ảnh — bấm Làm mới để tải từ Facebook"
                     : "Bài đăng không kèm ảnh"}
                 </div>
               )}
               <div className="p-4 max-h-[28rem] overflow-y-auto">
-                <p className="text-[15px] text-slate-800 whitespace-pre-wrap leading-7">
+                <p className="text-[15px] text-slate-800 dark:text-white/85 whitespace-pre-wrap leading-7">
                   {post.content || "—"}
                 </p>
               </div>
@@ -282,7 +282,7 @@ const FacebookPostDetailPage = ({ basePath }) => {
           </AdminCard>
 
           {(stats?.fromCache || stats?.statsSyncedAt || stats?.engagementNote || stats?.insightsNote) && (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500 space-y-1">
+            <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 px-4 py-3 text-xs text-slate-500 dark:text-white/60 space-y-1">
               {stats.fromCache && (
                 <p>
                   Đang hiển thị số liệu cache

@@ -52,12 +52,12 @@ const participantLabel = (type) =>
 
 /* ── Info column for the WNT-style info bar ── */
 const InfoCol = ({ icon: Icon, label, value, border = true }) => (
-  <div className={`flex flex-col gap-1 py-4 px-5 ${border ? "border-l border-slate-200 first:border-l-0" : ""}`}>
-    <div className="flex items-center gap-1.5 text-slate-400 text-xs font-semibold uppercase tracking-wide">
+  <div className={`flex flex-col gap-1 py-4 px-5 ${border ? "border-l border-slate-200 dark:border-white/10 first:border-l-0" : ""}`}>
+    <div className="flex items-center gap-1.5 text-slate-400 dark:text-white/40 text-xs font-semibold uppercase tracking-wide">
       <Icon size={12} />
       {label}
     </div>
-    <p className="text-slate-800 font-semibold text-sm">{value}</p>
+    <p className="text-slate-800 dark:text-white font-semibold text-sm">{value}</p>
   </div>
 );
 
@@ -69,16 +69,16 @@ const SlotBar = ({ approved, max }) => {
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-xs">
-        <span className="text-slate-500">Đã đăng ký</span>
+        <span className="text-slate-500 dark:text-white/60">Đã đăng ký</span>
         <span className={`font-semibold ${full ? "text-red-600" : remaining <= 3 ? "text-amber-600" : "text-emerald-600"}`}>
           {full ? "Đã đủ người" : `Còn ${remaining} slot`}
         </span>
       </div>
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all ${full ? "bg-red-500" : remaining <= 3 ? "bg-amber-400" : "bg-emerald-400"}`}
           style={{ width: `${pct}%` }} />
       </div>
-      <p className="text-xs text-slate-400">{approved} / {max} người</p>
+      <p className="text-xs text-slate-400 dark:text-white/40">{approved} / {max} người</p>
     </div>
   );
 };
@@ -501,12 +501,12 @@ const PlayerTournamentDetailPage = () => {
                   detail.participantType && { label: "Hình thức", value: participantLabel(detail.participantType) },
                   detail.configSummary?.seedingMethod && {
                     label: "Bốc thăm",
-                    value: { RANDOM: "Ngẫu nhiên", ELO: "Theo ELO", MANUAL: "Thủ công" }[detail.configSummary.seedingMethod] || detail.configSummary.seedingMethod
+                    value: { RANDOM: "Ngẫu nhiên", RANK: "Theo hạng cơ thủ" }[detail.configSummary.seedingMethod] || detail.configSummary.seedingMethod
                   },
-                  detail.configSummary?.bracketSize != null && { label: "Bracket", value: `${detail.configSummary.bracketSize} slot` },
-                  detail.configSummary?.finalRaceTo != null && { label: "Final", value: `Race to ${detail.configSummary.finalRaceTo}` },
+                  detail.configSummary?.bracketSize != null && { label: "Số người tối đa", value: `${detail.configSummary.bracketSize} người` },
+                  detail.configSummary?.finalRaceTo != null && { label: "Chung kết", value: `Đánh tới ${detail.configSummary.finalRaceTo} ván` },
                   detail.configSummary?.breakRule && {
-                    label: "Break rule",
+                    label: "Luật giao bóng",
                     value: { ALTERNATE_BREAK: "Luân phiên", WINNER_BREAK: "Người thắng", LOSER_BREAK: "Người thua" }[detail.configSummary.breakRule] || detail.configSummary.breakRule
                   },
                   detail.configSummary?.thirdPlaceMatch != null && { label: "Tranh hạng 3", value: detail.configSummary.thirdPlaceMatch ? "Có" : "Không" },

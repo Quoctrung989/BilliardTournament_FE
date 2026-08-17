@@ -11,8 +11,6 @@ import "./eventTheme.css";
 const FORMAT_MAP = {
   "Loại trực tiếp":      "single_elimination",
   "Loại trực tiếp kép":  "double_elimination",
-  "Vòng bảng + Playoff": "group_stage",
-  "Vòng bảng":           "round_robin",
   "Vòng tròn loại dần + Playoff": "group_stage",
 };
 const detectFormatFromTournament = (t) =>
@@ -90,6 +88,26 @@ export const apiMatchToComp = (m) => {
   };
 };
 
+/** matchId (đích, id gốc từ BE) -> { player1: {type,code}|null, player2: {...}|null } của trận nguồn —
+ *  dùng winSlot/loseSlot (BE trả về đúng slot player1/player2) để hiện "Thắng RxMy" / "Thua RxMy"
+ *  thay vì "TBD", đúng cả nhánh thắng (nextMatchWinId) lẫn nhánh thua rớt xuống (nextMatchLoseId). */
+function buildFeedersMap(rawMatches) {
+  const result = new Map();
+  const ensure = (id) => {
+    if (!result.has(id)) result.set(id, { player1: null, player2: null });
+    return result.get(id);
+  };
+  (rawMatches || []).forEach(m => {
+    if (m.nextMatchWinId && m.winSlot) {
+      ensure(m.nextMatchWinId)[m.winSlot] = { type: "win", code: m.matchCode };
+    }
+    if (m.nextMatchLoseId && m.loseSlot) {
+      ensure(m.nextMatchLoseId)[m.loseSlot] = { type: "lose", code: m.matchCode };
+    }
+  });
+  return result;
+}
+
 const LEAGUE_STAGE_TYPES = ["GROUP", "PROGRESSIVE_ROUND"];
 const buildRoundsFromApiStage = (stageMatches, stageType) => {
   if (!stageMatches?.length) return [];
@@ -125,6 +143,16 @@ const fmtTime = (iso) => {
 };
 
 /* Tính bảng điểm vòng tròn từ danh sách trận (dữ liệu BE).
+
+   ⚠️ Thứ tự phân định PHẢI khớp BracketGenerationServiceImpl.computeStageStandings() ở backend,
+   vì backend dùng chính thứ tự đó để loại người sau mỗi giai đoạn. Lệch nhau thì khán giả thấy
+   một bảng còn hệ thống loại người theo bảng khác:
+     1. Số trận thắng
+     2. Hiệu số ván
+     3. Đối đầu trực tiếp giữa những người còn hoà
+     4. Tổng số ván thắng
+     5. Tên A→Z (backend dùng hạt giống → id; FE không có 2 field này nên chốt bằng tên)
+
    Trả về mảng đã xếp hạng: [{ id, name, played, wins, losses, framesWon, framesLost, frameDiff, rank }] */
 const computeStandings = (matches) => {
   const table = {};
@@ -149,22 +177,57 @@ const computeStandings = (matches) => {
     if (winId === a.id) { a.wins++; b.losses++; }
     else if (winId === b.id) { b.wins++; a.losses++; }
   });
-  return Object.values(table)
-    .map((r) => ({ ...r, frameDiff: r.framesWon - r.framesLost }))
-    .sort((x, y) => y.wins - x.wins || y.frameDiff - x.frameDiff || y.framesWon - x.framesWon
-      || (x.name || "").localeCompare(y.name || ""))
-    .map((r, i) => ({ ...r, rank: i + 1 }));
+  /* Số trận thắng khi chỉ tính các trận GIỮA những người trong nhóm hoà */
+  const headToHeadWins = (groupIds) => {
+    const h2h = {};
+    groupIds.forEach((id) => { h2h[id] = 0; });
+    (matches || []).forEach((m) => {
+      if (m.status !== "COMPLETED" && m.status !== "WALKOVER") return;
+      const id1 = m.player1?.id, id2 = m.player2?.id;
+      if (!h2h.hasOwnProperty(id1) || !h2h.hasOwnProperty(id2)) return;
+      const s1 = m.player1Score ?? 0, s2 = m.player2Score ?? 0;
+      const winId = m.winner?.id ?? (s1 > s2 ? id1 : s2 > s1 ? id2 : null);
+      if (winId != null && h2h.hasOwnProperty(winId)) h2h[winId] += 1;
+    });
+    return h2h;
+  };
+
+  const rows = Object.values(table).map((r) => ({ ...r, frameDiff: r.framesWon - r.framesLost }));
+
+  // Bậc 1-2: số trận thắng → hiệu số ván
+  rows.sort((x, y) => y.wins - x.wins || y.frameDiff - x.frameDiff);
+
+  // Bậc 3-5: trong từng nhóm còn hoà (cùng thắng + cùng hiệu số) mới xét đối đầu trực tiếp
+  let i = 0;
+  while (i < rows.length) {
+    let j = i + 1;
+    while (j < rows.length && rows[j].wins === rows[i].wins && rows[j].frameDiff === rows[i].frameDiff) j++;
+    if (j - i > 1) {
+      const group = rows.slice(i, j);
+      const h2h = headToHeadWins(group.map((r) => r.id));
+      group.sort((x, y) =>
+        (h2h[y.id] || 0) - (h2h[x.id] || 0)          // 3. đối đầu trực tiếp
+        || y.framesWon - x.framesWon                  // 4. số ván thắng
+        || (x.name || "").localeCompare(y.name || "") // 5. chốt cuối
+      );
+      rows.splice(i, j - i, ...group);
+    }
+    i = j;
+  }
+
+  return rows.map((r, idx) => ({ ...r, rank: idx + 1 }));
 };
 
 /* ═══════════════════════════════════════════════════════════════════
    SHARED DISPLAY COMPONENTS
 ═══════════════════════════════════════════════════════════════════ */
-const BracketCard = ({ match, compact, flashIds }) => {
+const BracketCard = ({ match, compact, flashIds, feedersMap }) => {
   const navigate   = useNavigate();
   const isLive     = match?.status === "live";
   const isDone     = match?.status === "done";
   const isUpcoming = match?.status === "upcoming";
   const isFlashing = match && flashIds?.has(match.id);
+  const feeders    = match && feedersMap?.get(Number(match.id));
   const W = compact ? 190 : 218;
 
   if (!match) return (
@@ -188,6 +251,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
       {[{p:match.p1,side:1},{p:match.p2,side:2}].map(({p,side})=>{
         const isWinner = match.winSide === side;
         const isLoser  = isDone && match.winSide && !isWinner;
+        const feeder = !p?.id ? feeders?.[side === 1 ? "player1" : "player2"] : null;
         return (
           <div key={side}
                className={`relative flex items-center justify-between pl-3 pr-2.5 py-[4px] mx-1 my-[1px] rounded-md ${isWinner?"bg-blue-500/[0.12]":""}`}>
@@ -200,7 +264,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
                     : isUpcoming ? "text-slate-500 dark:text-white/55 font-light"
                     : "text-slate-700 dark:text-white/70 font-normal"}`}
                   style={{maxWidth: compact?110:138}}>
-              {p?.name||"TBD"}
+              {p?.id ? p.name : feeder ? `${feeder.type === "win" ? "Thắng" : "Thua"} ${feeder.code}` : "TBD"}
             </span>
             <span className={`text-[15px] font-black tabular-nums shrink-0 ${
                     isWinner ? "text-blue-600 dark:text-blue-400"
@@ -215,7 +279,7 @@ const BracketCard = ({ match, compact, flashIds }) => {
   );
 };
 
-export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
+export const MatchRow = ({ m, matchNum, flashIds, showRefs = true, feedersMap }) => {
   const navigate   = useNavigate();
   const num        = matchNum ?? m.seq;
   const isLive     = m.status === "live";
@@ -223,6 +287,10 @@ export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
   const p1Win      = m.winSide === 1;
   const p2Win      = m.winSide === 2;
   const isFlashing = flashIds?.has(m.id);
+  const feeders    = feedersMap?.get(Number(m.id));
+  const p1Feeder   = !m.p1?.id ? feeders?.player1 : null;
+  const p2Feeder   = !m.p2?.id ? feeders?.player2 : null;
+  const feederLabel = (f) => `${f.type === "win" ? "Thắng" : "Thua"} ${f.code}`;
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-white/[0.05] last:border-0 transition-colors ${isLive?"":"hover:bg-slate-50 dark:hover:bg-white/[0.03]"} ${isFlashing?"ws-flash":""}`}
@@ -235,7 +303,7 @@ export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
           <span
             onClick={m.p1?.id ? () => navigate(`/event/players/${m.p1.id}`) : undefined}
             className={`text-[13px] leading-tight truncate text-right max-w-[100px] sm:max-w-[140px] ${m.p1?.id?"cursor-pointer hover:underline":""} ${p1Win?"font-bold text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
-            {m.p1?.name}
+            {m.p1?.id ? m.p1.name : p1Feeder ? feederLabel(p1Feeder) : m.p1?.name}
           </span>
           <span className={`text-xl font-black tabular-nums shrink-0 w-7 text-right ${p1Win?"text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/40":m.p1?.score!=null?"text-slate-800 dark:text-white":"text-transparent"}`}>
             {m.p1?.score??""}
@@ -249,7 +317,7 @@ export const MatchRow = ({ m, matchNum, flashIds, showRefs = true }) => {
           <span
             onClick={m.p2?.id ? () => navigate(`/event/players/${m.p2.id}`) : undefined}
             className={`text-[13px] leading-tight truncate max-w-[100px] sm:max-w-[140px] ${m.p2?.id?"cursor-pointer hover:underline":""} ${p2Win?"font-bold text-blue-600 dark:text-blue-400":isDone?"text-slate-400 dark:text-white/45 font-light":"text-slate-600 dark:text-white/65"}`}>
-            {m.p2?.name}
+            {m.p2?.id ? m.p2.name : p2Feeder ? feederLabel(p2Feeder) : m.p2?.name}
           </span>
         </div>
       </div>
@@ -279,7 +347,7 @@ const BRACKET_BADGE = {
   GF: { label:"GF", cls:"bg-yellow-500/15 text-yellow-400"   },
 };
 
-const ListView = ({ matches, rounds, flashIds }) => {
+const ListView = ({ matches, rounds, flashIds, feedersMap }) => {
   const matchNumMap = useMemo(() => {
     const map = {};
     let idx = 0;
@@ -305,9 +373,9 @@ const ListView = ({ matches, rounds, flashIds }) => {
                 {badge && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-white/20 text-white">{badge.label}</span>}
                 <span className="text-xs font-semibold text-white tracking-wide">{round.label}</span>
               </div>
-              <span className="text-[10px] font-light text-white/70">Race to {round.raceTO}</span>
+              <span className="text-[10px] font-light text-white/70">Đánh tới {round.raceTO} ván</span>
             </div>
-            <div>{rMatches.map(m=><MatchRow key={m.id} m={m} matchNum={matchNumMap[m.id]} flashIds={flashIds}/>)}</div>
+            <div>{rMatches.map(m=><MatchRow key={m.id} m={m} matchNum={matchNumMap[m.id]} flashIds={flashIds} feedersMap={feedersMap}/>)}</div>
           </div>
         );
       })}
@@ -442,7 +510,7 @@ const StandingView = ({ rows }) => {
         <div className="rounded-3xl shadow-sm flex flex-col items-center justify-center py-16 gap-2"
              style={{background:"var(--evt-card-bg)",border:"1px solid var(--evt-card-border)"}}>
           <BarChart2 size={30} className="text-slate-300 dark:text-white/15"/>
-          <p className="text-slate-500 dark:text-white/40 text-sm font-light">Chưa có bảng điểm — các trận vòng bảng chưa hoàn thành</p>
+          <p className="text-slate-500 dark:text-white/40 text-sm font-light">Chưa có bảng điểm — các trận vòng tròn chưa hoàn thành</p>
         </div>
       ) : (
         <StandingTable rows={rows}/>
@@ -493,7 +561,7 @@ function buildBracketGeometry(rounds, matchesByRound) {
 const ZOOM_MIN = 0.4, ZOOM_MAX = 1.5, ZOOM_STEP = 0.1;
 const clampZoom = (z) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, +z.toFixed(3)));
 
-const BracketView = ({ matches, rounds, flashIds }) => {
+const BracketView = ({ matches, rounds, flashIds, feedersMap }) => {
   const matchesByRound = useMemo(() => {
     const map = {};
     rounds.forEach(r => {
@@ -579,7 +647,7 @@ const BracketView = ({ matches, rounds, flashIds }) => {
               {rounds.map((r,i)=>(
                 <div key={r.id} className="flex-shrink-0 text-center py-3" style={{width:C_W,marginLeft:i>0?R_GAP:0}}>
                   <p className="text-slate-800 dark:text-white text-[11px] font-bold uppercase tracking-[0.08em]">{r.label}</p>
-                  <p className="text-sky-600 dark:text-sky-300/40 text-[9px] font-medium mt-0.5">Race to {r.raceTO}</p>
+                  <p className="text-sky-600 dark:text-sky-300/40 text-[9px] font-medium mt-0.5">Đánh tới {r.raceTO} ván</p>
                 </div>
               ))}
             </div>
@@ -591,7 +659,7 @@ const BracketView = ({ matches, rounds, flashIds }) => {
                 {rounds.map((r,ri)=>
                   (matchesByRound[r.id]||[]).map((m,mi)=>(
                     <div key={m.id} className="absolute" style={{left:posXL(ri),top:posTop(ri,mi)}}>
-                      <BracketCard match={m} compact={false} flashIds={flashIds}/>
+                      <BracketCard match={m} compact={false} flashIds={flashIds} feedersMap={feedersMap}/>
                     </div>
                   ))
                 )}
@@ -607,7 +675,7 @@ const BracketView = ({ matches, rounds, flashIds }) => {
 /* ═══════════════════════════════════════════════════════════════════
    DOUBLE ELIMINATION VIEWS
 ═══════════════════════════════════════════════════════════════════ */
-const DoubleEliminationBracketView = ({ stages, flashIds }) => {
+const DoubleEliminationBracketView = ({ stages, flashIds, feedersMap }) => {
   const wbStage  = stages.find(s=>s.stageType==="WINNERS");
   const lbStage  = stages.find(s=>s.stageType==="LOSERS");
   const gfStage  = stages.find(s=>s.stageType==="GRAND_FINAL");
@@ -629,7 +697,7 @@ const DoubleEliminationBracketView = ({ stages, flashIds }) => {
             <span className="text-slate-800 dark:text-white text-xs font-semibold tracking-wide">NHÁNH THẮNG (WINNER BRACKET)</span>
             <span className="ml-auto text-[10px] text-slate-400 dark:text-white/30">Thua → Nhánh Thua</span>
           </div>
-          <BracketView matches={wbMatches} rounds={wbRounds} flashIds={flashIds}/>
+          <BracketView matches={wbMatches} rounds={wbRounds} flashIds={flashIds} feedersMap={feedersMap}/>
         </div>
       )}
       {lbMatches.length > 0 && (
@@ -640,7 +708,7 @@ const DoubleEliminationBracketView = ({ stages, flashIds }) => {
             <span className="text-slate-800 dark:text-white text-xs font-semibold tracking-wide">NHÁNH THUA (LOSER BRACKET)</span>
             <span className="ml-auto text-[10px] text-slate-400 dark:text-white/30">Thắng → Chung kết</span>
           </div>
-          <BracketView matches={lbMatches} rounds={lbRounds} flashIds={flashIds}/>
+          <BracketView matches={lbMatches} rounds={lbRounds} flashIds={flashIds} feedersMap={feedersMap}/>
         </div>
       )}
       {gfMatch && (
@@ -649,10 +717,10 @@ const DoubleEliminationBracketView = ({ stages, flashIds }) => {
           <div className="flex items-center gap-2 px-5 py-2.5 border-b border-slate-200 dark:border-white/[0.08]">
             <Trophy size={12} className="text-yellow-400 shrink-0"/>
             <span className="text-slate-800 dark:text-white text-xs font-semibold tracking-wide">CHUNG KẾT LỚN (GRAND FINAL)</span>
-            <span className="ml-auto text-[10px] text-yellow-400/50">Race to {gfMatch.raceTo}</span>
+            <span className="ml-auto text-[10px] text-yellow-400/50">Đánh tới {gfMatch.raceTo} ván</span>
           </div>
           <div className="p-5 flex justify-center">
-            <BracketCard match={gfMatch} compact={false} flashIds={flashIds}/>
+            <BracketCard match={gfMatch} compact={false} flashIds={flashIds} feedersMap={feedersMap}/>
           </div>
         </div>
       )}
@@ -661,14 +729,14 @@ const DoubleEliminationBracketView = ({ stages, flashIds }) => {
 };
 
 const EmptyState = ({ onClear }) => (
-  <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm text-center py-16">
+  <div className="bg-white dark:bg-[#161a22] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm text-center py-16">
     <p className="text-gray-400 dark:text-white/50 text-sm font-light">Không tìm thấy trận đấu phù hợp.</p>
     {onClear && <button onClick={onClear} className="mt-2 text-[#ef342a] text-xs hover:underline">Xóa bộ lọc</button>}
   </div>
 );
 
 const NoBracket = () => (
-  <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm flex flex-col items-center justify-center py-28 gap-2">
+  <div className="bg-white dark:bg-[#161a22] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm flex flex-col items-center justify-center py-28 gap-2">
     <p className="text-gray-200 dark:text-white/15 text-4xl font-semibold">Lịch thi đấu</p>
     <p className="text-gray-400 dark:text-white/50 text-sm font-light">Bracket chưa được sinh hoặc chưa có trận nào</p>
   </div>
@@ -765,6 +833,11 @@ const MatchesTab = ({ tournament }) => {
   );
   const views = VIEWS[format] || VIEWS.single_elimination;
   const validView = views.find(v=>v.id===view) ? view : views[0].id;
+
+  const feedersMap = useMemo(
+    () => buildFeedersMap(stages.flatMap(s => s.matches ?? [])),
+    [stages]
+  );
 
   /* Flatten all matches into component format — gồm cả Playoff để "Tất cả giai đoạn" đủ trận */
   const { allMatches, rounds } = useMemo(() => {
@@ -907,6 +980,13 @@ const MatchesTab = ({ tournament }) => {
     setView("list");
   };
 
+  /* Options cho dropdown lọc vòng — PHẢI khớp namespace id với danh sách trận đang thực sự
+     lọc cho format hiện tại: single_elimination lọc trên koMatches/koRounds (id "rN" trần),
+     còn lại lọc trên allMatches/rounds (id "s{stageId}_rN" — prefix theo stage để tránh đụng
+     giữa các giai đoạn cùng loại). Dùng nhầm "rounds" (global) cho single_elimination khiến
+     value của <option> không bao giờ khớp roundId của koMatches → filter im lặng không lọc gì. */
+  const roundFilterOptions = format === "single_elimination" ? koRounds : rounds;
+
   /* Filtered for list view */
   const filteredMatches = useMemo(() => {
     const q = nameSearch.toLowerCase();
@@ -929,7 +1009,7 @@ const MatchesTab = ({ tournament }) => {
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
-      <p className="text-slate-400 text-sm">Đang tải lịch thi đấu...</p>
+      <p className="text-slate-400 dark:text-white/40 text-sm">Đang tải lịch thi đấu...</p>
     </div>
   );
 
@@ -953,7 +1033,7 @@ const MatchesTab = ({ tournament }) => {
                     className={`flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-200 ${
                       validView===id
                         ?"bg-[#0d1b2e] text-white shadow-sm dark:bg-white dark:text-[#0d1b2e]"
-                        :"bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-white/70 dark:border-white/15 dark:hover:bg-white/10"
+                        :"bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 dark:bg-white/5 dark:text-white/70 dark:border-white/15 dark:hover:bg-white/10"
                     }`}>
               <Icon size={14}/>{label}
             </button>
@@ -968,7 +1048,7 @@ const MatchesTab = ({ tournament }) => {
                   className={`shrink-0 px-4 py-2 rounded-2xl text-sm font-medium transition-all ${
                     stageFilter == null && validView === "list"
                       ? "bg-[#9b1c1c] text-white shadow-sm"
-                      : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
+                      : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
                   }`}>
             Tất cả giai đoạn
           </button>
@@ -984,7 +1064,7 @@ const MatchesTab = ({ tournament }) => {
                       className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium transition-all ${
                         active
                           ? "bg-[#9b1c1c] text-white shadow-sm"
-                          : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
+                          : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 dark:bg-white/5 dark:text-white/70 dark:border-white/15"
                       }`}>
                 {isPlayoff ? (s.name || "Playoff") : (s.name || `Giai đoạn ${s.orderNo}`)}
                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
@@ -998,7 +1078,7 @@ const MatchesTab = ({ tournament }) => {
 
       {/* Filters */}
       {showFilters && (
-        <div className="bg-white dark:bg-[#0d1b2e] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm px-5 py-4">
+        <div className="bg-white dark:bg-[#161a22] rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm px-5 py-4">
           <div className="flex flex-wrap gap-2.5">
             <div className="relative flex-1 min-w-[160px]">
               <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none"/>
@@ -1006,18 +1086,20 @@ const MatchesTab = ({ tournament }) => {
                      onChange={e=>setNameSearch(e.target.value)}
                      className="w-full bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-8 pr-4 py-2 placeholder:text-gray-400 focus:outline-none focus:border-[#0d1b2e]/15 focus:bg-white transition-all dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 dark:border-white/10 dark:focus:bg-white/10 dark:focus:border-white/25"/>
             </div>
-            {format !== "group_stage" && rounds.length > 0 && (
+            {format !== "group_stage" && roundFilterOptions.length > 0 && (
               <div className="relative min-w-[140px]">
                 <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none"/>
                 <select value={roundFilter} onChange={e=>setRoundFilter(e.target.value)}
                         className="w-full appearance-none bg-[#f8f9fb] border border-transparent text-[#0d1b2e] text-sm font-light rounded-2xl pl-4 pr-8 py-2 focus:outline-none focus:border-[#0d1b2e]/15 transition-all cursor-pointer dark:bg-white/5 dark:text-white dark:border-white/10 dark:[&>option]:text-slate-800">
                   <option value="">Tất cả vòng</option>
-                  {rounds.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}
+                  {roundFilterOptions.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}
                 </select>
               </div>
             )}
             <div className="flex items-center px-1">
-              <span className="text-[11px] text-gray-400 dark:text-white/50 font-light">{filteredMatches.length} trận</span>
+              <span className="text-[11px] text-gray-400 dark:text-white/50 font-light">
+                {(format === "single_elimination" ? filteredKo : filteredMatches).length} trận
+              </span>
             </div>
           </div>
         </div>
@@ -1028,29 +1110,29 @@ const MatchesTab = ({ tournament }) => {
       {/* Single Elimination */}
       {format === "single_elimination" && validView === "list" && (
         filteredKo.length > 0
-          ? <ListView matches={filteredKo} rounds={koRounds} flashIds={flashIds}/>
+          ? <ListView matches={filteredKo} rounds={koRounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
       {format === "single_elimination" && validView === "bracket" && (
         koMatches.length > 0
-          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds}/>
+          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <NoBracket/>
       )}
 
       {/* Double Elimination */}
       {format === "double_elimination" && validView === "list" && (
         filteredMatches.length > 0
-          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds}/>
+          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
       {format === "double_elimination" && validView === "bracket" && (
-        <DoubleEliminationBracketView stages={stages} flashIds={flashIds}/>
+        <DoubleEliminationBracketView stages={stages} flashIds={flashIds} feedersMap={feedersMap}/>
       )}
 
       {/* Group stage / Round robin: Lịch đấu */}
       {(format === "group_stage" || format === "round_robin") && validView === "list" && (
         filteredMatches.length > 0
-          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds}/>
+          ? <ListView matches={filteredMatches} rounds={rounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <EmptyState onClear={()=>{setNameSearch("");setRoundFilter("");}}/>
       )}
 
@@ -1062,7 +1144,7 @@ const MatchesTab = ({ tournament }) => {
       {/* Group stage: Playoff (bracket từ vòng knockout) */}
       {format === "group_stage" && validView === "bracket" && (
         koMatches.length > 0
-          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds}/>
+          ? <BracketView matches={koMatches} rounds={koRounds} flashIds={flashIds} feedersMap={feedersMap}/>
           : <NoBracket/>
       )}
     </div>

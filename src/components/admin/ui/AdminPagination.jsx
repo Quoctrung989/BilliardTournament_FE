@@ -10,6 +10,10 @@ const AdminPagination = ({
   onPageChange,
   onPageSizeChange,
   disabled = false,
+  /* Mặc định là bộ dùng chung [9, 18, 24] — hợp với lưới 3 cột của hầu hết màn
+     admin. Màn nào bố cục khác thì truyền bộ riêng, ví dụ lưới 4 cột ở /event
+     cần bội số của 4 để trang nào cũng kết thúc bằng hàng đầy. */
+  pageSizeOptions = PAGE_SIZE_OPTIONS,
 }) => {
   if (totalElements === 0) return null;
 
@@ -39,7 +43,7 @@ const AdminPagination = ({
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
             aria-label="Số dòng mỗi trang"
           >
-            {PAGE_SIZE_OPTIONS.map((n) => (
+            {pageSizeOptions.map((n) => (
               <option key={n} value={n}>
                 {n} / trang
               </option>

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { useCountUp } from "../../../hooks/useCountUp";
 import { listPublicTournaments } from "../../../api/publicTournamentApi";
 import { listPublicBranches } from "../../../api/publicBranchApi";
-import { DEMO_HERO_STATS, withDemo } from "../../../constants/demoData";
 
 /** Một ô số liệu ở dải dưới hero — đếm tăng khi cuộn tới. */
 const HeroStat = ({ label, value, index }) => {
@@ -59,7 +58,7 @@ function useHeroStats() {
             : null
         )
         .filter(Boolean);
-      setStats(withDemo(real, DEMO_HERO_STATS, "Số liệu hero"));
+      setStats(real);
     });
 
     return () => {
@@ -124,11 +123,14 @@ const Banner = () => {
             className="hm-rise text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--wnt25-color-red)]"
             style={{ "--i": 0 }}
           >
-            CAPSTONE • Mùa giải 2026
+            BTMS • Mùa giải 2026
           </span>
 
+          {/* leading và tracking phải chừa chỗ cho dấu — xem chú thích ở
+              global.css, khối h1–h6. Bản cũ `leading-[0.95] tracking-tight`
+              làm "BILLIARDS" dính liền và cắt ngọn dấu trên "ĐỈNH", "VIỆT". */}
           <h1
-            className="hm-rise text-[40px] font-black uppercase leading-[0.95] tracking-tight text-white md:text-[68px]"
+            className="hm-rise text-[40px] font-black uppercase leading-[1.1] text-white md:text-[68px]"
             style={{ "--i": 1 }}
           >
             Sân chơi Billiards
@@ -141,7 +143,7 @@ const Banner = () => {
             style={{ "--i": 2 }}
           >
             Theo dõi lịch thi đấu, bảng xếp hạng và từng đường cơ của các tay cơ
-            hàng đầu — trực tiếp trên hệ thống CAPSTONE.
+            hàng đầu — trực tiếp trên hệ thống BTMS.
           </p>
 
           <div className="hm-rise flex flex-wrap gap-4" style={{ "--i": 3 }}>

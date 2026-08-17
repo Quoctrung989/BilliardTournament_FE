@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import {
+  AiOutlineCheckCircle,
+  AiOutlineEye,
+  AiOutlineEyeInvisible,
+  AiOutlineLoading3Quarters,
+} from "react-icons/ai";
 import * as authApi from "../../api/authApi";
 import { getPostLoginPath } from "../../utils/auth";
 
@@ -10,7 +15,15 @@ const LoginPage = () => {
   const location = useLocation();
   const { loginFromResponse } = useAuthStore();
   const redirectAfterLogin = location.state?.from?.pathname;
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  /* Lời nhắn từ màn khác chuyển sang (hiện chỉ có màn Đăng ký). Đọc một lần lúc
+     mount: giữ trong state để còn xoá được khi người dùng bắt đầu đăng nhập,
+     thay vì đọc thẳng `location.state` ở mỗi lần render. */
+  const [notice, setNotice] = useState(location.state?.notice || "");
+  const [formData, setFormData] = useState({
+    email: location.state?.registeredEmail || "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -44,6 +57,9 @@ const LoginPage = () => {
     newErrors = validateField("password", formData.password, newErrors);
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setErrors({});
+    // Đã bắt tay vào đăng nhập thì lời chúc mừng đăng ký xong không còn chỗ đứng —
+    // nhất là khi lát nữa có lỗi hiện ra, hai khung xanh/đỏ cạnh nhau rất khó hiểu
+    setNotice("");
     setIsLoading(true);
 
     try {
@@ -67,7 +83,7 @@ const LoginPage = () => {
     `w-full px-3 py-2 text-sm border rounded focus:outline-none transition-colors ${
       touched[field] && errors[field]
         ? "border-red-400 bg-red-50 focus:border-red-400"
-        : "border-gray-300 bg-gray-50 focus:border-gray-500 focus:bg-white"
+        : "border-gray-300 dark:border-white/15 bg-gray-50 dark:bg-white/5 focus:border-gray-500 focus:bg-white dark:focus:bg-[#161a22]"
     }`;
 
   return (
@@ -80,22 +96,29 @@ const LoginPage = () => {
           backgroundColor: "#0d1b3e",
         }}
       >
-        {/* Logo CAPSTONE */}
+        {/* Logo BTMS */}
         <div className="text-center mb-5">
           <div style={{ fontSize: 42, fontWeight: 900, color: "#fff", fontStyle: "italic", letterSpacing: -1.5, lineHeight: 1, textTransform: "uppercase" }}>
-            capstone<span style={{ color: "#e8471a" }}>.</span>
+            btms<span style={{ color: "#e8471a" }}>.</span>
           </div>
           <p style={{ fontSize: 13, color: "#ccc", marginTop: 6 }}>
-            Chào mừng bạn đến với nền tảng tỉ số trực tuyến <strong style={{ color: "#fff", fontStyle: "italic", textTransform: "uppercase" }}>capstone</strong>.
+            Chào mừng bạn đến với nền tảng tỉ số trực tuyến <strong style={{ color: "#fff", fontStyle: "italic", textTransform: "uppercase" }}>btms</strong>.
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-lg w-full max-w-sm mx-4" style={{ padding: "28px 28px 24px" }}>
+        <div className="bg-white dark:bg-[#161a22] rounded-lg w-full max-w-sm mx-4" style={{ padding: "28px 28px 24px" }}>
           {/* Log in section */}
           <h2 style={{ fontSize: 13, fontWeight: 700, color: "#1a2a4a", textTransform: "uppercase", letterSpacing: "1.5px", fontStyle: "italic", marginBottom: 16 }}>
             Đăng nhập.
           </h2>
+
+          {notice && (
+            <div className="mb-4 p-3 rounded text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 flex items-start gap-2">
+              <AiOutlineCheckCircle size={14} className="mt-0.5 shrink-0" />
+              <span>{notice}</span>
+            </div>
+          )}
 
           {errors.submit && (
             <div className="mb-4 p-3 rounded text-xs text-red-600 bg-red-50 border border-red-200">
@@ -105,7 +128,7 @@ const LoginPage = () => {
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="mb-3">
-              <label className="block text-xs text-gray-600 mb-1">Địa chỉ E-mail</label>
+              <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Địa chỉ E-mail</label>
               <input
                 type="email"
                 name="email"
@@ -121,16 +144,26 @@ const LoginPage = () => {
             </div>
 
             <div className="mb-2">
-              <label className="block text-xs text-gray-600 mb-1">Mật khẩu</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                onBlur={() => setTouched((p) => ({ ...p, password: true }))}
-                className={inputClass("password")}
-                placeholder="Nhập mật khẩu"
-              />
+              <label className="block text-xs text-gray-600 dark:text-white/70 mb-1">Mật khẩu</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  onBlur={() => setTouched((p) => ({ ...p, password: true }))}
+                  className={`${inputClass("password")} pr-9`}
+                  placeholder="Nhập mật khẩu"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <AiOutlineEyeInvisible size={16} /> : <AiOutlineEye size={16} />}
+                </button>
+              </div>
               {touched.password && errors.password && (
                 <p className="text-red-500 text-xs mt-1">{errors.password}</p>
               )}
@@ -164,14 +197,14 @@ const LoginPage = () => {
           </form>
 
           {/* Divider */}
-          <hr className="my-5 border-gray-200" />
+          <hr className="my-5 border-gray-200 dark:border-white/10" />
 
           {/* Sign up section */}
           <h3 style={{ fontSize: 13, fontWeight: 700, color: "#1a2a4a", textTransform: "uppercase", letterSpacing: "1.5px", fontStyle: "italic", marginBottom: 8 }}>
             Bạn chưa có tài khoản?
           </h3>
           <p className="text-xs text-gray-500 mb-4">
-            Đăng ký ngay để cập nhật tỉ số trực tiếp từ <strong style={{ fontStyle: "italic", color: "#111", textTransform: "uppercase" }}>capstone</strong>.
+            Đăng ký ngay để cập nhật tỉ số trực tiếp từ <strong style={{ fontStyle: "italic", color: "#111", textTransform: "uppercase" }}>btms</strong>.
           </p>
           <button
             type="button"
@@ -202,7 +235,7 @@ const LoginPage = () => {
           {/* Logo Footer */}
           <div>
             <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", fontStyle: "italic", letterSpacing: -1, textTransform: "uppercase" }}>
-              capstone<span style={{ color: "#e8471a" }}>.</span>
+              btms<span style={{ color: "#e8471a" }}>.</span>
             </div>
           </div>
 
@@ -218,10 +251,15 @@ const LoginPage = () => {
           {/* Legal */}
           <div>
             <h4 style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 12 }}>Pháp lý</h4>
+            {/* Chưa có trang đích — xem chú thích cùng khối ở ForgotPasswordPage */}
             {["Điều khoản & Điều kiện", "Chính sách bảo mật", "Chính sách Cookie"].map((item) => (
-              <a key={item} href="#" style={{ fontSize: 12.5, color: "#8a99b5", textDecoration: "none", display: "block", marginBottom: 6 }}>
+              <button
+                key={item}
+                type="button"
+                style={{ fontSize: 12.5, color: "#8a99b5", textDecoration: "none", display: "block", marginBottom: 6, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+              >
                 {item}
-              </a>
+              </button>
             ))}
           </div>
 
@@ -240,7 +278,7 @@ const LoginPage = () => {
 
         <div style={{ borderTop: "1px solid #1e2d4a", marginTop: 28, padding: "14px 0", textAlign: "center" }}>
           <p style={{ fontSize: 11.5, color: "#6b7280" }}>
-            Nền tảng cập nhật tỉ số trực tiếp <strong style={{ fontStyle: "italic", color: "#8a99b5", textTransform: "uppercase" }}>capstone</strong>.<br />
+            Nền tảng cập nhật tỉ số trực tiếp <strong style={{ fontStyle: "italic", color: "#8a99b5", textTransform: "uppercase" }}>btms</strong>.<br />
             Bản quyền © Đã đăng ký bảo hộ cho Matchroom Multi Sport Ltd
           </p>
         </div>

@@ -16,7 +16,7 @@ const BranchCard = ({ branch, index }) => {
 
   return (
     <div
-      className="tournament-card-stream flex flex-col cursor-pointer group bg-white dark:bg-[#0d1b2e] border border-transparent dark:border-white/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
+      className="tournament-card-stream flex flex-col cursor-pointer group bg-white dark:bg-[#161a22] border border-transparent dark:border-white/10 rounded-2xl overflow-hidden shadow-sm"
       style={{ animationDelay: `${index * 0.15}s` }}
       onClick={() => navigate(`/branches/${branch.id}`)}
       role="button"
@@ -32,7 +32,7 @@ const BranchCard = ({ branch, index }) => {
           onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-        <h3 className="absolute bottom-3 left-4 right-4 text-white font-black italic uppercase text-lg leading-tight"
+        <h3 className="absolute bottom-3 left-4 right-4 text-white font-black italic uppercase text-lg leading-[1.3]"
           style={{ textShadow: "0 2px 10px rgba(0,0,0,0.6)" }}>
           {branch.name}
         </h3>
@@ -58,7 +58,7 @@ const BranchCard = ({ branch, index }) => {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); navigate(`/branches/${branch.id}`); }}
-            className="text-xs font-bold tracking-wide uppercase px-4 py-1.5 rounded-full text-white bg-black hover:bg-slate-700 dark:bg-white dark:text-[#0d1b2e] dark:hover:bg-white/80 transition-colors"
+            className="text-xs font-bold tracking-wide uppercase px-4 py-1.5 rounded-full text-white bg-black hover:bg-slate-700 dark:bg-white dark:text-[#0b0d12] dark:hover:bg-white/80 transition-colors"
           >
             Xem chi tiết
           </button>
@@ -133,15 +133,15 @@ const BranchListPage = () => {
   };
 
   return (
-    <div className="w-full bg-white dark:bg-[#0a1220] transition-colors duration-300">
+    <div className="w-full bg-white dark:bg-[#0b0d12] transition-colors duration-300">
 
       {/* ── Hero banner ── */}
-      <div className="w-full relative overflow-hidden bg-white dark:bg-[#0a1220] border-b border-slate-100 dark:border-white/10">
+      <div className="w-full relative overflow-hidden bg-white dark:bg-[#0b0d12] border-b border-slate-100 dark:border-white/10">
         <div className="relative max-w-[1600px] mx-auto px-10 pt-16 pb-10">
           <p className="text-slate-400 dark:text-white/40 text-xs font-bold uppercase tracking-[0.2em] mb-3">
             Hệ thống cơ sở
           </p>
-          <h1 className="text-5xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tight max-w-2xl">
+          <h1 className="text-5xl sm:text-6xl font-black text-slate-900 dark:text-white max-w-2xl">
             Tìm cơ sở gần bạn
           </h1>
           <p className="mt-5 max-w-xl text-sm sm:text-base text-slate-500 dark:text-white/60 leading-relaxed">
@@ -157,7 +157,7 @@ const BranchListPage = () => {
       </div>
 
       {/* ── Search bar ── */}
-      <div className="bg-[#f7f7f7] dark:bg-[#0d1b2e] border-b border-gray-200 dark:border-white/10 sticky top-[64px] z-30">
+      <div className="bg-[#f7f7f7] dark:bg-[#161a22] border-b border-gray-200 dark:border-white/10 sticky top-[64px] z-30">
         <div className="max-w-[1600px] mx-auto px-8 py-3">
           <div className="flex flex-col lg:flex-row lg:items-center gap-3">
             <form onSubmit={handleSearchSubmit} className="relative lg:ml-auto w-full lg:w-72">

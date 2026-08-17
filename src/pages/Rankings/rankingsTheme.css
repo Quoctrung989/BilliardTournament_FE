@@ -1,0 +1,313 @@
+/* Theme cho trang Bảng xếp hạng — phong cách WNT (thẻ trắng nổi trên hero vân bê tông).
+   Class `.dark` do themeStore gắn vào <html> sẽ flip sang bản tối. */
+:root {
+  --rnk-hero-bg: #e6e6e6;
+  --rnk-hero-line: rgba(0, 0, 0, 0.045);
+  --rnk-card-bg: #ffffff;
+  --rnk-card-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  --rnk-divider: #eef1f5;
+  --rnk-row-hover: #f6f8fc;
+  --rnk-rank: #10182b;
+  --rnk-name: #1d2430;
+  --rnk-meta: #9aa3b2;
+  --rnk-value: #92a5c9;
+  --rnk-photo-bg: #f1f3f7;
+  --rnk-red: #ef342a;
+  --rnk-gold: #e0a415;
+  --rnk-silver: #97a3b4;
+  --rnk-bronze: #c07a3e;
+  /* Bản đậm của ba màu trên, chỉ dùng cho chữ. Màu huy chương tươi đủ đẹp làm
+     viền và nền badge, nhưng đặt lên nền thẻ trắng ở cỡ 10px thì nhãn "Á QUÂN"
+     mờ đến mức khó đọc. Viền và badge vẫn giữ màu tươi. */
+  --rnk-gold-ink: #a9760a;
+  --rnk-silver-ink: #66717f;
+  --rnk-bronze-ink: #96551f;
+}
+
+:root.dark {
+  --rnk-hero-bg: #14171d;
+  --rnk-hero-line: rgba(255, 255, 255, 0.05);
+  --rnk-card-bg: #161a22;
+  --rnk-card-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --rnk-divider: rgba(255, 255, 255, 0.08);
+  --rnk-row-hover: rgba(255, 255, 255, 0.045);
+  --rnk-rank: #ffffff;
+  --rnk-name: #ffffff;
+  --rnk-meta: rgba(255, 255, 255, 0.45);
+  --rnk-value: #8fb0e8;
+  --rnk-photo-bg: rgba(255, 255, 255, 0.06);
+  /* Nền tối nuốt mất sắc vàng/đồng của bản sáng — nâng độ sáng cho ba màu huy
+     chương để chúng còn ra chất kim loại chứ không thành nâu xỉn. */
+  --rnk-gold: #f5c451;
+  --rnk-silver: #c7ced8;
+  --rnk-bronze: #d98f4e;
+  /* Nền tối đã cho màu tươi đủ tương phản — chữ dùng thẳng màu huy chương */
+  --rnk-gold-ink: var(--rnk-gold);
+  --rnk-silver-ink: var(--rnk-silver);
+  --rnk-bronze-ink: var(--rnk-bronze);
+}
+
+/* Dùng đúng font mặc định toàn app (reset.css/global.css) — giống Header, Home và trang
+   danh sách giải. KHÔNG ép Poppins ở đây: Poppins chỉ được bật riêng cho trang chi tiết giải
+   qua class `.evt-surface`, và bản nạp trong index.html cũng không có weight 900 lẫn trục
+   italic nên ép vào sẽ bị giả lập, nhìn lệch hẳn so với các trang khác. */
+.rnk-surface {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Nền hero: vân bê tông giả lập bằng gradient chồng lớp — không phụ thuộc ảnh texture */
+.rnk-hero {
+  background-color: var(--rnk-hero-bg);
+  background-image:
+    repeating-linear-gradient(
+      115deg,
+      var(--rnk-hero-line) 0 1px,
+      transparent 1px 9px
+    ),
+    repeating-linear-gradient(
+      -20deg,
+      var(--rnk-hero-line) 0 1px,
+      transparent 1px 14px
+    ),
+    radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.05), transparent 55%),
+    radial-gradient(circle at 82% 68%, rgba(0, 0, 0, 0.05), transparent 55%);
+}
+
+/* Huy hiệu tròn đỏ giữa hero */
+.rnk-badge {
+  background: radial-gradient(circle at 35% 28%, #ff5348 0%, var(--rnk-red) 45%, #c2251d 100%);
+  box-shadow: 0 18px 44px rgba(239, 52, 42, 0.38);
+}
+
+/* Bi trong logo: xếp thành hình thoi 1-2-3-2-1 */
+.rnk-rack-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background: #ffffff;
+}
+
+.rnk-card {
+  background: var(--rnk-card-bg);
+  box-shadow: var(--rnk-card-shadow);
+}
+
+.rnk-row + .rnk-row {
+  border-top: 1px solid var(--rnk-divider);
+}
+
+.rnk-row:hover {
+  background: var(--rnk-row-hover);
+}
+
+/* Số hạng + điểm: chữ nghiêng đậm đặc trưng WNT */
+.rnk-numeric {
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Tên cơ thủ.
+ *
+ * `truncate` ở JSX bật overflow:hidden để cắt tên dài bằng dấu ba chấm. Với
+ * line-height: 1, hộp dòng cao đúng bằng cỡ chữ — vừa đủ cho chữ hoa Latin
+ * trơn, nhưng dấu chồng của chữ hoa tiếng Việt (Ồ, Ố, Ằ, Ế) vươn cao hơn
+ * cap-height nên bị xén mất đỉnh, và dấu nặng (Ộ, Ợ, Ậ) tụt xuống dưới baseline
+ * cũng vậy.
+ *
+ * Nới hộp dòng cho vừa cả hai đầu dấu, thêm chút đệm dọc phòng font có dấu vươn
+ * cao hơn nữa — overflow:hidden cắt ở padding box nên phần đệm này là vùng an
+ * toàn thật sự, không phải chỉ khoảng trống trang trí.
+ */
+.rnk-name {
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+  color: var(--rnk-name);
+  line-height: 1.3;
+  padding-block: 0.06em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Nút lọc kỳ thống kê — kiểu "sao bay"
+
+   Mượn nút của Uiverse (MuhammadHasann): trỏ vào thì nền rỗng đi, quầng sáng
+   nổi lên và sáu ngôi sao bung ra khỏi nút. Đổi cam gốc sang đỏ WNT cho ăn với
+   huy hiệu giữa hero.
+
+   Khác bản gốc một chỗ: bản gốc giấu đàn sao bằng `z-index: -5` để chúng nấp
+   sau nền đặc của nút. Ở đây kỳ không được chọn có nền trong suốt, sao sẽ lộ
+   nguyên hình lúc nghỉ — nên giấu bằng `opacity`. Cách này cũng khỏi phụ thuộc
+   việc nút có mở stacking context hay không.
+   ═══════════════════════════════════════════════════════════════════════ */
+.rnk-period {
+  position: relative;
+  border: 2px solid var(--rnk-red);
+  border-radius: 8px;
+  background: var(--rnk-red);
+  color: #ffffff;
+  box-shadow: 0 0 0 rgba(239, 52, 42, 0.55);
+  cursor: pointer;
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out,
+    border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Kỳ không xem: cùng dáng nhưng rỗng ruột, nhường sự chú ý cho kỳ đang mở */
+.rnk-period:not(.rnk-period--active) {
+  background: transparent;
+  color: var(--rnk-red);
+  border-color: rgba(239, 52, 42, 0.35);
+}
+
+.rnk-period:hover {
+  background: transparent;
+  color: var(--rnk-red);
+  border-color: var(--rnk-red);
+  box-shadow: 0 0 25px rgba(239, 52, 42, 0.55);
+}
+
+.rnk-star {
+  position: absolute;
+  height: auto;
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 0 0 #fffdef);
+}
+
+.rnk-star svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.rnk-star path {
+  fill: #fffdef;
+}
+
+.rnk-period:hover .rnk-star {
+  opacity: 1;
+  filter: drop-shadow(0 0 10px #fffdef);
+}
+
+/* Mỗi sao một quỹ đạo và một nhịp riêng — đàn sao bung ra so le chứ không
+   trôi đồng loạt như một khối. */
+.rnk-star-1 {
+  top: 20%;
+  left: 20%;
+  width: 25px;
+  transition: all 1s cubic-bezier(0.05, 0.83, 0.43, 0.96), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-1 {
+  top: -80%;
+  left: -30%;
+}
+
+.rnk-star-2 {
+  top: 45%;
+  left: 45%;
+  width: 15px;
+  transition: all 1s cubic-bezier(0, 0.4, 0, 1.01), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-2 {
+  top: -25%;
+  left: 10%;
+}
+
+.rnk-star-3 {
+  top: 40%;
+  left: 40%;
+  width: 5px;
+  transition: all 1s cubic-bezier(0, 0.4, 0, 1.01), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-3 {
+  top: 55%;
+  left: 25%;
+}
+
+.rnk-star-4 {
+  top: 20%;
+  left: 40%;
+  width: 8px;
+  transition: all 0.8s cubic-bezier(0, 0.4, 0, 1.01), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-4 {
+  top: 30%;
+  left: 80%;
+}
+
+.rnk-star-5 {
+  top: 25%;
+  left: 45%;
+  width: 15px;
+  transition: all 0.6s cubic-bezier(0, 0.4, 0, 1.01), opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-5 {
+  top: 25%;
+  left: 115%;
+}
+
+.rnk-star-6 {
+  top: 5%;
+  left: 50%;
+  width: 5px;
+  transition: all 0.8s ease, opacity 0.3s ease;
+}
+.rnk-period:hover .rnk-star-6 {
+  top: 5%;
+  left: 60%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Bục vinh danh top 3
+
+   Ba thẻ đứng riêng phía trên bảng, quán quân ở giữa và nhô cao hơn hai bên.
+   Màu huy chương đi qua biến `--rnk-medal` đặt trên từng thẻ, nên viền, badge
+   và quầng sáng chỉ đọc một nguồn.
+   ═══════════════════════════════════════════════════════════════════════ */
+.rnk-podium-card {
+  position: relative;
+  background: var(--rnk-card-bg);
+  border-radius: 18px;
+  border-top: 4px solid var(--rnk-medal);
+  box-shadow: var(--rnk-card-shadow);
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.rnk-podium-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--rnk-card-shadow), 0 0 30px var(--rnk-medal-glow);
+}
+
+.rnk-podium-photo {
+  border-radius: 9999px;
+  border: 3px solid var(--rnk-medal);
+  background: var(--rnk-photo-bg);
+  overflow: hidden;
+}
+
+.rnk-podium-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 9999px;
+  background: var(--rnk-medal);
+  color: #10182b;
+  font-weight: 900;
+  font-style: italic;
+  font-size: 15px;
+  box-shadow: 0 4px 14px var(--rnk-medal-glow);
+}
+
+@media (max-width: 640px) {
+  .rnk-hero {
+    min-height: 260px;
+  }
+}

@@ -1,7 +1,17 @@
+/* Nhãn hiển thị cho các giá trị enum config phổ biến — khớp với ENUM_LABELS
+   ở TournamentDetailPage.jsx (trang xem, chỉ đọc) để Owner thấy đúng 1 nhãn
+   xuyên suốt lúc cấu hình lẫn lúc xem lại. */
+const ENUM_OPTION_LABELS = {
+  RANDOM: "Ngẫu nhiên", RANK: "Theo hạng cơ thủ",
+  ALTERNATE_BREAK: "Luân phiên", WINNER_BREAK: "Người thắng ván trước", LOSER_BREAK: "Người thua ván trước",
+  GAME: "Ván", FRAME: "Hiệp",
+  FULL_DE: "Đánh loại kép tới vô địch", CUT_TO_SE: "Gộp nhánh, đánh loại trực tiếp",
+};
+
 const TournamentConfigFieldForm = ({ fields, onChange }) => {
   if (!fields?.length) {
     return (
-      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white">
+      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white dark:bg-[#161a22]">
         Chưa có trường cấu hình cho thể thức này
       </p>
     );
@@ -15,6 +25,20 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
     const ui = field.uiComponent;
     const value = field.value ?? field.defaultValue ?? "";
     const enumOptions = field.enumOptions || [];
+
+    // bracket_size là giá trị DẪN XUẤT — backend luôn trả về số cơ thủ đang thực sự có mặt
+    // trong giải. Cho sửa sẽ gây hiểu nhầm: nhập gì cũng bị ghi đè ở lần tải lại kế tiếp.
+    if (field.fieldKey === "bracket_size") {
+      return (
+        <div className="pt-1">
+          <span className="text-lg font-bold text-slate-900">{value || 0}</span>
+          <span className="ml-1.5 text-sm text-slate-500">người</span>
+          <p className="text-xs text-slate-400 mt-1">
+            Tự động theo số cơ thủ hiện có trong giải, không chỉnh tay được.
+          </p>
+        </div>
+      );
+    }
 
     if (ui === "NUMBER") {
       return (
@@ -43,9 +67,30 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
           >
             <span className="admin-toggle-knob" />
           </button>
-          <span className={`text-sm font-medium ${checked ? "text-green-700" : "text-slate-400"}`}>
+          <span className={`text-sm font-medium ${checked ? "text-green-700" : "text-slate-400 dark:text-white/40"}`}>
             {checked ? "Kích hoạt" : "Tắt"}
           </span>
+        </div>
+      );
+    }
+
+    if (ui === "RADIO_GROUP") {
+      return (
+        <div className="flex flex-col gap-2">
+          {enumOptions.map((opt) => (
+            <label
+              key={opt}
+              className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"
+            >
+              <input
+                type="radio"
+                name={`config-radio-${field.fieldKey ?? index}`}
+                checked={value === opt}
+                onChange={() => updateField(index, { value: opt })}
+              />
+              {ENUM_OPTION_LABELS[opt] || opt}
+            </label>
+          ))}
         </div>
       );
     }
@@ -83,18 +128,21 @@ const TournamentConfigFieldForm = ({ fields, onChange }) => {
         <div key={field.fieldKey ?? index} className="admin-card p-4">
           <div className="mb-3">
             <div className="flex items-start justify-between gap-2">
-              <p className="font-medium text-slate-800 text-sm leading-snug">
+              <p className="font-medium text-slate-800 dark:text-white/85 text-sm leading-snug">
                 {field.label || field.fieldKey}
                 {field.isRequired && <span className="text-red-500 ml-1">*</span>}
               </p>
-              {field.source && (
-                <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+              {/* bracket_size luôn source=TOURNAMENT phía BE (đánh dấu "không phải default admin"),
+                  nhưng đó là giá trị dẫn xuất tự tính, không phải Owner chỉnh tay — hiện "Đã chỉnh"
+                  cho field đã ghi rõ "không chỉnh tay được" ngay bên dưới là tự mâu thuẫn. */}
+              {field.source && field.fieldKey !== "bracket_size" && (
+                <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-slate-400 dark:text-white/40 bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded">
                   {field.source === "TOURNAMENT" ? "Đã chỉnh" : "Mặc định"}
                 </span>
               )}
             </div>
             {field.description && (
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">{field.description}</p>
+              <p className="text-xs text-slate-500 dark:text-white/60 mt-1 leading-relaxed">{field.description}</p>
             )}
           </div>
           <div>{renderValueInput(field, index)}</div>

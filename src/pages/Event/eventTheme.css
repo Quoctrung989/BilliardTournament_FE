@@ -11,7 +11,7 @@
      tươi (#f59e0b) trên trắng chỉ đạt ~2:1, dưới ngưỡng đọc được. */
   --evt-fee: #dc2626;
   --evt-prize: #b45309;
-  --evt-accent: #0c1527;
+  --evt-accent: #0e1116;
   --evt-heading: #010851;
   --evt-text: #1e293b;
   --evt-text-2: #475569;
@@ -20,7 +20,6 @@
   --evt-name: #0d1b2e;
   --evt-row-hover: #f8f9fb;
   --evt-filter-bg: #f7f7f7;
-  --evt-card-footer: #e8eaed;
   --evt-bracket-line: rgba(15, 23, 42, 0.18);
   --evt-gold: #c9a227;
   --evt-gold-soft: #e8c65a;
@@ -28,8 +27,11 @@
 }
 
 :root.dark {
-  --evt-page-bg: #0a1220;
-  --evt-card-bg: linear-gradient(160deg, #0d1b2e 0%, #0f2237 100%);
+  --evt-page-bg: #0b0d12;
+  /* Bám đúng thẻ của landing (#161a22). Bản cũ đi từ #0d1b2e tới #0f2237 —
+     hiệu B−R lên tới 40, thành mảng xanh nổi trên nền đen #0b0d12 của trang.
+     Vẫn giữ gradient để card có chiều sâu, chỉ hạ độ xanh xuống đúng tông. */
+  --evt-card-bg: linear-gradient(160deg, #161a22 0%, #1b1f28 100%);
   --evt-card-border: rgba(255, 255, 255, 0.08);
   --evt-subtle: rgba(255, 255, 255, 0.08);
   --evt-box-bg: rgba(255, 255, 255, 0.05);
@@ -44,8 +46,7 @@
   --evt-text-4: rgba(255, 255, 255, 0.45);
   --evt-name: #ffffff;
   --evt-row-hover: rgba(255, 255, 255, 0.05);
-  --evt-filter-bg: #0d1b2e;
-  --evt-card-footer: #14202f;
+  --evt-filter-bg: #161a22;
   --evt-bracket-line: rgba(255, 255, 255, 0.16);
 }
 
@@ -174,9 +175,12 @@
   border-radius: 1rem;
   overflow: hidden;
   cursor: pointer;
+  /* Khối vô địch tối ở CẢ hai chế độ nên màu để cứng. Điểm giữa cũ là #12253f,
+     hiệu B−R tới 45 — xanh nhất trang. Hạ về 26 cho khớp tông landing; ánh
+     vàng của lớp radial phía trên vẫn là thứ làm khối này nổi bật. */
   background:
     radial-gradient(120% 140% at 0% 50%, rgba(201, 162, 39, 0.22), transparent 55%),
-    linear-gradient(115deg, #07101c 0%, #12253f 48%, #0a1628 100%);
+    linear-gradient(115deg, #080a0e 0%, #1d212a 48%, #0f1218 100%);
   border: 1px solid rgba(201, 162, 39, 0.45);
   box-shadow: 0 12px 36px rgba(10, 22, 40, 0.28);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -423,58 +427,222 @@
   animation: evt-live-pulse 1.6s ease-out infinite;
 }
 
-/* Nút XEM / KẾT QUẢ dưới card */
+/*
+ * Nút XEM / KẾT QUẢ dưới card.
+ *
+ * Bo 10px chứ không phải viên thuốc: dải đáy là một thanh chữ nhật, nút bo tròn
+ * hẳn nằm trong đó trông như nhãn dán rời. Góc mềm vừa phải cho cảm giác nút
+ * thuộc về thanh.
+ *
+ * Lúc nghỉ chữ để ở 78% chứ không phải đủ độ — nếu không thì ở chế độ sáng chữ
+ * vốn đã là #fff, hover chẳng còn chỗ nào để sáng thêm.
+ */
 .evt-cta {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   padding: 0.5rem 1.15rem;
-  border-radius: 100px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
   background: var(--evt-accent);
-  color: var(--evt-cta-text, #fff);
+  color: color-mix(in srgb, var(--evt-cta-text, #fff) 78%, transparent);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.5, 1),
-    box-shadow 0.28s ease, background-color 0.28s ease;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), color 0.22s ease;
 }
 
+/* Trỏ vào: chữ ăn đủ độ và nút nhích lên. Nền giữ nguyên — đổi cả nền thì
+   thành nút khác chứ không còn là "làm nổi nhẹ". */
 .evt-cta:hover {
-  transform: scale(1.12);
-  background: var(--wnt25-color-red);
-  color: #fff;
-  box-shadow: 0 8px 20px -6px rgba(239, 52, 42, 0.65);
+  transform: translateY(-2px);
+  color: var(--evt-cta-text, #fff);
 }
 
 .evt-cta:active {
-  transform: scale(1.02);
+  transform: translateY(0);
 }
 
-/* Card hover cũng đẩy nút lớn lên một chút — nút là đích bấm chính */
-.group:hover .evt-cta {
-  transform: scale(1.06);
+/*
+ * Biến thể nằm giữa ảnh, hiện khi trỏ vào card.
+ *
+ * Không nền, không viền, không đổ bóng — chỉ còn chữ nằm trên lớp phủ mờ của
+ * card. Trỏ thẳng vào thì chữ ăn đủ độ trắng và toả sáng bằng `text-shadow`.
+ *
+ * Màu chữ ghi thẳng chứ không đi qua `--evt-cta-text`: ở chế độ tối biến đó là
+ * #0d1b2e, đặt lên lớp phủ tối là chữ đen trên nền đen, mất hút.
+ *
+ * `white-space: nowrap` là điểm mấu chốt của cả thay đổi này: nhãn dài như
+ * "Tỷ số trực tiếp" trước đây xuống hai dòng và kéo cao dải đáy, làm card lệch
+ * nhau trong lưới. Ở đây nút nằm trên khối ảnh tỉ lệ 3/4 nên có dài ra cũng
+ * không ảnh hưởng chiều cao card.
+ */
+.evt-cta--overlay {
+  padding: 0.62rem 1.4rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  box-shadow: none;
+  transition: color 0.22s ease, text-shadow 0.22s ease;
 }
 
-.group:hover .evt-cta:hover {
-  transform: scale(1.12);
+.evt-cta--overlay:hover {
+  color: #fff;
+  /* Hai lớp: quầng gần cho nét chữ dày lên, quầng xa cho ánh lan ra nền */
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.75), 0 0 30px rgba(255, 255, 255, 0.4);
+  transform: none;
+}
+
+/*
+ * Màn cảm ứng: nút hiện thường trực mà không có lớp phủ phía sau, nên phải tự
+ * mang nền — chữ trắng mờ đặt thẳng lên ảnh sáng thì không đọc nổi.
+ */
+@media (hover: none) {
+  .evt-cta--overlay {
+    background: rgba(8, 11, 18, 0.62);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    color: #fff;
+  }
+}
+
+/*
+ * Lớp phủ chứa nút.
+ *
+ * Mặc định (màn cảm ứng) nút hiện sẵn, không có lớp tối: ở đó không có trạng
+ * thái hover nên giấu nút đi là vĩnh viễn không chạm tới được.
+ */
+.evt-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .evt-overlay {
+    opacity: 0;
+    /* Không có dòng này thì nút vô hình vẫn ăn cú bấm giữa card */
+    pointer-events: none;
+    background: rgba(8, 11, 18, 0.58);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    transition: opacity 0.28s ease;
+  }
+
+  /* `focus-within` để người dùng bàn phím cũng thấy nút khi tab tới */
+  .group:hover .evt-overlay,
+  .group:focus-within .evt-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .dark .evt-cta {
   --evt-cta-text: #0d1b2e;
 }
 
+/*
+ * Chip lọc ở thanh trên mượn gạch chân đỏ của nav link để thao tác lọc có cùng
+ * ngôn ngữ với thanh điều hướng — xem `.ui-underline--chip` trong
+ * styles/global.css. Trang tin tức dùng chung class đó nên nó không còn sống
+ * riêng ở đây nữa.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Khung gradient + quầng sáng khi trỏ vào
+
+   Hai lớp lồng nhau: lớp ngoài mang gradient, lớp trong mang nền card và phủ
+   kín lớp ngoài. Lúc nghỉ không thấy gradient đâu cả. Trỏ vào thì lớp trong
+   co lại 2%, để lộ một vành gradient mỏng quanh mép, đồng thời lớp ngoài toả
+   quầng sáng ra ngoài.
+
+   Chỗ đổi so với mẫu gốc: không cố định 190×254px — card co theo lưới nên
+   dùng 100%.
+
+   Mẫu gốc để lớp trong vuông góc lúc nghỉ rồi mới bo 20px khi hover. Ở đây bo
+   sẵn cả hai: card trong lưới này vốn đã bo góc, để nó vuông lúc nghỉ rồi nảy
+   sang bo tròn là một cú giật không ăn nhập với phần còn lại của trang.
+
+   Màu giữ đúng bảng của mẫu — xanh lá #00ff75 → xanh dương #3700ff, quầng
+   sáng xanh lá. Đây là ngoại lệ CÓ CHỦ ĐÍCH với tông đỏ–vàng của BTMS: chỉ áp
+   cho vành card ở lưới giải đấu, không mang sang chỗ khác. Bản trước dùng
+   vàng → đỏ cho khớp thương hiệu nhưng đọc ra quá ấm.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.evt-card-frame {
+  display: flex;
+  width: 100%;
+  border-radius: 20px;
+  background-image: linear-gradient(163deg, #00ff75 0%, #3700ff 100%);
+  transition: box-shadow 0.3s ease;
+}
+
+.evt-card-frame:hover {
+  box-shadow: 0 0 30px 1px rgba(0, 255, 117, 0.3);
+}
+
+.evt-card-body {
+  width: 100%;
+  border-radius: 20px;
+  /* Bo góc dồn về đây, nên khối ảnh và dòng ngày bên trong không cần tự bo —
+     cũng là thứ xoá luôn đường nối giữa hai phần */
+  overflow: hidden;
+  background: var(--evt-card-bg);
+  transition: transform 0.2s ease;
+}
+
+.evt-card-body:hover {
+  transform: scale(0.98);
+}
+
+/*
+ * Dòng ngày dưới ảnh.
+ *
+ * Bỏ nền xám riêng vốn cắt card thành hai mảnh; giờ nó
+ * nằm thẳng trên nền card, liền một khối. Mất nền tương phản thì chữ phải tự
+ * đứng được: dùng --evt-text thay cho --evt-text-2, to hơn và đậm hơn.
+ */
+.evt-card-date {
+  padding: 0.72rem 0.9rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--evt-text);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Khối ảnh của card
+
+   Trước đây khối này lật 180° khi trỏ vào để lộ nút điều hướng. Đã gỡ: hiệu
+   ứng quá nặng tay cho một lưới nhiều card, và giấu nút sau một phép quay
+   880ms khiến thao tác chậm hơn là nhanh hơn. Giờ trỏ vào thì lớp phủ mờ hiện
+   ra kèm nút ở giữa — xem .evt-overlay.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.evt-media {
+  position: relative;
+  overflow: hidden;
+}
+
+
 @media (prefers-reduced-motion: reduce) {
   .evt-status--live .evt-status__dot {
     animation: none;
   }
 
+  /* Bỏ phần nhích lên, giữ lại phần chữ sáng — đổi màu không phải chuyển động */
   .evt-cta:hover,
   .evt-cta:active,
-  .group:hover .evt-cta,
   .group:hover .evt-status {
     transform: none;
   }
 }
+

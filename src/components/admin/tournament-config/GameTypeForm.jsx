@@ -33,14 +33,14 @@ const GameTypeForm = ({
               onChange={(e) => onChange({ code: e.target.value.toUpperCase() })}
             />
             {errors.code && <p className="text-xs text-rose-600 mt-1">{errors.code}</p>}
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-white/60 mt-1">
               Viết hoa, gạch dưới (vd. 9_BALL) — không đổi sau khi tạo.
             </p>
           </div>
         ) : (
           <div className="sm:col-span-2">
             <label className="admin-label">Mã loại bi</label>
-            <input className="admin-input mt-1 font-mono bg-slate-50" value={form.code} readOnly />
+            <input className="admin-input mt-1 font-mono bg-slate-50 dark:bg-white/5" value={form.code} readOnly />
           </div>
         )}
 
@@ -60,14 +60,14 @@ const GameTypeForm = ({
           <textarea
             className="admin-input mt-1"
             rows={2}
-            placeholder="Race-to, luật break..."
+            placeholder="Số ván thắng, luật giao bóng..."
             value={form.description}
             onChange={(e) => onChange({ description: e.target.value })}
           />
         </div>
 
         <div>
-          <label className="admin-label">Race-to mặc định</label>
+          <label className="admin-label">Số ván thắng mặc định</label>
           <input
             type="number"
             min={1}
@@ -91,7 +91,7 @@ const GameTypeForm = ({
               Kích hoạt ngay
             </label>
           ) : (
-            <p className="text-xs text-slate-500 rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+            <p className="text-xs text-slate-500 dark:text-white/60 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 px-3 py-2">
               Bật/tắt dùng công tắc trên bảng.
             </p>
           )}
@@ -99,9 +99,9 @@ const GameTypeForm = ({
 
         <div className="sm:col-span-2">
           <label className="admin-label">Loại bàn tương thích</label>
-          <div className="flex flex-wrap gap-4 mt-2 p-3 rounded-lg border border-slate-100 bg-slate-50/80">
+          <div className="flex flex-wrap gap-4 mt-2 p-3 rounded-lg border border-slate-100 dark:border-white/10 bg-slate-50/80">
             {COMPATIBLE_TABLE_TYPES.map((t) => (
-              <label key={t.value} className="flex items-center gap-2 text-sm text-slate-700">
+              <label key={t.value} className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/75">
                 <input
                   type="checkbox"
                   checked={(form.compatibleTableTypes || []).includes(t.value)}
@@ -135,7 +135,7 @@ export const validateGameTypeForm = (form, { isCreate = false } = {}) => {
 
   const race = form.defaultRaceTo === "" ? null : Number(form.defaultRaceTo);
   if (form.defaultRaceTo !== "" && (Number.isNaN(race) || race < 1)) {
-    errors.defaultRaceTo = "Race-to phải là số nguyên ≥ 1";
+    errors.defaultRaceTo = "Số ván thắng phải là số nguyên ≥ 1";
   }
 
   if (Object.keys(errors).length > 0) return { errors };

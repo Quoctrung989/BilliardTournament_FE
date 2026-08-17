@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { listPublicTournaments } from "../../../api/publicTournamentApi";
 import { listPublishedPosts } from "../../../api/newsApi";
-import { DEMO_POSTS, DEMO_TOURNAMENTS, withDemo } from "../../../constants/demoData";
 
 /**
  * Cache ở cấp module: trang có nhiều dải cùng nguồn (giải đấu dùng cho cả dải
@@ -10,11 +9,6 @@ import { DEMO_POSTS, DEMO_TOURNAMENTS, withDemo } from "../../../constants/demoD
  * tab là chấp nhận được.
  */
 const cache = {};
-
-const DEMO_NAMES = {
-  tournaments: DEMO_TOURNAMENTS.map((t) => t.name),
-  news: DEMO_POSTS.map((p) => p.title),
-};
 
 const loaders = {
   tournaments: () =>
@@ -29,9 +23,7 @@ const loaders = {
 
 const fetchItems = (source) => {
   if (!cache[source]) {
-    cache[source] = loaders[source]()
-      .catch(() => [])
-      .then((list) => withDemo(list, DEMO_NAMES[source], `Dải chạy (${source})`));
+    cache[source] = loaders[source]().catch(() => []);
   }
   return cache[source];
 };

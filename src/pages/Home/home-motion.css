@@ -127,22 +127,11 @@
    QUAN TRỌNG: .hm-card không bao giờ được đặt cùng phần tử với .hm-stagger.
    Stagger đặt transition-delay theo --i, delay đó sẽ áp luôn cho hover khiến
    card càng ở sau càng chậm nhấc lên. Luôn để stagger ở cha, hover ở con. */
-.hm-card {
-  position: relative;
-  transition: transform 0.34s cubic-bezier(0.34, 1.4, 0.5, 1),
-    box-shadow 0.34s ease, border-color 0.34s ease;
-}
-
-.hm-card:hover {
-  transform: translateY(-14px) scale(1.025);
-  z-index: 5;
-  box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.5);
-  border-color: var(--wnt25-color-red);
-}
-
-.dark .hm-card:hover {
-  box-shadow: 0 30px 50px -16px rgba(0, 0, 0, 0.85);
-}
+/* Hover của .hm-card đã chuyển về khối card dùng chung trong styles/motion.css
+   (co 2% + vành gradient + quầng xanh). Trước đây chỗ này nhấc 14px, phóng
+   2.5% và tô viền đỏ — ba thứ đó nay bỏ hết để trang chủ đi cùng ngôn ngữ với
+   lưới giải đấu và các lưới còn lại. Định nghĩa `position`/`transition` cũng
+   nằm bên đó luôn, đừng khai lại ở đây kẻo ghi đè lẫn nhau. */
 
 /* Vệt sáng quét chéo qua card khi hover. Đặt trên phần tử đã có
    overflow-hidden nên vệt bị cắt gọn trong bo góc. */

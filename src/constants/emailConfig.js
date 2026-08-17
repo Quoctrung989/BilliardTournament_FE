@@ -6,6 +6,7 @@ export const EMAIL_TEMPLATE_CATEGORIES = [
 ];
 
 export const EMAIL_EVENT_TYPES = [
+  { value: "USER_REGISTERED", label: "Người dùng đăng ký tài khoản mới" },
   { value: "REGISTRATION_SUBMITTED", label: "Đăng ký mới được gửi" },
   { value: "REGISTRATION_APPROVED", label: "Đăng ký được duyệt" },
   { value: "REGISTRATION_REJECTED", label: "Đăng ký bị từ chối" },
@@ -38,6 +39,12 @@ export const EMAIL_RECIPIENT_TYPES = [
   { value: "MATCH_PLAYERS", label: "2 vận động viên của trận đấu" },
   { value: "ROLE_STAFF", label: "Toàn bộ nhân viên" },
 ];
+
+export const EMAIL_TRIGGER_TYPE_LABELS = {
+  MANUAL: "Gửi thủ công",
+  AUTOMATION: "Tự động theo sự kiện",
+  SYSTEM: "Hệ thống / lịch định kỳ",
+};
 
 export const EMAIL_SEND_STATUS_LABELS = {
   QUEUED: "Đang chờ gửi",

@@ -179,7 +179,7 @@ const RegistrationFieldCatalogPage = () => {
   return (
     <div className="space-y-6">
       <AdminCard padding={false}>
-        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100">
+        <div className="p-5 flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-100 dark:border-white/10">
           <div className="w-full sm:w-44">
             <label className="admin-label">Trạng thái</label>
             <select
@@ -236,10 +236,10 @@ const RegistrationFieldCatalogPage = () => {
                       <span className="admin-table-name">{row.label}</span>
                     </td>
                     <td>
-                      <span className="text-slate-600 text-sm">{row.dataType}</span>
+                      <span className="text-slate-600 dark:text-white/70 text-sm">{row.dataType}</span>
                     </td>
                     <td>
-                      <span className="text-slate-600 text-sm">{row.uiComponent}</span>
+                      <span className="text-slate-600 dark:text-white/70 text-sm">{row.uiComponent}</span>
                     </td>
                     <td className="align-center">
                       <span className="admin-table-toggle-wrap">

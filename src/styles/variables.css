@@ -4,9 +4,11 @@
   --font-sans: "Poppins", "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* Tiêu đề. Bebas Neue chỉ có một weight (400) và KHÔNG có bản italic thật —
-     `font-style: italic` sẽ là nghiêng tổng hợp do trình duyệt tạo. */
-  --font-display: "Bebas Neue", "Oswald", "Be Vietnam Pro", system-ui, sans-serif;
+  /* Tiêu đề. KHÔNG thêm Bebas Neue lại vào đây — xem chú thích ở index.html.
+     Oswald cũng không có bản italic thật, `font-style: italic` là nghiêng tổng
+     hợp do trình duyệt tạo; nhưng giờ chỉ còn MỘT font nên cả dòng nghiêng đều
+     một góc. */
+  --font-display: "Oswald", "Be Vietnam Pro", system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     monospace;
 

@@ -1,7 +1,7 @@
 const DynamicRegistrationTemplateFieldForm = ({ fields, onChange, onRemove }) => {
   if (!fields?.length) {
     return (
-      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white">
+      <p className="text-sm text-gray-500 py-6 text-center border border-dashed rounded-lg bg-white dark:bg-[#161a22]">
         Chưa có field — thêm từ catalog bên dưới
       </p>
     );
@@ -17,10 +17,10 @@ const DynamicRegistrationTemplateFieldForm = ({ fields, onChange, onRemove }) =>
         <div key={field.fieldKey ?? index} className="admin-card p-4">
           <div className="flex justify-between items-start gap-4 mb-3">
             <div>
-              <h4 className="font-semibold text-slate-800">
+              <h4 className="font-semibold text-slate-800 dark:text-white/85">
                 {field.labelOverride || field.label || field.fieldKey}
               </h4>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-white/60 mt-1">
                 <code>{field.fieldKey}</code>
                 {" · "}
                 {field.dataType} / {field.uiComponent}
