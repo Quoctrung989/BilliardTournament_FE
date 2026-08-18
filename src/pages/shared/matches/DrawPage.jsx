@@ -47,8 +47,16 @@ const STATUS_CFG = {
 /* Stage vòng tròn (mỗi cặp gặp nhau 1 lần) — mọi vòng chỉ là "Vòng N", KHÔNG có tứ/bán/chung kết. */
 const LEAGUE_STAGE_TYPES = ["GROUP", "PROGRESSIVE_ROUND"];
 
+/*
+ * Nhánh Thắng/Thua (WINNERS/LOSERS) của loại kép KHÔNG dẫn thẳng tới chức vô địch — thắng xong vẫn
+ * phải vào Last X (FINAL_BRACKET) đấu tiếp, nơi ĐÃ có Bán kết/Chung kết riêng của chính nó. Mượn
+ * tên "Bán kết"/"Chung kết" cho nhánh Thắng/Thua sẽ đụng tên với Last X, khiến người xem tưởng đã
+ * tới bán kết/chung kết thật trong khi còn phải đấu tiếp ở Last X. Luôn gọi trung tính "Vòng N".
+ */
+const NEUTRAL_ROUND_STAGE_TYPES = [...LEAGUE_STAGE_TYPES, "WINNERS", "LOSERS"];
+
 function getRoundStyle(roundNo, totalRounds, stageType) {
-  if (LEAGUE_STAGE_TYPES.includes(stageType)) {
+  if (NEUTRAL_ROUND_STAGE_TYPES.includes(stageType)) {
     return { ...ROUND_STYLE.round, label: `Vòng ${roundNo}` };
   }
   const diff = totalRounds - roundNo;
