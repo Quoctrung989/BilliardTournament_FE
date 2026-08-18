@@ -132,7 +132,7 @@ const MatchNode = ({ match, nodeRef, onStart, onScore, onComplete, starting, fla
    (đo thật thay vì suy luận toán học → luôn đúng kể cả nhánh
    thua có cách nối lệch pha chẵn/lẻ vòng).
 ══════════════════════════════════════════════════════════ */
-const ConnectorOverlay = ({ containerRef, nodesRef, links, signal }) => {
+export const ConnectorOverlay = ({ containerRef, nodesRef, links, signal, className }) => {
   const [paths, setPaths] = useState([]);
   /* Kích thước vẽ phải bám theo TOÀN BỘ nội dung, không phải phần đang nhìn
      thấy: container có `overflow-x-auto`, nên với bracket nhiều vòng thì
@@ -204,7 +204,10 @@ const ConnectorOverlay = ({ containerRef, nodesRef, links, signal }) => {
 
   return (
     <svg
-      className="absolute left-0 top-0 pointer-events-none text-slate-300 dark:text-white/20"
+      /* Định vị luôn giữ nguyên; `className` chỉ để đắp thêm màu. Màn chiếu bốc
+         thăm có nền tối cố định, không theo class `.dark` của app, nên nó tự
+         truyền màu đường nối riêng. */
+      className={`absolute left-0 top-0 pointer-events-none ${className ?? "text-slate-300 dark:text-white/20"}`}
       width={size.w || "100%"}
       height={size.h || "100%"}
       style={{ zIndex: 0 }}
