@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronDown, Eye, FileText, Plus, Settings, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -138,22 +138,39 @@ const RowMenu = ({ row, basePath, navigate }) => {
 /* ── Main page ───────────────────────────────────────── */
 const TournamentListPage = ({ api, branchApi, basePath }) => {
   const navigate = useNavigate();
+  /** Đồng bộ filter/trang vào URL (?status=...&gameType=...) — bấm vào 1 giải rồi quay lại
+   * (nút "Danh sách giải" dùng navigate(-1)) sẽ trả về đúng URL này, không mất filter đã chọn. */
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useState(() => Number(searchParams.get("page")) || 0);
+  const [pageSize, setPageSize] = useState(() => Number(searchParams.get("size")) || DEFAULT_PAGE_SIZE);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [searchApplied, setSearchApplied] = useState("");
-  const [gameTypeFilter, setGameTypeFilter] = useState("");
-  const [participantTypeFilter, setParticipantTypeFilter] = useState("");
-  const [isRegisterFilter, setIsRegisterFilter] = useState("");
-  const [branchIdFilter, setBranchIdFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get("status") || "");
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("search") || "");
+  const [searchApplied, setSearchApplied] = useState(() => searchParams.get("search") || "");
+  const [gameTypeFilter, setGameTypeFilter] = useState(() => searchParams.get("gameType") || "");
+  const [participantTypeFilter, setParticipantTypeFilter] = useState(() => searchParams.get("participantType") || "");
+  const [isRegisterFilter, setIsRegisterFilter] = useState(() => searchParams.get("isRegister") || "");
+  const [branchIdFilter, setBranchIdFilter] = useState(() => searchParams.get("branchId") || "");
   const [gameTypes, setGameTypes] = useState([]);
   const [branches, setBranches] = useState([]);
   const [visibilitySavingId, setVisibilitySavingId] = useState(null);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (page) next.set("page", String(page));
+    if (pageSize !== DEFAULT_PAGE_SIZE) next.set("size", String(pageSize));
+    if (statusFilter) next.set("status", statusFilter);
+    if (searchApplied) next.set("search", searchApplied);
+    if (gameTypeFilter) next.set("gameType", gameTypeFilter);
+    if (participantTypeFilter) next.set("participantType", participantTypeFilter);
+    if (isRegisterFilter) next.set("isRegister", isRegisterFilter);
+    if (branchIdFilter) next.set("branchId", branchIdFilter);
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize, statusFilter, searchApplied, gameTypeFilter, participantTypeFilter, isRegisterFilter, branchIdFilter]);
 
   useEffect(() => {
     api
