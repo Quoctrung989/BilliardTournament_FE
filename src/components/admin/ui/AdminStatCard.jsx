@@ -23,8 +23,13 @@ const AdminStatCard = ({ label, value, hint, icon: Icon, trend, accent = "indigo
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
           <p
-            className={`font-bold text-slate-900 dark:text-slate-100 mt-1 tracking-tight break-words ${
-              valueSize === "sm" ? "text-base leading-snug line-clamp-2" : "text-2xl"
+            className={`font-bold text-slate-900 dark:text-slate-100 mt-1 tracking-tight ${
+              valueSize === "sm"
+                ? "text-base leading-snug line-clamp-2 break-words"
+                /* Con số không được gãy giữa chừng ("9.000.0 / 00 đ"): cấm wrap
+                   rồi cắt bằng ellipsis nếu quá dài. Từ 2xl trở lên lưới KPI
+                   chuyển sang 6 cột nên thẻ hẹp lại — hạ một cỡ chữ. */
+                : "text-2xl 2xl:text-xl whitespace-nowrap overflow-hidden text-ellipsis"
             }`}
             title={typeof value === "string" ? value : undefined}
           >
