@@ -21,21 +21,24 @@ const STAGE_META = {
 /** Các loại stage có hình cây nhị phân (round/positionNo + nextMatchWinId) — vẽ được sơ đồ. */
 const TREE_STAGE_TYPES = new Set(["KNOCKOUT", "WINNERS", "LOSERS", "FINAL_BRACKET", "PROGRESSIVE_PLAYOFF"]);
 
-function roundLabel(roundNo, totalRounds) {
+/**
+ * "Tứ kết/Bán kết/Chung kết" chỉ đúng nghĩa ở vòng THẬT SỰ dẫn thẳng tới chức vô địch — tức
+ * KNOCKOUT (loại trực tiếp thường), FINAL_BRACKET (Last X sau khi loại kép cắt nhánh) và
+ * PROGRESSIVE_PLAYOFF. Nhánh Thắng/Thua (WINNERS/LOSERS) của loại kép KHÔNG dẫn thẳng tới chức vô
+ * địch — thắng xong vẫn phải vào Last X đấu tiếp, nơi ĐÃ có Bán kết/Chung kết riêng của nó — nên
+ * mượn tên "Bán kết" cho nhánh Thắng sẽ đụng tên với Last X, gây hiểu nhầm đã tới bán kết thật.
+ * Nhánh Thắng/Thua vì vậy luôn gọi trung tính "Vòng N", không suy theo khoảng cách tới vòng cuối.
+ */
+function roundLabel(roundNo, totalRounds, stageType) {
+  if (stageType === "WINNERS" || stageType === "LOSERS") {
+    return `Vòng ${roundNo}`;
+  }
   const diff = totalRounds - roundNo;
   if (diff === 0) return "Chung kết";
   if (diff === 1) return "Bán kết";
   if (diff === 2) return "Tứ kết";
   return `Vòng ${roundNo}`;
 }
-
-/**
- * Nhánh thắng/thua của thể thức loại kép cắt sớm (CUT_TO_SE) không tự nhiên hết ở vòng cuối cùng
- * được sinh ra — số vòng vòng dùng để gắn nhãn ("Bán kết"/"Chung kết") phải suy từ cỡ bracket gốc
- * (winnersBracketSize, xem {@link BracketDiagram}), KHÔNG phải số vòng thật sự có trong dữ liệu.
- * Xem BracketGenerationServiceImpl#generateCutToSEDE (BE) — cùng một loại lỗi, sửa song song.
- */
-const log2 = (n) => Math.round(Math.log2(n));
 
 const STATUS_LABEL = {
   PENDING: "Chờ", IN_PROGRESS: "Đang đấu", COMPLETED: "Xong", WALKOVER: "Xử thắng", BYE: "Miễn đấu",
@@ -132,7 +135,7 @@ const MatchNode = ({ match, nodeRef, onStart, onScore, onComplete, starting, fla
    (đo thật thay vì suy luận toán học → luôn đúng kể cả nhánh
    thua có cách nối lệch pha chẵn/lẻ vòng).
 ══════════════════════════════════════════════════════════ */
-const ConnectorOverlay = ({ containerRef, nodesRef, links, signal }) => {
+export const ConnectorOverlay = ({ containerRef, nodesRef, links, signal, className }) => {
   const [paths, setPaths] = useState([]);
   /* Kích thước vẽ phải bám theo TOÀN BỘ nội dung, không phải phần đang nhìn
      thấy: container có `overflow-x-auto`, nên với bracket nhiều vòng thì
@@ -204,7 +207,10 @@ const ConnectorOverlay = ({ containerRef, nodesRef, links, signal }) => {
 
   return (
     <svg
-      className="absolute left-0 top-0 pointer-events-none text-slate-300 dark:text-white/20"
+      /* Định vị luôn giữ nguyên; `className` chỉ để đắp thêm màu. Màn chiếu bốc
+         thăm có nền tối cố định, không theo class `.dark` của app, nên nó tự
+         truyền màu đường nối riêng. */
+      className={`absolute left-0 top-0 pointer-events-none ${className ?? "text-slate-300 dark:text-white/20"}`}
       width={size.w || "100%"}
       height={size.h || "100%"}
       style={{ zIndex: 0 }}
@@ -242,7 +248,7 @@ export function buildFeedersMap(allMatches) {
   return result;
 }
 
-const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onComplete, feedersMap, winnersBracketSize }) => {
+const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onComplete, feedersMap }) => {
   const containerRef = useRef(null);
   const nodesRef = useRef(new Map());
   const registerNode = useCallback((id, el) => {
@@ -256,13 +262,7 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
     .sort((a, b) => Number(a[0]) - Number(b[0]))
     .map(([roundNo, ms]) => [roundNo, [...ms].sort((a, b) => a.positionNo - b.positionNo)]);
 
-  // WINNERS/LOSERS của DE cắt sớm (CUT_TO_SE) không tự nhiên hết ở vòng cuối cùng được sinh ra —
-  // nhãn vòng đấu phải tính theo cỡ bracket gốc (winnersBracketSize), KHÔNG phải sortedRounds.length.
-  let totalRounds = sortedRounds.length;
-  if (winnersBracketSize) {
-    if (stage.stageType === "WINNERS") totalRounds = log2(winnersBracketSize);
-    else if (stage.stageType === "LOSERS") totalRounds = 2 * (log2(winnersBracketSize) - 1);
-  }
+  const totalRounds = sortedRounds.length;
 
   const links = matches.filter(m => m.nextMatchWinId).map(m => ({ from: m.id, to: m.nextMatchWinId }));
   const signal = matches.map(m => `${m.id}:${m.status}:${m.player1?.id}:${m.player2?.id}:${m.winner?.id}`).join("|");
@@ -314,7 +314,7 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
           {sortedRounds.map(([roundNo, ms]) => (
             <div key={roundNo} className="flex flex-col" style={{ width: 224 }}>
               <div className="text-center text-xs font-semibold text-slate-500 dark:text-white/60 mb-3">
-                {roundLabel(Number(roundNo), totalRounds)}
+                {roundLabel(Number(roundNo), totalRounds, stage.stageType)}
               </div>
               <div className="flex-1 flex flex-col justify-around gap-5">
                 {ms.map(m => (
@@ -349,11 +349,6 @@ const BracketTreeSection = ({ stage, startingId, flashIds, onStart, onScore, onC
 ══════════════════════════════════════════════════════════ */
 const BracketDiagram = ({ stages, startingId, flashIds, onStart, onScore, onComplete, ListStageSection, listProps }) => {
   const feedersMap = buildFeedersMap(stages.flatMap(s => s.matches ?? []));
-  // Vòng 1 nhánh thắng luôn có đúng bracketSize/2 trận bất kể điểm cắt CUT_TO_SE ở đâu.
-  const winnersR1Count = stages
-    .find(s => s.stageType === "WINNERS")
-    ?.matches?.filter(m => Number(m.roundNo) === 1)?.length;
-  const winnersBracketSize = winnersR1Count ? winnersR1Count * 2 : null;
 
   return (
     <div className="space-y-5">
@@ -369,7 +364,6 @@ const BracketDiagram = ({ stages, startingId, flashIds, onStart, onScore, onComp
               onScore={onScore}
               onComplete={onComplete}
               feedersMap={feedersMap}
-              winnersBracketSize={winnersBracketSize}
             />
           );
         }

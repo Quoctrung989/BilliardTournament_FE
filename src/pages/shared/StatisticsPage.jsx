@@ -14,6 +14,7 @@ import TransactionTable from "../../components/admin/ui/TransactionTable";
 import AdminPagination from "../../components/admin/ui/AdminPagination";
 import { getApiErrorMessage } from "../../utils/apiError";
 import { formatVND } from "../../utils/helpers";
+import { ownerFinanceApi, managerFinanceApi } from "../../api/financeApi";
 import { useThemeStore } from "../../store/themeStore";
 import { RANGE_PRESETS, resolveRange } from "../../utils/dateRangePresets";
 import {
@@ -137,6 +138,8 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailExporting, setDetailExporting] = useState(false);
+  const [financeSummary, setFinanceSummary] = useState(null);
+  const financeApi = analyticsApi.scope === "manager" ? managerFinanceApi : ownerFinanceApi;
   const [tournamentSearch, setTournamentSearch] = useState("");
   const [tournamentPage, setTournamentPage] = useState(0);
   const [tournamentPageSize, setTournamentPageSize] = useState(10);
@@ -214,10 +217,13 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
   const openTournamentDetail = async (id) => {
     setDetailId(id);
     setDetail(null);
+    setFinanceSummary(null);
     setDetailLoading(true);
     try {
       const d = await analyticsApi.getTournamentDetail(id);
       setDetail(d);
+      // Danh sách khoản thu/chi không quan trọng bằng số liệu chính — lỗi thì bỏ qua, vẫn hiện modal.
+      financeApi.getSummary(id).then(setFinanceSummary).catch(() => {});
     } catch (err) {
       toast.error(getApiErrorMessage(err));
       setDetailId(null);
@@ -421,8 +427,8 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
                       <th>Chi nhánh</th>
                       <th>VĐV</th>
                       <th>Lấp đầy</th>
-                      <th>Doanh thu</th>
-                      <th>Lợi nhuận</th>
+                      <th title="Chỉ tính tiền đăng ký — chưa gồm khoản thu khác BQT tự ghi nhận">Doanh thu ĐK</th>
+                      <th title="Doanh thu đăng ký + Thu khác − Tiền thưởng − Chi phí">Lợi nhuận</th>
                       <th>Hoàn thành</th>
                       <th>Trạng thái</th>
                     </tr>
@@ -565,7 +571,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
         {detailLoading || !detail ? (
           <div className="py-10 text-center text-sm text-slate-400 dark:text-white/40">Đang tải chi tiết...</div>
         ) : (
-          <TournamentDetailContent detail={detail} analyticsApi={analyticsApi} isDark={isDark} />
+          <TournamentDetailContent detail={detail} financeSummary={financeSummary} analyticsApi={analyticsApi} isDark={isDark} />
         )}
       </AdminModal>
 
@@ -1193,7 +1199,7 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
   );
 };
 
-const TournamentDetailContent = ({ detail, analyticsApi, isDark }) => (
+const TournamentDetailContent = ({ detail, financeSummary, analyticsApi, isDark }) => (
   <div className="space-y-5">
     <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500 dark:text-white/60">
       <span><b className="text-slate-700 dark:text-white/75">{detail.branchName}</b></span>
@@ -1202,9 +1208,22 @@ const TournamentDetailContent = ({ detail, analyticsApi, isDark }) => (
       <span className="font-semibold text-indigo-700">{detail.statusLabel}</span>
     </div>
 
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <StatMiniPlain label="Doanh thu" value={formatVND(detail.transactionStats?.totalAmount || 0)} />
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* "Doanh thu" ở đây CHỈ tính tiền đăng ký (Payment gắn Registration) — cố tình ghi rõ "đăng
+          ký" để không lẫn với "Thu khác" (khoản BQT tự nhập ở trang Thu chi giải đấu), 2 nguồn tiền
+          tách biệt nhau hoàn toàn. */}
+      <StatMiniPlain label="Doanh thu đăng ký" value={formatVND(detail.transactionStats?.totalAmount || 0)} />
+      <StatMiniPlain
+        label="Thu khác"
+        value={formatVND(detail.otherIncome || 0)}
+        valueClassName={Number(detail.otherIncome) > 0 ? "text-emerald-700" : undefined}
+      />
       <StatMiniPlain label="Tiền thưởng" value={formatVND(detail.prizePool || 0)} />
+      <StatMiniPlain
+        label="Chi phí"
+        value={formatVND(detail.expense || 0)}
+        valueClassName={Number(detail.expense) > 0 ? "text-rose-600" : undefined}
+      />
       <StatMiniPlain
         label="Lợi nhuận"
         value={formatVND(detail.netProfit || 0)}
@@ -1273,6 +1292,58 @@ const TournamentDetailContent = ({ detail, analyticsApi, isDark }) => (
     <div>
       <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-2">Danh sách giao dịch của giải này</p>
       <TransactionTable analyticsApi={analyticsApi} tournamentId={detail.id} />
+    </div>
+
+    <div>
+      <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-2">
+        Danh sách khoản thu/chi của giải này {financeSummary && `(${financeSummary.entries?.length ?? 0})`}
+      </p>
+      {!financeSummary || (financeSummary.entries?.length ?? 0) === 0 ? (
+        <p className="text-sm text-slate-400 dark:text-white/40 py-4 text-center border border-dashed rounded-lg">
+          Chưa có khoản thu/chi nào được ghi nhận cho giải này.
+        </p>
+      ) : (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Loại</th>
+                <th>Nội dung</th>
+                <th>Ngày</th>
+                <th className="align-right">Số tiền</th>
+                <th>Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody>
+              {financeSummary.entries.map((e) => (
+                <tr key={e.id}>
+                  <td>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      e.entryType === "INCOME"
+                        ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                        : "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+                    }`}>
+                      {e.entryTypeLabel}
+                    </span>
+                  </td>
+                  <td className="text-sm text-slate-700 dark:text-white/75">{e.label}</td>
+                  <td className="text-sm text-slate-500 dark:text-white/60">
+                    {e.occurredAt ? new Date(e.occurredAt).toLocaleDateString("vi-VN") : "—"}
+                  </td>
+                  <td className={`align-right text-sm font-semibold ${
+                    e.entryType === "INCOME" ? "text-emerald-700" : "text-rose-600"
+                  }`}>
+                    {e.entryType === "INCOME" ? "+" : "-"}{formatVND(e.amount)}
+                  </td>
+                  <td className="text-sm text-slate-500 dark:text-white/60 max-w-xs truncate" title={e.note}>
+                    {e.note || "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   </div>
 );

@@ -29,6 +29,8 @@ export const createAnalyticsApi = (scope) => {
   };
 
   return {
+    /** "owner"|"manager" — dùng để chọn financeApi tương ứng khi hiển thị khoản thu/chi trong modal chi tiết giải. */
+    scope,
     getOverview: (from, to, filters = {}) =>
       unwrap(axiosClient.get(`${base}/overview`, { params: { from, to, ...filters } })),
     getRevenue: (from, to, granularity, filters = {}) =>

@@ -39,6 +39,7 @@ import PlayerTournamentDetailPage from "../pages/Player/PlayerTournamentDetailPa
 import PaymentSuccessPage from "../pages/Payment/PaymentSuccessPage";
 import MyPaymentsPage from "../pages/Payment/MyPaymentsPage";
 import ParticipantListPage from "../pages/shared/participants/ParticipantListPage";
+import TournamentFinancePage from "../pages/shared/tournaments/TournamentFinancePage";
 import DrawPage from "../pages/shared/matches/DrawPage";
 import PlayerMatchSchedulePage from "../pages/Player/PlayerMatchSchedulePage";
 import DashboardPage from "../pages/shared/DashboardPage";
@@ -152,6 +153,13 @@ const OwnerParticipantList = () => (
 );
 const ManagerParticipantList = () => (
   <ParticipantListPage api={managerParticipantApi} basePath="/manager/tournaments" />
+);
+
+const OwnerTournamentFinance = () => (
+  <TournamentFinancePage api={ownerTournamentApi} basePath="/owner/tournaments" />
+);
+const ManagerTournamentFinance = () => (
+  <TournamentFinancePage api={managerTournamentApi} basePath="/manager/tournaments" />
 );
 
 const OwnerDashboard = () => (
@@ -477,6 +485,10 @@ export const ROUTES = [
     component: withOwnerPage(OwnerParticipantList, "Người tham gia", "Thêm thủ công hoặc import Excel", { fullWidth: true }),
   },
   {
+    path: "/owner/tournaments/:id/finance",
+    component: withOwnerPage(OwnerTournamentFinance, "Thu chi giải đấu", "Ghi nhận khoản thu/chi ngoài tiền đăng ký"),
+  },
+  {
     path: "/owner/tournaments/:id/draw",
     component: withOwnerPage(OwnerDrawPage, "Bốc thăm & Lịch đấu", "Sinh bracket và quản lý trận đấu", { fullWidth: true }),
   },
@@ -606,6 +618,10 @@ export const ROUTES = [
   {
     path: "/manager/tournaments/:id/participants",
     component: withManagerPage(ManagerParticipantList, "Người tham gia", "Thêm thủ công hoặc import Excel", { fullWidth: true }),
+  },
+  {
+    path: "/manager/tournaments/:id/finance",
+    component: withManagerPage(ManagerTournamentFinance, "Thu chi giải đấu", "Ghi nhận khoản thu/chi ngoài tiền đăng ký"),
   },
   {
     path: "/manager/tournaments/:id/draw",

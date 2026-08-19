@@ -234,8 +234,12 @@ const TournamentDetailPage = ({ api, basePath }) => {
 
   return (
     <div className="space-y-5">
-      {/* Back */}
-      <AdminButton variant="secondary" onClick={() => navigate(basePath)}>
+      {/* Back — dùng history back khi đến từ trang trong app (location.key !== "default") để
+          giữ nguyên filter/trang đã chọn ở danh sách; mở link trực tiếp thì về thẳng basePath. */}
+      <AdminButton
+        variant="secondary"
+        onClick={() => (location.key !== "default" ? navigate(-1) : navigate(basePath))}
+      >
         <ArrowLeft size={14} /> Danh sách giải
       </AdminButton>
 
@@ -644,6 +648,14 @@ const TournamentDetailPage = ({ api, basePath }) => {
             onClick={() => navigate(`${basePath}/${id}/notifications`)}
           >
             Thông báo
+          </AdminButton>
+        )}
+        {detail.status !== "DRAFT" && (
+          <AdminButton
+            variant="secondary"
+            onClick={() => navigate(`${basePath}/${id}/finance`)}
+          >
+            Thu chi giải đấu
           </AdminButton>
         )}
 

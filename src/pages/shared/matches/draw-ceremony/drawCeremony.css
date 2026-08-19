@@ -1,0 +1,254 @@
+/* ══════════════════════════════════════════════════════════
+   Lễ bốc thăm công khai — hiệu ứng thuần CSS.
+
+   Nền tối cố định ở cả light/dark mode, cùng quy ước với khu
+   `pages/Live/` (xem AGENTS.md: màn chiếu TV cố ý tối, đừng "sửa").
+   Không thêm thư viện animation nào — cùng phong cách tvLive.css.
+══════════════════════════════════════════════════════════ */
+
+.dc-root {
+  --dc-bg: #0a0e14;
+  --dc-panel: #10151f;
+  --dc-line: rgba(255, 255, 255, 0.08);
+  --dc-gold: #f5b62c;
+  --dc-gold-soft: rgba(245, 182, 44, 0.16);
+  --dc-indigo: #6366f1;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  color: #e8ecf4;
+  background:
+    radial-gradient(120% 90% at 50% -20%, #1b2436 0%, transparent 60%),
+    linear-gradient(180deg, #0d121c 0%, var(--dc-bg) 100%);
+  animation: dc-fade-in 320ms ease-out;
+}
+
+/* Vignette làm dịu 4 góc khi chiếu lên màn hình lớn. */
+.dc-root::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(110% 80% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.dc-panel {
+  background: var(--dc-panel);
+  border: 1px solid var(--dc-line);
+}
+
+/* ── Đám hạt sáng trôi rất nhẹ ở nền ─────────────────── */
+.dc-dust {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.dc-dust i {
+  position: absolute;
+  bottom: -12px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(245, 182, 44, 0.5);
+  animation: dc-dust-rise linear infinite;
+}
+
+/* ── Màn mở đầu ──────────────────────────────────────── */
+.dc-intro-title {
+  animation: dc-rise-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.dc-count {
+  animation: dc-count-pop 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dc-shine {
+  background: linear-gradient(100deg, #fff 20%, var(--dc-gold) 45%, #fff 70%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: dc-shine-sweep 3.2s linear infinite;
+}
+
+/* ── Dựng cây ────────────────────────────────────────── */
+.dc-round {
+  animation: dc-rise-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dc-node {
+  background: #131a26;
+  border: 1px solid var(--dc-line);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 240ms ease, box-shadow 240ms ease;
+}
+.dc-node--active {
+  border-color: var(--dc-gold);
+  box-shadow: 0 0 0 1px var(--dc-gold), 0 0 28px rgba(245, 182, 44, 0.28);
+}
+.dc-node--bye {
+  opacity: 0.72;
+}
+
+.dc-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  min-height: 36px;
+}
+.dc-slot + .dc-slot {
+  border-top: 1px solid var(--dc-line);
+}
+.dc-slot--spinning {
+  background: linear-gradient(90deg, var(--dc-gold-soft), transparent);
+  animation: dc-glow-pulse 700ms ease-in-out infinite;
+}
+
+/* Thẻ cơ thủ đáp xuống ô — nảy nhẹ rồi loé sáng một nhịp. */
+.dc-land {
+  animation: dc-land 520ms cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+.dc-bye-in {
+  animation: dc-rise-in 420ms ease-out both;
+}
+
+/* ── Vòng quay ───────────────────────────────────────── */
+.dc-wheel {
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.5));
+  will-change: transform;
+}
+
+/* Kim chỉ ở đỉnh, mũi chúc xuống tâm vòng. */
+.dc-wheel-pointer {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 13px solid transparent;
+  border-right: 13px solid transparent;
+  border-top: 26px solid var(--dc-gold);
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6));
+}
+
+.dc-wheel-hub {
+  width: 27%;
+  height: 27%;
+  font-size: clamp(11px, 2.6vh, 16px);
+  color: #1a1204;
+  background: radial-gradient(circle at 35% 30%, #ffd772, var(--dc-gold) 65%);
+  border: 4px solid #0f1420;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+  transition: filter 160ms ease, transform 160ms ease;
+}
+.dc-wheel-hub:not(:disabled):active {
+  transform: translate(-50%, -50%) scale(0.94);
+}
+
+/* Thẻ công bố người vừa quay trúng. */
+.dc-reveal {
+  animation: dc-reveal-pop 460ms cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+
+/* ── Đường nối SVG trong màn chiếu ───────────────────── */
+.dc-connectors {
+  color: rgba(255, 255, 255, 0.16);
+}
+
+/* ── Pháo giấy (không dùng thư viện) ─────────────────── */
+.dc-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.dc-confetti i {
+  position: absolute;
+  top: -24px;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  animation: dc-confetti-fall linear forwards;
+}
+
+/* ══ Keyframes ══════════════════════════════════════════ */
+@keyframes dc-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes dc-rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dc-count-pop {
+  0%   { opacity: 0; transform: scale(2.1); }
+  30%  { opacity: 1; transform: scale(1); }
+  75%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.85); }
+}
+
+@keyframes dc-shine-sweep {
+  from { background-position: 220% 0; }
+  to   { background-position: -20% 0; }
+}
+
+@keyframes dc-glow-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 0 rgba(245, 182, 44, 0); }
+  50%      { box-shadow: inset 0 0 26px 0 rgba(245, 182, 44, 0.22); }
+}
+
+@keyframes dc-land {
+  0%   { opacity: 0; transform: translateX(-26px) scale(0.86); }
+  60%  { opacity: 1; transform: translateX(3px) scale(1.06); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes dc-reveal-pop {
+  0%   { opacity: 0; transform: scale(0.82); }
+  65%  { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes dc-dust-rise {
+  from { transform: translateY(0); opacity: 0; }
+  15%  { opacity: 0.8; }
+  85%  { opacity: 0.5; }
+  to   { transform: translateY(-105vh); opacity: 0; }
+}
+
+@keyframes dc-confetti-fall {
+  from { transform: translateY(0) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(105vh) rotate(760deg); opacity: 0; }
+}
+
+/* Người dùng tắt hiệu ứng chuyển động: giữ nguyên NỘI DUNG, bỏ chuyển động.
+   Lễ bốc thăm vẫn chạy đúng nhịp, chỉ là không nhảy múa. */
+@media (prefers-reduced-motion: reduce) {
+  .dc-root,
+  .dc-intro-title,
+  .dc-count,
+  .dc-shine,
+  .dc-round,
+  .dc-land,
+  .dc-bye-in,
+  .dc-reveal,
+  .dc-slot--spinning {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  /* Vòng quay vẫn phải tới đúng người, chỉ là tới ngay lập tức. */
+  .dc-wheel {
+    transition-duration: 1ms !important;
+  }
+  .dc-dust,
+  .dc-confetti {
+    display: none;
+  }
+}
