@@ -560,7 +560,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
         open={detailId != null}
         onClose={() => setDetailId(null)}
         title={detail ? detail.name : "Đang tải..."}
-        size="lg"
+        size="xl"
         footer={
           <AdminButton variant="secondary" onClick={handleExportTournament} disabled={detailExporting || detailLoading}>
             <Download size={14} className={detailExporting ? "animate-pulse" : ""} />
@@ -1265,7 +1265,7 @@ const TournamentDetailContent = ({ detail, financeSummary, analyticsApi, isDark 
         <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1">Doanh thu theo tháng</p>
         <ChartOrEmpty
           hasData={detail.transactionStats?.trend?.some((p) => Number(p.amount) > 0)}
-          options={areaTrendOptions(detail.transactionStats?.trend || [], "Doanh thu", "#4f46e5", "amount", shortMoney, isDark)}
+          options={areaTrendOptions(detail.transactionStats?.trend || [], "Doanh thu", "#4f46e5", "amount", shortMoney, isDark, true)}
         />
       </div>
     </div>
@@ -1423,7 +1423,7 @@ const MonthlyReportCard = ({ analyticsApi, isDark }) => {
 
           <ChartOrEmpty
             hasData={chartPoints.some((p) => Number(p.amount) > 0)}
-            options={areaTrendOptions(chartPoints, "Doanh thu", "#4f46e5", "amount", shortMoney, isDark)}
+            options={areaTrendOptions(chartPoints, "Doanh thu", "#4f46e5", "amount", shortMoney, isDark, true)}
           />
 
           <div className="admin-table-wrap">

@@ -503,7 +503,9 @@ const PlayerTournamentDetailPage = () => {
                     label: "Bốc thăm",
                     value: { RANDOM: "Ngẫu nhiên", RANK: "Theo hạng cơ thủ" }[detail.configSummary.seedingMethod] || detail.configSummary.seedingMethod
                   },
-                  detail.configSummary?.bracketSize != null && { label: "Số người tối đa", value: `${detail.configSummary.bracketSize} người` },
+                  // bracketSize là số cơ thủ ĐANG CÓ (đã đăng ký), không phải sức chứa tối đa — dùng
+                  // maxParticipants (đã hiện đúng ở progress bar phía trên) để khỏi lệch số với nó.
+                  (detail.maxParticipants ?? 0) > 0 && { label: "Số người tối đa", value: `${detail.maxParticipants} người` },
                   detail.configSummary?.finalRaceTo != null && { label: "Chung kết", value: `Đánh tới ${detail.configSummary.finalRaceTo} ván` },
                   detail.configSummary?.breakRule && {
                     label: "Luật giao bóng",
