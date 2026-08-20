@@ -107,7 +107,7 @@ const ForgotPasswordPage = () => {
     <div className="min-h-screen flex flex-col">
       {/* Hero */}
       <div
-        className="flex-1 flex flex-col items-center pt-10 pb-0"
+        className="flex-1 flex flex-col items-center pt-10 pb-20"
         style={{
           background: "linear-gradient(rgba(10,20,50,0.72), rgba(10,20,60,0.80)), url('/images/tournaments/action-1.jpg') center/cover no-repeat",
           backgroundColor: "#0d1b3e",
