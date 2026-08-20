@@ -889,7 +889,7 @@ const AccountManagementPage = ({ config }) => {
                         <span className="admin-table-name" title={row.fullName || row.displayName}>
                           {row.fullName || row.displayName || "—"}
                         </span>
-                        {row.displayName && row.fullName && (
+                        {row.displayName && row.fullName && row.displayName !== row.fullName && (
                           <span className="block text-xs text-slate-500 dark:text-white/60 truncate">
                             @{row.displayName}
                           </span>
