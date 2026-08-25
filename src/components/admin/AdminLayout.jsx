@@ -12,7 +12,6 @@ export const DEFAULT_PAGE_META = {
   subtitle: "",
   fullWidth: false,
   hideBreadcrumb: false,
-  hideSearch: false,
   hideTitles: false,
   contentClassName: "",
 };
@@ -46,7 +45,6 @@ const AdminLayout = ({ navConfig, hideSidebar = false }) => {
           title={pageMeta.title}
           subtitle={pageMeta.subtitle}
           hideBreadcrumb={pageMeta.hideBreadcrumb}
-          hideSearch={pageMeta.hideSearch}
           hideTitles={pageMeta.hideTitles}
           showHomeButton={hideSidebar}
         />

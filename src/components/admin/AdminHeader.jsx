@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, Home, LayoutDashboard, LogOut, Search, Settings, User } from "lucide-react";
+import { ChevronDown, Home, LayoutDashboard, LogOut, Settings, User } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { useNotificationStore } from "../../store/notificationStore";
 import { ROLES } from "../../constants/auth";
@@ -26,7 +26,6 @@ const AdminHeader = ({
   title,
   subtitle,
   hideBreadcrumb = false,
-  hideSearch = false,
   hideTitles = false,
   /* Bật cho section không có sidebar (Trọng tài): nút "Về trang chủ" vốn nằm ở
      chân sidebar phải xuất hiện ở đây, nếu không người dùng không còn lối ra. */
@@ -85,22 +84,6 @@ const AdminHeader = ({
         {!hideTitles && title && <h1 className="admin-page-title">{title}</h1>}
         {!hideTitles && subtitle && <p className="admin-page-subtitle">{subtitle}</p>}
       </div>
-
-      {!hideSearch && (
-        <div className="hidden lg:flex items-center flex-1 max-w-sm mx-2">
-          <div className="relative w-full">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40 pointer-events-none"
-              size={18}
-            />
-            <input
-              type="search"
-              placeholder="Tìm kiếm nhanh..."
-              className="admin-input pl-10 py-2 h-10 bg-slate-50 border-slate-200 dark:bg-[#101319] dark:border-[#2b3039]"
-            />
-          </div>
-        </div>
-      )}
 
       <div className="flex items-center gap-2 flex-shrink-0">
         {showHomeButton && (

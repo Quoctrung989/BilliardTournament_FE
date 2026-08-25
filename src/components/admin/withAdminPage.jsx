@@ -6,7 +6,6 @@ export const withAdminPage = (Page, title, subtitle, options = {}) => {
     subtitle,
     fullWidth: options.fullWidth,
     hideBreadcrumb: options.hideBreadcrumb,
-    hideSearch: options.hideSearch,
     hideTitles: options.hideTitles,
     contentClassName: options.contentClassName,
   });

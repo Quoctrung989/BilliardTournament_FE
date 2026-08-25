@@ -7,7 +7,6 @@ import { withPageMeta } from "../admin/pageMetaLeaf";
  *   subtitle?: string,
  *   fullWidth?: boolean,
  *   hideBreadcrumb?: boolean,
- *   hideSearch?: boolean,
  *   hideTitles?: boolean,
  *   contentClassName?: string,
  * }} [options] navConfig không còn nhận per-page nữa — cố định theo section (STAFF_NAV) tại
@@ -18,7 +17,6 @@ export const withStaffPage = (Page, title, options = {}) => {
     subtitle,
     fullWidth = false,
     hideBreadcrumb = false,
-    hideSearch = false,
     hideTitles = false,
     contentClassName = "",
   } = options;
@@ -28,7 +26,6 @@ export const withStaffPage = (Page, title, options = {}) => {
     subtitle,
     fullWidth,
     hideBreadcrumb,
-    hideSearch,
     hideTitles,
     contentClassName,
   });

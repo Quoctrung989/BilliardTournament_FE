@@ -277,7 +277,6 @@ export const ROUTES = [
     component: withStaffPage(StaffMatchListPage, "Trận của tôi", {
       fullWidth: true,
       hideBreadcrumb: true,
-      hideSearch: true,
       hideTitles: true,
       contentClassName: "!pt-6 !px-5 sm:!px-8",
     }),
