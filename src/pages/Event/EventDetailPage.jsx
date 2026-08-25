@@ -395,7 +395,9 @@ const InfoTab = ({ t, onRegister, myRegistration, isPlayer, isAuthenticated }) =
                 label: "Bốc thăm",
                 value: { RANDOM: "Ngẫu nhiên", RANK: "Theo hạng cơ thủ" }[t.configSummary.seedingMethod] || t.configSummary.seedingMethod,
               },
-              t.configSummary?.bracketSize != null && { label: "Số người tối đa", value: `${t.configSummary.bracketSize} người` },
+              // bracketSize là số cơ thủ ĐANG CÓ (đã đăng ký), không phải sức chứa tối đa — dùng
+              // maxParticipants (đã hiện đúng ở progress bar phía trên) để khỏi lệch số với nó.
+              (t.maxParticipants ?? 0) > 0 && { label: "Số người tối đa", value: `${t.maxParticipants} người` },
               t.configSummary?.finalRaceTo != null && { label: "Chung kết", value: `Đánh tới ${t.configSummary.finalRaceTo} ván` },
               t.configSummary?.breakRule && {
                 label: "Luật giao bóng",

@@ -352,9 +352,15 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
         ))}
         {preset === "custom" && (
           <div className="flex items-center gap-2 ml-1">
-            <input type="date" className="admin-input w-auto" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
+            <input
+              type="date" className="admin-input w-auto" value={customFrom} max={customTo || undefined}
+              onChange={(e) => setCustomFrom(e.target.value)}
+            />
             <span className="text-slate-400 dark:text-white/40 text-xs">đến</span>
-            <input type="date" className="admin-input w-auto" value={customTo} onChange={(e) => setCustomTo(e.target.value)} />
+            <input
+              type="date" className="admin-input w-auto" value={customTo} min={customFrom || undefined}
+              onChange={(e) => setCustomTo(e.target.value)}
+            />
           </div>
         )}
         {activeTab === "overview" && (
@@ -560,7 +566,7 @@ const StatisticsPage = ({ analyticsApi, branchApi, title }) => {
         open={detailId != null}
         onClose={() => setDetailId(null)}
         title={detail ? detail.name : "Đang tải..."}
-        size="lg"
+        size="xl"
         footer={
           <AdminButton variant="secondary" onClick={handleExportTournament} disabled={detailExporting || detailLoading}>
             <Download size={14} className={detailExporting ? "animate-pulse" : ""} />
@@ -991,11 +997,18 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
     runQuery(preset.dims, preset.metrics, compare);
   };
 
+  // BE (AnalyticsQueryRequest) không có field chartType — lưu riêng ở localStorage theo scope+id
+  // để không phải đổi schema BE, chỉ mất khi đổi trình duyệt/thiết bị khác.
+  const chartTypeStorageKey = (id) => `analytics_view_chart_${analyticsApi.scope}_${id}`;
+
   const handleSaveView = async () => {
     if (!saveViewName.trim()) { toast.error("Nhập tên báo cáo trước khi lưu."); return; }
     setSaving(true);
     try {
-      await analyticsApi.createSavedView({ name: saveViewName.trim(), config: buildBody(dims, metrics, compare) });
+      const created = await analyticsApi.createSavedView({ name: saveViewName.trim(), config: buildBody(dims, metrics, compare) });
+      if (created?.id != null) {
+        localStorage.setItem(chartTypeStorageKey(created.id), chartType);
+      }
       setSaveViewName("");
       await loadSavedViews();
       toast.success("Đã lưu báo cáo.");
@@ -1012,12 +1025,16 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
     setDims(cfg.dimensions || []);
     setMetrics(cfg.metrics || []);
     setCompare(!!cfg.comparePreviousPeriod);
+    const savedChartType = localStorage.getItem(chartTypeStorageKey(view.id));
+    if (savedChartType) setChartType(savedChartType);
     runQuery(cfg.dimensions || [], cfg.metrics || [], !!cfg.comparePreviousPeriod);
   };
 
   const handleDeleteView = async (id) => {
+    if (!window.confirm("Xóa báo cáo đã lưu này? Không thể hoàn tác.")) return;
     try {
       await analyticsApi.deleteSavedView(id);
+      localStorage.removeItem(chartTypeStorageKey(id));
       await loadSavedViews();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -1088,7 +1105,7 @@ const ExploreTab = ({ analyticsApi, range, filters }) => {
               <option value="table">Bảng</option>
               <option value="bar" disabled={dims.length !== 1}>Cột</option>
               <option value="donut" disabled={dims.length !== 1}>Tròn</option>
-              <option value="line" disabled={dims[0] !== "TIME"}>Đường xu hướng</option>
+              <option value="line" disabled={dims.length !== 1 || dims[0] !== "TIME"}>Đường xu hướng</option>
             </select>
             <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-white/70">
               <input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)} />
@@ -1265,7 +1282,7 @@ const TournamentDetailContent = ({ detail, financeSummary, analyticsApi, isDark 
         <p className="text-xs font-semibold text-slate-600 dark:text-white/70 mb-1">Doanh thu theo tháng</p>
         <ChartOrEmpty
           hasData={detail.transactionStats?.trend?.some((p) => Number(p.amount) > 0)}
-          options={areaTrendOptions(detail.transactionStats?.trend || [], "Doanh thu", "#4f46e5", "amount", shortMoney, isDark)}
+          options={areaTrendOptions(detail.transactionStats?.trend || [], "Doanh thu", "#4f46e5", "amount", shortMoney, isDark, true)}
         />
       </div>
     </div>
@@ -1423,7 +1440,7 @@ const MonthlyReportCard = ({ analyticsApi, isDark }) => {
 
           <ChartOrEmpty
             hasData={chartPoints.some((p) => Number(p.amount) > 0)}
-            options={areaTrendOptions(chartPoints, "Doanh thu", "#4f46e5", "amount", shortMoney, isDark)}
+            options={areaTrendOptions(chartPoints, "Doanh thu", "#4f46e5", "amount", shortMoney, isDark, true)}
           />
 
           <div className="admin-table-wrap">

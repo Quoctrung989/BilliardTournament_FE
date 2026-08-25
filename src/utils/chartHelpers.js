@@ -77,7 +77,18 @@ export const donutOptions = (items, seriesName, isDark = false) => {
     tooltip: { ...base.tooltip, pointFormat: "<b>{point.y}</b> ({point.percentage:.0f}%)" },
     legend: { enabled: true, itemStyle: { fontSize: "11px", fontWeight: 500, color: c.text }, itemHoverStyle: { color: isDark ? "#ffffff" : "#0f172a" } },
     plotOptions: {
-      pie: { innerSize: "62%", borderWidth: 2, borderColor: c.pieBorder, dataLabels: { enabled: false } },
+      // Highcharts tắt legend riêng cho pie/donut mặc định (khác các loại chart khác) — legend.enabled
+      // ở trên chỉ bật cái khung, phải tự bật showInLegend thì từng lát mới hiện tên trong chú thích.
+      pie: {
+        innerSize: "62%", borderWidth: 2, borderColor: c.pieBorder, showInLegend: true,
+        dataLabels: {
+          enabled: true,
+          format: "<b>{point.y}</b>",
+          distance: 14,
+          style: { color: c.text, fontSize: "11px", fontWeight: 600, textOutline: "none" },
+          connectorColor: c.axisLine,
+        },
+      },
     },
     series: [{
       name: seriesName,
@@ -86,7 +97,11 @@ export const donutOptions = (items, seriesName, isDark = false) => {
   };
 };
 
-export const areaTrendOptions = (points, seriesName, color, valueKey, formatter, isDark = false) => {
+/**
+ * showDataLabels: true — ghi số cố định trên mỗi điểm, không cần rê chuột mới thấy. Mặc định tắt vì
+ * chart nhiều điểm (vd "Xu hướng doanh thu" 30 ngày) sẽ rối; chỉ bật ở chart theo tháng, ít điểm.
+ */
+export const areaTrendOptions = (points, seriesName, color, valueKey, formatter, isDark = false, showDataLabels = false) => {
   const c = themeColors(isDark);
   const base = chartBase(isDark);
   return {
@@ -107,7 +122,16 @@ export const areaTrendOptions = (points, seriesName, color, valueKey, formatter,
     tooltip: formatter
       ? { ...base.tooltip, formatter() { return `${this.x}: <b>${formatter(this.y)}</b>`; } }
       : { ...base.tooltip, pointFormat: "<b>{point.y}</b>" },
-    plotOptions: { areaspline: { fillOpacity: 0.15, marker: { enabled: false }, lineWidth: 2 } },
+    plotOptions: {
+      areaspline: {
+        fillOpacity: 0.15, marker: { enabled: false }, lineWidth: 2,
+        dataLabels: {
+          enabled: showDataLabels,
+          formatter: formatter ? function () { return formatter(this.y); } : undefined,
+          style: { color: c.text, fontSize: "10px", fontWeight: 600, textOutline: "none" },
+        },
+      },
+    },
     series: [{
       name: seriesName,
       color,
