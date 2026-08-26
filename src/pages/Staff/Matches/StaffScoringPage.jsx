@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import { ArrowLeft, Crown, Flag } from "lucide-react";
 import { toast } from "react-toastify";
 import { getMatchDetail } from "../../../api/matchApi";
@@ -126,6 +127,7 @@ const VersusBadge = ({ winnerAccent }) => {
 const StaffScoringPage = () => {
   const { matchId } = useParams();
   const navigate = useNavigate();
+  const goBack = useGoBack("/staff/matches");
 
   const [match, setMatch] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -455,7 +457,7 @@ const StaffScoringPage = () => {
       >
         <button
           type="button"
-          onClick={() => navigate("/staff/matches")}
+          onClick={goBack}
           className="shrink-0 rounded-lg p-2 text-slate-400 hover:text-white hover:bg-white/5 transition-colors touch-manipulation"
           aria-label="Quay lại"
         >

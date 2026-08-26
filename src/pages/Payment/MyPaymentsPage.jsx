@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useGoBack } from "../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import { ArrowLeft, CreditCard, Calendar, CheckCircle2, XCircle, Clock, X } from "lucide-react";
 import { getMyPayments } from "../../api/paymentApi";
@@ -40,6 +41,7 @@ const StatusBadge = ({ status }) => {
 
 const MyPaymentsPage = () => {
   const navigate = useNavigate();
+  const goBack = useGoBack("/player/registrations");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -79,8 +81,8 @@ const MyPaymentsPage = () => {
               <p className="profile-prefs-lead" style={{ marginBottom: 0 }}>
                 Tất cả giao dịch thanh toán phí tham dự giải đấu
               </p>
-              <button type="button" className="profile-btn-secondary inline-flex items-center gap-1.5" onClick={() => navigate("/player/registrations")}>
-                <ArrowLeft size={14} /> Đăng ký của tôi
+              <button type="button" className="profile-btn-secondary inline-flex items-center gap-1.5" onClick={goBack}>
+                <ArrowLeft size={14} /> Quay lại
               </button>
             </div>
 

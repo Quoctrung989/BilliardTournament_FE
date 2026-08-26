@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import {
   ArrowLeft, Calendar, Trophy, Gamepad2, CreditCard,
@@ -86,6 +87,7 @@ const SlotBar = ({ approved, max }) => {
 const PlayerTournamentDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const goBack = useGoBack("/player/registrations");
   const contentRef = useReveal({ threshold: 0 });
   const tournamentId = Number(id);
   const [loading, setLoading] = useState(true);
@@ -161,9 +163,9 @@ const PlayerTournamentDetailPage = () => {
         {/* Dark overlay for readability */}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(12,21,39,0.55) 0%, rgba(12,21,39,0.25) 50%, rgba(232,232,232,0.15) 100%)" }} />
 
-        {/* Back button → về trang đăng ký của tôi */}
+        {/* Back — lùi 1 bước trong lịch sử, fallback về "Đăng ký của tôi" */}
         <button type="button" className="ui-press"
-          onClick={() => navigate("/player/registrations")}
+          onClick={goBack}
           style={{
             position: "absolute", top: "1.25rem", left: "1.5rem",
             display: "flex", alignItems: "center", gap: "0.5rem",
@@ -173,7 +175,7 @@ const PlayerTournamentDetailPage = () => {
             color: "rgba(255,255,255,0.85)", fontSize: "0.8125rem", fontWeight: 600,
             cursor: "pointer",
           }}>
-          <ArrowLeft size={14} /> Đăng ký của tôi
+          <ArrowLeft size={14} /> Quay lại
         </button>
       </div>
 

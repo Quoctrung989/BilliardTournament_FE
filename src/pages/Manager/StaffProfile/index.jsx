@@ -1,6 +1,7 @@
 import { HomeIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import axiosClient from "../../../api/axiosClient";
 import "./StaffProfile.scss";
 
@@ -15,9 +16,7 @@ const StaffProfile = () => {
     console.log(response.data.data);
   };
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  const handleBack = useGoBack("/manager/employees");
 
   useEffect(() => {
     fetchUserDetail();

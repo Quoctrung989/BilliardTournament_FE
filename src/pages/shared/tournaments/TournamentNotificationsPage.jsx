@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -532,15 +533,15 @@ const HistoryTab = ({ api, tournamentId }) => {
 
 const TournamentNotificationsPage = ({ api, basePath }) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const tournamentId = Number(id);
+  const goBack = useGoBack(`${basePath}/${tournamentId}`);
   const [tab, setTab] = useState("manual");
 
   return (
     <div className="space-y-4">
       {basePath && (
-        <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-          <ArrowLeft size={14} /> Chi tiết giải
+        <AdminButton variant="secondary" onClick={goBack}>
+          <ArrowLeft size={14} /> Quay lại
         </AdminButton>
       )}
       <div className="flex gap-2 border-b border-slate-200 dark:border-white/10">

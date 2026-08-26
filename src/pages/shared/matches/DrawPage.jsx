@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   Shuffle, Play, CheckCircle, AlertCircle, Trophy,
@@ -15,6 +15,7 @@ import SocketReconnectBanner from "../../../components/shared/SocketReconnectBan
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { ownerTournamentApi, managerTournamentApi } from "../../../api/tournamentManagementApi";
 import { useTournamentSocket } from "../../../hooks/useTournamentSocket";
+import { useGoBack } from "../../../hooks/useGoBack";
 import BracketDiagram, { buildFeedersMap } from "./BracketDiagram";
 import DrawCeremonyOverlay from "./draw-ceremony/DrawCeremonyOverlay";
 import { ceremonyAvailability, NON_RANDOM_SEEDING_LABEL } from "./draw-ceremony/buildDrawScript";
@@ -203,8 +204,8 @@ const CeremonyButton = ({ drawing, disabled, onClick, redo }) => (
 ══════════════════════════════════════════════════════════ */
 const DrawPage = ({ api, basePath }) => {
   const { id }         = useParams();
-  const navigate       = useNavigate();
   const tournamentId   = Number(id);
+  const goBack         = useGoBack(`${basePath}/${tournamentId}`);
 
   /* ── Core state ── */
   const [stages,       setStages]       = useState([]);
@@ -1047,8 +1048,8 @@ const DrawPage = ({ api, basePath }) => {
       {/* ── Top bar ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-            <ArrowLeft size={14} /> Chi tiết giải
+          <AdminButton variant="secondary" onClick={goBack}>
+            <ArrowLeft size={14} /> Quay lại
           </AdminButton>
           {!noDrawYet && (
             <SocketConnectionBadge connectionState={connectionState} compact />

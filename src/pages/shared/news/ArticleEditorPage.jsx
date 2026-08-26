@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import { ArrowLeft, Plus } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -18,6 +19,7 @@ const slugify = (text) =>
 const ArticleEditorPage = ({ api, basePath }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const goBack = useGoBack(basePath);
   const isNew = id === "new" || !id;
 
   const [categories, setCategories] = useState([]);
@@ -132,8 +134,8 @@ const ArticleEditorPage = ({ api, basePath }) => {
 
   return (
     <div className="space-y-5">
-      <AdminButton variant="secondary" onClick={() => navigate(basePath)}>
-        <ArrowLeft size={14} /> Danh sách bài viết
+      <AdminButton variant="secondary" onClick={goBack}>
+        <ArrowLeft size={14} /> Quay lại
       </AdminButton>
 
       <AdminCard title={isNew ? "Tạo bài viết mới" : "Sửa bài viết"}>

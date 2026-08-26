@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useGoBack } from "../../hooks/useGoBack";
 import { ArrowLeft, Trophy, Award, Star } from "lucide-react";
 import { getParticipantProfile, getPlayerProfileByUserId } from "../../api/publicTournamentApi";
 import { RANKING_NOTE_LABELS } from "../../constants/tournamentConfig";
@@ -111,6 +112,7 @@ const AchievementCard = ({ entry }) => {
 const PlayerProfilePage = () => {
   const { participantId, userId } = useParams();
   const navigate = useNavigate();
+  const goBack = useGoBack("/event");
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -159,7 +161,7 @@ const PlayerProfilePage = () => {
       <div style={{ padding: "0.875rem 1.5rem" }}>
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           style={{
             display: "inline-flex", alignItems: "center", gap: "0.4rem",
             background: "none", border: "none", cursor: "pointer",

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import { ArrowLeft, CheckCircle, CreditCard, Loader, UserCheck } from "lucide-react";
 import {
@@ -65,6 +66,7 @@ const TournamentRegisterPage = () => {
   const navigate = useNavigate();
   const pageRef = useReveal({ threshold: 0 });
   const tournamentId = Number(id);
+  const goBack = useGoBack(`/player/tournaments/${tournamentId}`);
 
   const user = useAuthStore((s) => s.user);
   /* `load` chỉ nên chạy lại khi đổi giải (tournamentId), không phải mỗi khi
@@ -358,9 +360,9 @@ const TournamentRegisterPage = () => {
         type="button"
         className="ui-stagger group inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors mb-5"
         style={{ "--i": 0 }}
-        onClick={() => navigate(`/player/tournaments/${tournamentId}`)}
+        onClick={goBack}
       >
-        <ArrowLeft size={14} className="transition-transform duration-200 group-hover:-translate-x-1" /> Quay lại chi tiết giải
+        <ArrowLeft size={14} className="transition-transform duration-200 group-hover:-translate-x-1" /> Quay lại
       </button>
 
       {/* Tournament header */}

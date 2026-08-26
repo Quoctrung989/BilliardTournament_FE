@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useGoBack } from "../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import {
   ArrowLeft, Calendar, Trophy, Gamepad2, Award,
@@ -636,6 +637,7 @@ const LiveTab = ({ tournamentId }) => {
 const EventDetailPage = () => {
   const { id }         = useParams();
   const navigate       = useNavigate();
+  const goBack         = useGoBack("/event");
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "info");
   const [tournament, setTournament] = useState(null);
@@ -728,7 +730,7 @@ const EventDetailPage = () => {
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(12,21,39,0.55) 0%, rgba(12,21,39,0.25) 50%, rgba(232,232,232,0.15) 100%)" }} />
 
           {/* Back button */}
-          <button type="button" className="ui-press" onClick={() => navigate("/event")}
+          <button type="button" className="ui-press" onClick={goBack}
             style={{
               position: "absolute", top: "1.25rem", left: "1.5rem",
               display: "flex", alignItems: "center", gap: "0.5rem",
@@ -737,7 +739,7 @@ const EventDetailPage = () => {
               padding: "0.4rem 0.9rem", color: "rgba(255,255,255,0.85)",
               fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
             }}>
-            <ArrowLeft size={14} /> Giải đấu
+            <ArrowLeft size={14} /> Quay lại
           </button>
 
           {/* Live indicator */}
@@ -759,7 +761,7 @@ const EventDetailPage = () => {
       ) : (
         /* Slim back bar when banner is hidden */
         <div style={{ maxWidth: "min(1472px, calc(100% - 8rem))", margin: "0 auto", paddingTop: "1.25rem" }}>
-          <button type="button" className="ui-press" onClick={() => navigate("/event")}
+          <button type="button" className="ui-press" onClick={goBack}
             style={{
               display: "inline-flex", alignItems: "center", gap: "0.5rem",
               background: "#fff", border: "1px solid #e2e8f0", borderRadius: "100px",
@@ -767,7 +769,7 @@ const EventDetailPage = () => {
               fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
               boxShadow: "0 1px 3px rgba(15,23,42,0.06)",
             }}>
-            <ArrowLeft size={14} /> Giải đấu
+            <ArrowLeft size={14} /> Quay lại
           </button>
         </div>
       )}

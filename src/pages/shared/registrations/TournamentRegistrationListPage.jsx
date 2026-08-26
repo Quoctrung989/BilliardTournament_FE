@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -15,8 +16,8 @@ import { buildListParams, DEFAULT_PAGE_SIZE } from "../../../utils/pagination";
 
 const TournamentRegistrationListPage = ({ api, basePath }) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const tournamentId = Number(id);
+  const goBack = useGoBack(`${basePath}/${tournamentId}`);
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,8 +107,8 @@ const TournamentRegistrationListPage = ({ api, basePath }) => {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-          <ArrowLeft size={14} /> Chi tiết giải
+        <AdminButton variant="secondary" onClick={goBack}>
+          <ArrowLeft size={14} /> Quay lại
         </AdminButton>
       </div>
 

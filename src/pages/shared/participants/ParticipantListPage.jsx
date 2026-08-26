@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import { ArrowLeft, UserPlus, Upload, Download, Lock } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -33,8 +34,8 @@ const SOURCE_LABELS = {
 
 const ParticipantListPage = ({ api, basePath }) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const tournamentId = Number(id);
+  const goBack = useGoBack(`${basePath}/${tournamentId}`);
   const fileInputRef = useRef();
 
   const [items, setItems] = useState([]);
@@ -273,8 +274,8 @@ const ParticipantListPage = ({ api, basePath }) => {
   return (
     <div className="space-y-5">
       {/* Back */}
-      <AdminButton variant="secondary" onClick={() => navigate(`${basePath}/${tournamentId}`)}>
-        <ArrowLeft size={14} /> Chi tiết giải
+      <AdminButton variant="secondary" onClick={goBack}>
+        <ArrowLeft size={14} /> Quay lại
       </AdminButton>
 
       <AdminCard padding={false}>

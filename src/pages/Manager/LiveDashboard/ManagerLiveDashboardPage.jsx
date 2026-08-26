@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import { ArrowLeft, Clock, Crown, Monitor, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
 import { managerMatchApi } from "../../../api/matchApi";
@@ -216,8 +217,8 @@ const ManagerLiveDashboardPage = ({
   basePath = "/manager/tournaments",
 }) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const tournamentId = Number(id);
+  const goBack = useGoBack(`${basePath}/${tournamentId}`);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -414,9 +415,9 @@ const ManagerLiveDashboardPage = ({
         <button
           type="button"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
-          onClick={() => navigate(`${basePath}/${tournamentId}`)}
+          onClick={goBack}
         >
-          <ArrowLeft size={14} /> Quay lại chi tiết giải
+          <ArrowLeft size={14} /> Quay lại
         </button>
         <div className="flex items-center gap-2">
           <SocketConnectionBadge connectionState={connectionState} />

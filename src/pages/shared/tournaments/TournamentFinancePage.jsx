@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import { ArrowLeft, Plus, Pencil, Trash2, Lock } from "lucide-react";
 import AdminButton from "../../../components/admin/ui/AdminButton";
@@ -36,9 +37,8 @@ const fmtDate = (iso) => {
 
 const TournamentFinancePage = ({ api, basePath }) => {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
   const tournamentId = Number(id);
+  const goBack = useGoBack(`${basePath}/${id}`);
   const financeApi = basePath.startsWith("/owner") ? ownerFinanceApi : managerFinanceApi;
 
   const [tournamentName, setTournamentName] = useState("");
@@ -178,11 +178,8 @@ const TournamentFinancePage = ({ api, basePath }) => {
 
   return (
     <div className="space-y-5">
-      <AdminButton
-        variant="secondary"
-        onClick={() => (location.key !== "default" ? navigate(-1) : navigate(`${basePath}/${id}`))}
-      >
-        <ArrowLeft size={14} /> Chi tiết giải
+      <AdminButton variant="secondary" onClick={goBack}>
+        <ArrowLeft size={14} /> Quay lại
       </AdminButton>
 
       <AdminCard>

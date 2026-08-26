@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import {
   AlertTriangle, ArrowLeft, Bot, ChevronDown, ChevronUp, History, UserCog,
@@ -111,6 +112,7 @@ const TournamentDetailPage = ({ api, basePath }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const goBack = useGoBack(basePath);
   const tournamentId = Number(id);
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
@@ -234,13 +236,9 @@ const TournamentDetailPage = ({ api, basePath }) => {
 
   return (
     <div className="space-y-5">
-      {/* Back — dùng history back khi đến từ trang trong app (location.key !== "default") để
-          giữ nguyên filter/trang đã chọn ở danh sách; mở link trực tiếp thì về thẳng basePath. */}
-      <AdminButton
-        variant="secondary"
-        onClick={() => (location.key !== "default" ? navigate(-1) : navigate(basePath))}
-      >
-        <ArrowLeft size={14} /> Danh sách giải
+      {/* Back — lùi 1 bước để giữ nguyên filter/trang đã chọn ở danh sách. */}
+      <AdminButton variant="secondary" onClick={goBack}>
+        <ArrowLeft size={14} /> Quay lại
       </AdminButton>
 
       {/* Header card */}

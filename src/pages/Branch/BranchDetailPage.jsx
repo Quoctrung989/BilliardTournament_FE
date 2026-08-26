@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../../hooks/useGoBack";
 import { ArrowLeft, MapPin, Navigation, Phone, Image as ImageIcon, PhoneCall } from "lucide-react";
 import { toast } from "react-toastify";
 import { getPublicBranchDetail } from "../../api/publicBranchApi";
@@ -37,6 +38,7 @@ const StatFact = ({ label, value }) => (
 const BranchDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const goBack = useGoBack("/branches");
   const [branch, setBranch] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -71,11 +73,11 @@ const BranchDetailPage = () => {
         <div className="relative max-w-[1300px] mx-auto px-8 pt-6 pb-10">
           <button
             type="button"
-            onClick={() => navigate("/branches")}
+            onClick={goBack}
             className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-white/50 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft size={14} />
-            Hệ thống cơ sở
+            Quay lại
           </button>
 
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">

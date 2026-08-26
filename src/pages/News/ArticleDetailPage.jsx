@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../../hooks/useGoBack";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import { getPostBySlug } from "../../api/newsApi";
@@ -15,6 +16,7 @@ const fmtDate = (iso) => {
 const ArticleDetailPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const goBack = useGoBack("/news");
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,11 +42,11 @@ const ArticleDetailPage = () => {
     <div className="max-w-3xl mx-auto px-4 py-10">
       <button
         type="button"
-        onClick={() => navigate("/news")}
+        onClick={goBack}
         className="flex items-center gap-1.5 text-sm text-[#010851]/60 dark:text-white/60 hover:text-[#010851] dark:hover:text-white mb-6"
       >
         <ArrowLeft size={14} />
-        Quay lại tin tức
+        Quay lại
       </button>
 
       {post.categoryName && (

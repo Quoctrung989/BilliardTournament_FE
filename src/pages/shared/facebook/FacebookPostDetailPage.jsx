@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useGoBack } from "../../../hooks/useGoBack";
 import {
   ArrowLeft,
   Calendar,
@@ -73,6 +74,7 @@ const InfoRow = ({ label, value }) => (
 const FacebookPostDetailPage = ({ basePath }) => {
   const { postId } = useParams();
   const navigate = useNavigate();
+  const goBack = useGoBack(basePath);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [post, setPost] = useState(null);
@@ -134,8 +136,8 @@ const FacebookPostDetailPage = ({ basePath }) => {
     <div className="space-y-5">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <AdminButton variant="secondary" onClick={() => navigate(basePath)}>
-          <ArrowLeft size={14} /> Danh sách bài đăng
+        <AdminButton variant="secondary" onClick={goBack}>
+          <ArrowLeft size={14} /> Quay lại
         </AdminButton>
         <div className="flex flex-wrap gap-2">
           <AdminButton variant="secondary" onClick={() => load(true)} disabled={refreshing}>
