@@ -21,6 +21,7 @@ import {
   hasCounts, shortMoney, donutOptions, areaTrendOptions, columnTrendOptions,
   barByStatusOptions, barByAmountOptions,
 } from "../../utils/chartHelpers";
+import { TOURNAMENT_STATUS_LABELS } from "../../constants/tournamentConfig";
 
 const GRANULARITY_OPTIONS = [
   { value: "day", label: "Theo ngày" },
@@ -35,18 +36,16 @@ const RANK_MEDAL = ["🥇", "🥈", "🥉"];
    biểu đồ bên dưới ra khỏi tầm mắt. */
 const TABLE_PAGE_SIZES = [10, 20, 50];
 
-/** Khớp enum TournamentStatus ở BE — dùng cho bộ lọc trạng thái giải đấu. */
-const TOURNAMENT_STATUS_OPTIONS = [
-  { value: "DRAFT", label: "Nháp" },
-  { value: "OPEN_FOR_REGISTRATION", label: "Mở đăng ký" },
-  { value: "REGISTRATION_CLOSED", label: "Đóng đăng ký" },
-  { value: "DRAW_PREVIEW", label: "Xem trước bốc thăm" },
-  { value: "DRAW_DONE", label: "Đã bốc thăm" },
-  { value: "FINAL_BRACKET_READY", label: "Sẵn sàng chung kết" },
-  { value: "IN_PROGRESS", label: "Đang diễn ra" },
-  { value: "COMPLETED", label: "Hoàn thành" },
-  { value: "CANCELLED", label: "Đã hủy" },
-];
+/**
+ * Bộ lọc trạng thái giải đấu — suy ra từ `TOURNAMENT_STATUS_LABELS` để chỉ có
+ * một nguồn nhãn tiếng Việt. Bảng tự viết ở đây trước đây gọi DRAW_PREVIEW là
+ * "Xem trước bốc thăm" còn constants gọi "Xem trước bracket": cùng một trạng
+ * thái mà hai màn hiện hai chữ khác nhau. Thứ tự key trong constants đã đúng
+ * thứ tự enum của BE nên không cần sắp lại.
+ */
+const TOURNAMENT_STATUS_OPTIONS = Object.entries(TOURNAMENT_STATUS_LABELS).map(
+  ([value, label]) => ({ value, label })
+);
 
 const PLAYER_SORT_OPTIONS = [
   { value: "PRIZE", label: "Tiền thưởng" },

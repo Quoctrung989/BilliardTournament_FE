@@ -32,7 +32,7 @@ export const TOURNAMENT_STATUS_LABELS = {
   DRAFT: "Nháp",
   OPEN_FOR_REGISTRATION: "Mở đăng ký",
   REGISTRATION_CLOSED: "Đóng đăng ký",
-  DRAW_PREVIEW: "Xem trước bracket",
+  DRAW_PREVIEW: "Xem trước bốc thăm",
   DRAW_DONE: "Đã bốc thăm",
   FINAL_BRACKET_READY: "Sẵn sàng chung kết",
   IN_PROGRESS: "Đang diễn ra",
