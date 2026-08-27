@@ -1154,8 +1154,14 @@ const DrawPage = ({ api, basePath }) => {
                 {bulkMode ? "Đang chọn nhiều…" : "Chọn nhiều — gán bàn/giờ"}
               </button>
 
-              {/* Bracket đã chốt, giải chưa chạy — bắt đầu ngay tại đây, khỏi quay về trang chi tiết */}
-              {isDrawDone && (
+              {/* Bracket đã chốt, giải chưa chạy — bắt đầu ngay tại đây, khỏi quay về trang chi tiết.
+                  Loại kép (CUT_TO_SE) KHÔNG hiện nút này: trận Nhánh Thắng/Thua đã chấm điểm được
+                  ngay từ DRAW_DONE (xem assertMatchPlayable), còn "Điền bracket Last X" bên dưới
+                  lại đòi status đúng bằng DRAW_DONE mới chạy — bấm "Bắt đầu giải đấu" giữa chừng
+                  sẽ khoá cứng, không còn cách nào điền Last X nữa (không có đường lùi
+                  IN_PROGRESS→DRAW_DONE). BE cũng đã chặn transition này, đây chỉ ẩn bớt lối dẫn
+                  tới cái bẫy đó. */}
+              {isDrawDone && !isDoubleElim && (
                 <AdminButton variant="success" disabled={startingTournament}
                              onClick={handleStartTournament}
                              className="flex items-center gap-2">

@@ -18,7 +18,12 @@ export const createTournamentManagementApi = (scope) => {
     createTournament: (body) => unwrap(axiosClient.post(`${base}/tournaments`, body)),
     updateTournament: (id, body) => unwrap(axiosClient.put(`${base}/tournaments/${id}`, body)),
     getTournament: (id) => unwrap(axiosClient.get(`${base}/tournaments/${id}`)),
-    getConfigForm: (id) => unwrap(axiosClient.get(`${base}/tournaments/${id}/config-form`)),
+    // sePhaseSizePreview: xem trước danh sách "Số ván thắng theo vòng đấu" theo giá trị đang gõ
+    // (chưa lưu) ở ô "Số người vào vòng loại trực tiếp" — không truyền thì BE dùng giá trị đã lưu.
+    getConfigForm: (id, sePhaseSizePreview) =>
+      unwrap(axiosClient.get(`${base}/tournaments/${id}/config-form`, {
+        params: sePhaseSizePreview != null ? { sePhaseSizePreview } : undefined,
+      })),
     saveConfig: (id, body) => unwrap(axiosClient.put(`${base}/tournaments/${id}/config`, body)),
     getResolvedConfig: (id) => unwrap(axiosClient.get(`${base}/tournaments/${id}/config`)),
     validateConfig: (id) =>

@@ -242,9 +242,9 @@ const LoginPage = () => {
           {/* News */}
           <div>
             <h4 style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 12 }}>Tin tức</h4>
-            <a href="https://matchroompool.com" target="_blank" rel="noreferrer"
+            <a href="/news"
               style={{ fontSize: 12.5, color: "#8a99b5", textDecoration: "none", display: "block" }}>
-              🌐 matchroompool.com
+              🌐 Tin tức BTMS
             </a>
           </div>
 
@@ -266,12 +266,9 @@ const LoginPage = () => {
           {/* Contact */}
           <div>
             <h4 style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 12 }}>Liên hệ</h4>
-            <p style={{ fontSize: 12.5, color: "#8a99b5", marginBottom: 6 }}>📞 +44 (0)1277 359 900</p>
-            <p style={{ fontSize: 12.5, color: "#8a99b5", marginBottom: 12 }}>✉️ pool@matchroom.com</p>
+            <p style={{ fontSize: 12.5, color: "#8a99b5", marginBottom: 12 }}>✉️ support@btms.vn</p>
             <p style={{ fontSize: 12.5, color: "#8a99b5", lineHeight: 1.6 }}>
-              Matchroom Multi Sport Ltd<br />
-              Mascalls, Mascalls Lane, Brentwood,<br />
-              Essex, England CM14 5LJ
+              Hệ thống quản lý giải đấu Bi-a BTMS
             </p>
           </div>
         </div>
@@ -279,7 +276,7 @@ const LoginPage = () => {
         <div style={{ borderTop: "1px solid #1e2d4a", marginTop: 28, padding: "14px 0", textAlign: "center" }}>
           <p style={{ fontSize: 11.5, color: "#6b7280" }}>
             Nền tảng cập nhật tỉ số trực tiếp <strong style={{ fontStyle: "italic", color: "#8a99b5", textTransform: "uppercase" }}>btms</strong>.<br />
-            Bản quyền © Đã đăng ký bảo hộ cho Matchroom Multi Sport Ltd
+            Bản quyền © BTMS. Bảo lưu mọi quyền.
           </p>
         </div>
       </footer>

@@ -47,12 +47,11 @@ const Footer = () => {
 
           <div className="max-w-[540px]">
             <p className="text-[12px] font-normal text-[#2b2b2b] dark:text-gray-300">
-              Matchroom Multi Sport Ltd, Mascalls, Mascalls Lane, Brentwood,
-              Essex, England CM14 5LJ
+              Hệ thống quản lý giải đấu Bi-a BTMS · support@btms.vn
             </p>
 
             <p className="mt-2 text-[12px] font-light text-[#2b2b2b] dark:text-gray-400">
-              © 2024 Matchroom Multi Sport Ltd. Bảo lưu mọi quyền.
+              © BTMS. Bảo lưu mọi quyền.
             </p>
           </div>
 

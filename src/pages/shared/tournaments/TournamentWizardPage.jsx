@@ -19,6 +19,22 @@ import {
 /** Query intent khi vào wizard từ lỗi đóng đăng ký (TOURNAMENT_010). */
 const INTENT_CLOSE_REGISTRATION = "close-registration";
 
+/**
+ * Gợi ý "Số người vào vòng loại trực tiếp" (se_phase_size) theo quy mô giải — KHÔNG phải default
+ * tĩnh dùng chung cho mọi giải Loại kép (lý do field này cố ý không có defaultValue ở catalog admin
+ * — xem DataInitializer#ensureFormatConfigFieldsForDE), mà tính riêng theo maxParticipants của
+ * chính giải đang tạo: luôn ra đúng 1 số hợp lệ (lũy thừa 2, nhỏ hơn maxParticipants) — nửa kích
+ * thước bracket, VD 16 người → gợi ý 8, 32 → 16, 64 → 32. Owner vẫn sửa lại thoải mái, đây chỉ là
+ * điền sẵn để đỡ phải tự tính nhẩm lũy thừa 2 cho 1 field bắt buộc.
+ */
+const suggestSePhaseSize = (maxParticipants) => {
+  const n = Number(maxParticipants);
+  if (!Number.isFinite(n) || n < 4) return null;
+  let bracketSize = 1;
+  while (bracketSize < n) bracketSize *= 2;
+  return bracketSize / 2;
+};
+
 const defaultBasic = {
   name: "",
   description: "",
@@ -273,6 +289,15 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     [raceToRules, thirdPlaceEnabled]
   );
 
+  /** Loại kép: chưa có se_phase_size (chưa lưu, chưa gõ) thì bảng race-to phía dưới không có cơ
+   *  sở gì để hiện — xem comment ở chỗ render. */
+  const sePhaseSizeMissing = useMemo(() => {
+    if (basic.format !== "DOUBLE_ELIMINATION") return false;
+    const field = configFields.find((f) => f.fieldKey === "se_phase_size");
+    const raw = field?.value ?? field?.defaultValue;
+    return raw === undefined || raw === null || String(raw).trim() === "";
+  }, [basic.format, configFields]);
+
   const handleRaceToChange = useCallback((updatedVisibleRules) => {
     setRaceToRules((prev) =>
       prev.map((r) => updatedVisibleRules.find((u) => u.roundKey === r.roundKey) || r)
@@ -349,14 +374,35 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
     try {
       const form = await api.getConfigForm(tournamentId);
       setSeedingMethod(form.seedingMethod || "RANDOM");
-      setConfigFields(form.fields || []);
-      setRaceToRules(form.raceToRules || []);
+
+      // se_phase_size chưa từng lưu (field trống, đúng thiết kế — không có static default) thì
+      // điền sẵn gợi ý theo maxParticipants của CHÍNH giải này, vẫn sửa được bình thường.
+      const suggestedSePhaseSize = suggestSePhaseSize(basic.maxParticipants);
+      const sePhaseSizeField = (form.fields || []).find((f) => f.fieldKey === "se_phase_size");
+      const alreadySet = sePhaseSizeField
+        && (sePhaseSizeField.value ?? sePhaseSizeField.defaultValue ?? "").toString().trim() !== "";
+      const shouldSuggest = sePhaseSizeField && !alreadySet && suggestedSePhaseSize != null;
+
+      setConfigFields(
+        shouldSuggest
+          ? form.fields.map((f) => (f.fieldKey === "se_phase_size" ? { ...f, value: String(suggestedSePhaseSize) } : f))
+          : (form.fields || [])
+      );
+
+      // Vừa áp gợi ý thì bảng race-to phải khớp NGAY với gợi ý đó — không thì bảng nháy qua bản
+      // tính theo default 8 hardcode ở BE trước khi effect live-preview debounce kịp tự sửa lại.
+      if (shouldSuggest) {
+        const preview = await api.getConfigForm(tournamentId, suggestedSePhaseSize);
+        setRaceToRules(preview.raceToRules || []);
+      } else {
+        setRaceToRules(form.raceToRules || []);
+      }
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
-  }, [api, tournamentId]);
+  }, [api, tournamentId, basic.maxParticipants]);
 
   const loadReview = useCallback(async () => {
     if (!tournamentId) return;
@@ -394,6 +440,32 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
   useEffect(() => { if (!isNew) loadTournament(); }, [isNew, loadTournament]);
   useEffect(() => { if (step === 2 && tournamentId) loadConfigForm(); }, [step, tournamentId, loadConfigForm]);
   useEffect(() => { if (step === 3 && tournamentId) loadReview(); }, [step, tournamentId, loadReview]);
+
+  /**
+   * Loại kép (CUT_TO_SE): "Số ván thắng theo vòng đấu" bên dưới chỉ hiện đúng những vòng SẼ THẬT
+   * SỰ diễn ra, tính từ ô "Số người vào vòng loại trực tiếp" (se_phase_size) — xem
+   * OwnerTournamentServiceImpl#filterRealizedRaceToRules. Trước đây danh sách đó chỉ đổi SAU khi
+   * bấm lưu, vì backend chỉ đọc được giá trị se_phase_size đã lưu trong DB, không phải giá trị
+   * đang gõ dở trên form — gõ 4 hay 8 gì cũng không thấy gì đổi. Debounce gọi lại config-form kèm
+   * giá trị đang gõ (sePhaseSizePreview) để xem trước ngay, không cần lưu trước.
+   */
+  useEffect(() => {
+    if (step !== 2 || !tournamentId || basic.format !== "DOUBLE_ELIMINATION") return;
+    const sePhaseSizeField = configFields.find((f) => f.fieldKey === "se_phase_size");
+    const raw = sePhaseSizeField?.value ?? sePhaseSizeField?.defaultValue;
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return;
+
+    const timer = setTimeout(() => {
+      api.getConfigForm(tournamentId, parsed)
+        .then((form) => setRaceToRules(form.raceToRules || []))
+        .catch(() => {
+          // Chỉ là xem trước — lỗi thì giữ nguyên danh sách đang hiện, không chặn việc điền form
+        });
+    }, 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, tournamentId, basic.format, configFields, api]);
 
   // Khi vào từ lỗi đóng ĐK: gợi ý preset theo số người thực tế (approvedCount), không giữ chuỗi cũ theo maxSlots.
   useEffect(() => {
@@ -1161,7 +1233,20 @@ const TournamentWizardPage = ({ api, basePath, roleLabel = "Owner" }) => {
               <TournamentConfigFieldForm fields={configFields} onChange={setConfigFields} />
 
               <h3 className="text-sm font-semibold text-slate-700 dark:text-white/75 mt-8 mb-3">Số ván thắng theo vòng đấu</h3>
-              <TournamentRaceToOverrides rules={visibleRaceToRules} onChange={handleRaceToChange} />
+              {/* se_phase_size CỐ Ý không có giá trị mặc định (mỗi giải một quy mô khác nhau, không
+                  có số nào đúng cho mọi giải — xem DataInitializer#ensureFormatConfigFieldsForDE).
+                  Nhưng bảng dưới đây, nếu chưa nhập gì, backend lại âm thầm giả định 8 để có cái mà
+                  hiện — Owner thấy bảng đầy đủ số liệu trong khi mình chưa hề chọn số người vào Last
+                  X, dễ tưởng đó là mặc định thật. Ẩn hẳn bảng, nói rõ lý do, cho tới khi có giá trị
+                  thật (đã lưu hoặc đang gõ) — khớp đúng tinh thần "không tự đoán hộ" của field kia. */}
+              {sePhaseSizeMissing ? (
+                <p className="text-sm text-slate-500 dark:text-white/50 border border-dashed border-slate-300 dark:border-white/15 rounded-lg px-4 py-3">
+                  Nhập "Số người vào vòng loại trực tiếp" ở trên trước — bảng số ván thắng theo vòng
+                  đấu phụ thuộc vào số đó nên chưa hiện được.
+                </p>
+              ) : (
+                <TournamentRaceToOverrides rules={visibleRaceToRules} onChange={handleRaceToChange} />
+              )}
 
               <div className="flex justify-between gap-2 mt-6 pt-4 border-t border-slate-100 dark:border-white/10">
                 {isCloseRegistrationMode ? (

@@ -97,7 +97,9 @@ const TournamentRegisterPage = () => {
 
   /* Trạng thái submit */
   const [submitState, setSubmitState] = useState("idle");
-  // idle | submitting | paying | success_free | success_paid_retry
+  // idle | submitting | paying | success_free | success_paid
+  // ("paying" chỉ vào khi người dùng bấm "Thanh toán ngay" ở màn success_paid —
+  //  submit không còn tự động kéo sang PayOS nữa, xem handleSubmit bên dưới)
   const [registrationId, setRegistrationId] = useState(null);
 
   const load = useCallback(async () => {
@@ -177,27 +179,19 @@ const TournamentRegisterPage = () => {
 
     try {
       if (hasFee) {
-        /* Có phí: submit → checkout → redirect PayOS (1 thao tác liên tục) */
+        /* Có phí: submit xong luôn dừng ở màn xác nhận, để người đăng ký TỰ chọn
+           thanh toán ngay hay để sau — không tự động kéo sang PayOS ngay lập tức.
+           Trước đây submit → tự gọi checkout liền, PayOS chỉ cần chậm/lỗi mạng
+           một nhịp là hiện toast lỗi ngay trước mặt người dùng dù đăng ký đã lưu
+           thành công. Giờ việc gọi PayOS chỉ xảy ra khi họ bấm nút, ở handleRetryPayment. */
         setSubmitState("submitting");
         const response = await submitTournamentRegistration(tournamentId, {
           registrationType: formPreview?.participantType || "SINGLE",
           note: note.trim() || null,
           fieldValues,
         });
-        const regId = response.id;
-        setRegistrationId(regId);
-
-        setSubmitState("paying");
-        try {
-          const co = await createCheckout(regId);
-          window.location.href = co.checkoutUrl;
-          // Không set state thêm vì browser sẽ redirect
-        } catch (payErr) {
-          // Checkout thất bại. Đăng ký đã lưu rồi nên đừng quay về "idle" —
-          // chuyển sang màn cho trả tiền lại, `registrationId` ở trên đủ để thử lại
-          toast.error("Tạo đơn thanh toán thất bại. Bạn có thể thử lại bên dưới.");
-          setSubmitState("success_paid_retry");
-        }
+        setRegistrationId(response.id);
+        setSubmitState("success_paid");
       } else {
         /* Miễn phí: submit → màn xác nhận */
         setSubmitState("submitting");
@@ -224,7 +218,7 @@ const TournamentRegisterPage = () => {
       window.location.href = co.checkoutUrl;
     } catch (err) {
       toast.error(getApiErrorMessage(err));
-      setSubmitState("success_paid_retry");
+      setSubmitState("success_paid");
     }
   };
 
@@ -315,15 +309,18 @@ const TournamentRegisterPage = () => {
     );
   }
 
-  /* ── Có phí nhưng checkout lỗi — cho phép thử lại ── */
-  if (submitState === "success_paid_retry") {
+  /* ── Đã lưu đăng ký, giải có phí: để người đăng ký TỰ chọn thanh toán ngay
+     hay để sau, thay vì tự động kéo sang PayOS. Màn này cũng là nơi hạ cánh
+     khi bấm "Thanh toán ngay" mà PayOS lỗi — handleRetryPayment quay lại đây
+     kèm toast lỗi, registrationId vẫn còn nên bấm lại được ngay. ── */
+  if (submitState === "success_paid") {
     return (
       <div className="max-w-lg mx-auto px-4 py-12 content-dark">
         <div className="admin-card p-8 text-center">
           <CheckCircle size={56} className="mx-auto mb-4 text-emerald-500" />
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Đăng ký đã được ghi nhận!</h2>
           <p className="text-slate-500 dark:text-white/60 mb-2">
-            Đơn đăng ký của bạn đã lưu. Bạn cần thanh toán để xác nhận tham gia.
+            Đơn đăng ký của bạn đã lưu. Chọn thanh toán ngay để xác nhận tham gia liền, hoặc để sau cũng được.
           </p>
           <div className="mb-6 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
             <p className="text-sm text-indigo-600 font-medium mb-1">Phí tham dự</p>
@@ -391,8 +388,8 @@ const TournamentRegisterPage = () => {
           <div className="text-sm">
             <p className="font-semibold text-amber-800">Quy trình đăng ký có phí</p>
             <p className="text-amber-700 mt-0.5">
-              1. Điền form bên dưới → 2. Nhấn nút → 3. Tự động chuyển tới PayOS để thanh toán{" "}
-              <strong>{fmtMoney(formPreview.entryFee)}</strong> → 4. Thanh toán xong = Tham gia chính thức
+              1. Điền form bên dưới → 2. Gửi đăng ký → 3. Chọn thanh toán{" "}
+              <strong>{fmtMoney(formPreview.entryFee)}</strong> ngay hoặc để sau → 4. Thanh toán xong = Tham gia chính thức
             </p>
           </div>
         </div>
@@ -450,14 +447,14 @@ const TournamentRegisterPage = () => {
               {submitState === "submitting" ? (
                 <><Loader size={18} className="animate-spin" /> Đang gửi đăng ký...</>
               ) : hasFee ? (
-                <><CreditCard size={18} /> Đăng ký & thanh toán {fmtMoney(formPreview.entryFee)}</>
+                <><CreditCard size={18} /> Gửi đăng ký</>
               ) : (
                 "Gửi đăng ký"
               )}
             </button>
             <p className="text-xs text-slate-400 dark:text-white/40 text-center mt-2">
               {hasFee
-                ? "Bạn sẽ được tự động chuyển sang trang thanh toán PayOS ngay sau khi gửi."
+                ? "Sau khi gửi, bạn sẽ chọn thanh toán ngay hoặc để sau."
                 : "Đăng ký xong sẽ được xét duyệt tự động theo số slot còn trống."}
             </p>
           </div>

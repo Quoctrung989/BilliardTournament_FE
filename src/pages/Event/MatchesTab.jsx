@@ -114,10 +114,16 @@ const buildRoundsFromApiStage = (stageMatches, stageType) => {
   const roundNos = [...new Set(stageMatches.map(m => m.roundNo))].sort((a,b)=>a-b);
   const total = roundNos.length;
   const isLeague = LEAGUE_STAGE_TYPES.includes(stageType);
+  /* WINNERS/LOSERS (2 nhánh của Loại kép) không bao giờ tự kết thúc bằng 1 trận chung kết thật —
+     hệ thống luôn chạy CUT_TO_SE nên 2 nhánh này bị cắt ngang, gộp vào bracket Last-X (KNOCKOUT)
+     mới thực sự có tứ/bán/chung kết. Vòng cuối cùng thấy trong dữ liệu của WINNERS/LOSERS chỉ là
+     "vòng cuối trước khi cắt", không phải chung kết — gọi nhầm hứa hẹn 1 nhà vô địch không có
+     thật ở đúng bracket này. */
+  const isTruncatedBracket = stageType === "WINNERS" || stageType === "LOSERS";
   return roundNos.map((rNo, idx) => {
     const fromEnd = total - 1 - idx;
-    // Stage vòng tròn: chỉ "Vòng N"; chỉ knockout mới có tứ/bán/chung kết
-    const label = isLeague ? `Vòng ${rNo}`
+    // Stage vòng tròn / nhánh bị cắt ngang: chỉ "Vòng N"; chỉ knockout thật mới có tứ/bán/chung kết
+    const label = (isLeague || isTruncatedBracket) ? `Vòng ${rNo}`
       : fromEnd === 0 ? "Chung kết"
       : fromEnd === 1 ? "Bán kết"
       : fromEnd === 2 ? "Tứ kết"
@@ -524,16 +530,31 @@ const StandingView = ({ rows }) => {
 ═══════════════════════════════════════════════════════════════════ */
 const C_H=88, C_W=218, P_GAP=16, P_SP=30, R_GAP=60;
 
-function buildBracketGeometry(rounds, matchesByRound) {
+/**
+ * `alternating=true` (Nhánh Thua) — mỗi cặp vòng ghép theo kiểu XEN KẼ thay vì luôn "2 dồn 1"
+ * như nhánh thường, khớp đúng cách {@code BracketGenerationServiceImpl} dựng nhánh Thua:
+ * vòng LẺ (round index 0, 2, 4... vì index 0 = vòng 1) đổ THẲNG 1-1 sang vòng sau (giữ nguyên vị
+ * trí, chờ người rớt từ nhánh Thắng xuống ghép nốt) — chỉ vòng CHẴN mới thật sự ghép 2 trận liền kề
+ * thành 1, giống nhánh Thắng bình thường. Trước đây dùng chung công thức "2 dồn 1" cho mọi vòng
+ * nên đường nối Nhánh Thua vẽ sai (2 trận vòng 1 gộp chung vào 1 trận vòng 2, trong khi dữ liệu
+ * thật là mỗi trận vòng 1 có trận vòng 2 riêng của nó).
+ */
+function buildBracketGeometry(rounds, matchesByRound, alternating = false) {
   // Find first round match count to determine bracket size
   const firstRoundId = rounds[0]?.id;
   const firstRoundCount = matchesByRound[firstRoundId]?.length || 1;
+
+  // true nếu vòng nguồn (0-based ri) đổ thẳng 1-1 sang vòng sau, không ghép cặp
+  const isOnePerParent = (ri) => alternating && ri % 2 === 0;
 
   function posY(roundIdx, matchIdx) {
     if (roundIdx === 0) {
       const half = firstRoundCount;
       const off = matchIdx >= half/2 ? P_SP : 0;
       return matchIdx * (C_H + P_GAP) + off + C_H/2;
+    }
+    if (isOnePerParent(roundIdx - 1)) {
+      return posY(roundIdx-1, matchIdx);
     }
     return (posY(roundIdx-1, matchIdx*2) + posY(roundIdx-1, matchIdx*2+1)) / 2;
   }
@@ -550,7 +571,7 @@ function buildBracketGeometry(rounds, matchesByRound) {
     const count = matchesByRound[rounds[ri].id]?.length || 0;
     for (let mi = 0; mi < count; mi++) {
       const midX = posXR(ri) + R_GAP/2;
-      const parentMi = Math.floor(mi/2);
+      const parentMi = isOnePerParent(ri) ? mi : Math.floor(mi/2);
       paths.push(`M ${posXR(ri)} ${posY(ri,mi)} H ${midX} V ${posY(ri+1,parentMi)} H ${posXL(ri+1)}`);
     }
   });
@@ -570,9 +591,13 @@ const BracketView = ({ matches, rounds, flashIds, feedersMap }) => {
     return map;
   }, [matches, rounds]);
 
+  // Nhánh Thua ghép vòng xen kẽ (không phải "2 dồn 1" đều mọi vòng như nhánh thường) — xem
+  // buildBracketGeometry. `rounds` tự mang sẵn field `bracket` ("W"/"L"/"GF"/null) từ
+  // buildRoundsFromApiStage nên suy ra thẳng từ đó, khỏi cần thêm prop riêng.
+  const isLosersBracket = rounds[0]?.bracket === "L";
   const { posTop, posXL, svgH, svgW, paths } = useMemo(
-    () => buildBracketGeometry(rounds, matchesByRound),
-    [rounds, matchesByRound]
+    () => buildBracketGeometry(rounds, matchesByRound, isLosersBracket),
+    [rounds, matchesByRound, isLosersBracket]
   );
 
   const scrollRef = useRef(null);

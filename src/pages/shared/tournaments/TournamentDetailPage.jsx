@@ -554,13 +554,20 @@ const TournamentDetailPage = ({ api, basePath }) => {
             >
               Xem / Quản lý bracket
             </AdminButton>
-            <AdminButton
-              variant="secondary"
-              disabled={statusChanging}
-              onClick={() => handleStatusChange("IN_PROGRESS", "Bắt đầu giải đấu?")}
-            >
-              Bắt đầu giải đấu
-            </AdminButton>
+            {/* Loại kép (CUT_TO_SE) không đi qua IN_PROGRESS — trận Nhánh Thắng/Thua đã chấm
+                điểm được ngay từ DRAW_DONE, và "Điền bracket Last X" đòi status đúng bằng
+                DRAW_DONE mới chạy. Bấm nút này sẽ khoá cứng, không còn cách nào điền Last X nữa
+                (không có đường lùi IN_PROGRESS→DRAW_DONE) — BE cũng đã chặn, đây chỉ là ẩn bớt
+                đường dẫn tới cái bẫy đó. */}
+            {detail.format !== "DOUBLE_ELIMINATION" && (
+              <AdminButton
+                variant="secondary"
+                disabled={statusChanging}
+                onClick={() => handleStatusChange("IN_PROGRESS", "Bắt đầu giải đấu?")}
+              >
+                Bắt đầu giải đấu
+              </AdminButton>
+            )}
           </>
         )}
 
