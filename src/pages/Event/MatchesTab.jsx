@@ -954,7 +954,10 @@ const MatchesTab = ({ tournament }) => {
       // Tập người còn trụ ở bước sau giai đoạn này
       let nextPlayerIds = null;
       if (i < perStage.length - 1) {
-        nextPlayerIds = perStage[i + 1].playerIds;
+        // Giai đoạn kế có thể đã được tạo sẵn nhưng chưa gán cơ thủ (đang chờ
+        // giai đoạn này đá xong) — tập rỗng đó KHÔNG phải mốc cắt, coi như chưa có
+        const next = perStage[i + 1].playerIds;
+        if (next.size > 0) nextPlayerIds = next;
       } else if (playoffFilled) {
         nextPlayerIds = playoffPlayerIds;
       }
